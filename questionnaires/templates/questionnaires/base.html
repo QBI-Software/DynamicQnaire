@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+{% load i18n %}
+
+<html lang="{{ LANGUAGE_CODE }}">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>{{ site_config.site_name }} - {% block title %}{% endblock %}</title>
+    {% load staticfiles %}
+    <link rel="icon" href="{% static "qtab/img/favicon.ico" %}" type="image/png"/>
+    <link rel="stylesheet" href="{% static "bootstrap/css/bootstrap.min.css" %}"/>
+    <link rel="stylesheet" href="{% static "qtab/css/style.css" %}"/>
+    <!-- Add fancyBox -->
+    <link rel="stylesheet" href="{% static "fancybox/source/jquery.fancybox.css" %}" type="text/css" media="screen" />
+
+    <script type="text/javascript" src="{% static "qtab/js/jquery-1.12.3.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "bootstrap/js/bootstrap.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "fancybox/source/jquery.fancybox.pack.js" %}"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+          $(".fancybox").fancybox({
+              helpers:{
+                title:{
+                  type: 'outside'
+                },
+                overlay:{
+                  speedOut: 0
+                }
+              },
+
+              openEffect	: 'none',
+              closeEffect	: 'none'
+          });
+      });
+    </script>
+
+  </head>
+  <body>
+	<nav class="navbar navbar-default">
+	  <div class="container-fluid">
+		<div class="navbar-header">
+		  <a  class="navbar-brand" href="/questionnaires/">
+		  <img src="{% static 'qtab/img/kermit.png' %}" alt="QTAB"/></a>
+		</div>
+
+	  </div>
+	</nav>
+	 <div class="container content">
+	{% block sidebar %}{% endblock %}
+	{% block content %}{% endblock %}
+	</div>
+	<footer>
+        {% block footer_navigation %}
+            {% include "questionnaires/footer_navbar.html" %}
+        {% endblock %}
+            <p>Copyright (c) 2016 Queensland Brain Institute</p>
+        </footer>
+    </body>
+</html>

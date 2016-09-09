@@ -1,0 +1,51 @@
+{% extends "questionnaires/base.html" %}
+{% block content %}{% load staticfiles %}
+<div class="container">
+    <div class="jumbotron">
+        <span><img src="{% static "qtab/img/logo.png" %}" align="center" alt="QBI, The University of Queensland"/></span>
+        <h1>Welcome to the Queensland Twin Adolescent Brain database</h1>
+        <p>The QTAB database stores information on neurodevelopmental processes of children as they progress through adolescence.
+        </p>
+
+    </div>
+
+    <div class="row">
+        <div class="col-sm-4">
+            <div class="well">
+                <h3>Questionnaires</h3>
+                {% if questionnaire_list %}
+                <p>The database currently contains {{ questionnaire_list|length }} questionnaires.</p>
+                {% else %}
+                <p>There are no questionnaires.</p>
+                {% endif %}
+            </div></div>
+        <div class="col-sm-4">
+            <div class="well">
+                <p>Please select the required Questionnaire to begin</p>
+                <ol>
+                    {% for q in questionnaire_list %}
+                   <li> <a href="#" class="btn btn-success">{{q}}</a></li>
+                {% endfor %}
+
+                </ol>
+
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="well">
+                <h3>Completed Questionnaires</h3>
+                <ol>
+                    {% for q in questionnaire_list %}
+                   <li> <a href="#" class="btn btn-danger">{{q}}</a></li>
+                {% endfor %}
+
+                </ol>
+
+            </div>
+        </div>
+
+
+    </div>
+
+</div>
+{% endblock %}
