@@ -1,0 +1,18 @@
+{% extends "questionnaires/base.html" %}
+{% block content %}{% load staticfiles %}
+
+<div class="jumbotron text-center">
+    <h1><span class="glyphicon glyphicon-check"></span>Questionnaire Complete!</h1>
+    <p>Thanks for completing the questionnaire!</p>
+
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm-4">
+            <p></p><a href="/questionnaires" class="btn btn-success"> Return to Home <span
+                class="glyphicon glyphicon-circle-arrow-up"></span></a>
+        </div>
+    </div>
+</div>
+{% endblock content %}

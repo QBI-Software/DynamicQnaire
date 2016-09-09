@@ -21,10 +21,10 @@
             </div></div>
         <div class="col-sm-4">
             <div class="well">
-                <p>Please select the required Questionnaire to begin</p>
+                <h3>Questionnaires to begin</h3>
                 <ol>
                     {% for q in questionnaire_list %}
-                   <li> <a href="#" class="btn btn-success">{{q}}</a></li>
+                   <li> <a href="{% url 'questionnaires:q' q.id %}" class="btn btn-success">{{q}} <span class="glyphicon glyphicon-circle-arrow-right"></span></a></li>
                 {% endfor %}
 
                 </ol>
@@ -36,7 +36,7 @@
                 <h3>Completed Questionnaires</h3>
                 <ol>
                     {% for q in questionnaire_list %}
-                   <li> <a href="#" class="btn btn-danger">{{q}}</a></li>
+                   <li> <a href="#" class="btn btn-warning">{{q}} <span class="glyphicon glyphicon-check"></span></a></li>
                 {% endfor %}
 
                 </ol>

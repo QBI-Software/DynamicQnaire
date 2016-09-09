@@ -15,11 +15,13 @@ class Category(models.Model):
 
 
 ##### CLASSES ############
+TYPES=(('single','Single Page' ),('multi','Multi Page' ))
 class Questionnaire(models.Model):
     title = models.CharField(_("Title"), max_length=200)
     description = models.TextField(_("Description"), null=True, blank=True)
     code = models.CharField(_("Code"), max_length=10, unique=True)
     category = models.ForeignKey(Category, verbose_name="Category")
+    type = models.CharField(_("Type"), max_length=20, choices=TYPES, default='single')
 
     def __str__(self):
         return self.code + ": " + self.title
@@ -41,5 +43,4 @@ class Choice(models.Model):
 
     def __str__(self):
         return self.choice_text
-
 

@@ -21,7 +21,7 @@ class QuestionInline(admin.TabularInline):
 
 class QuestionnaireAdmin(admin.ModelAdmin):
     fieldsets = [
-        (None, {'fields': ['title','description', 'code','category']}),
+        (None, {'fields': ['title','description', 'code','category', 'type']}),
     ]
     inlines = [QuestionInline]
 
