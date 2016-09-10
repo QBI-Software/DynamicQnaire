@@ -1,5 +1,6 @@
 from django.db import models
 from django.core import urlresolvers
+from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 
 ##### LISTS #############
@@ -44,3 +45,13 @@ class Choice(models.Model):
     def __str__(self):
         return self.choice_text
 
+class TestResult(models.Model):
+    testee = models.ForeignKey(User)
+    test_datetime = models.DateTimeField(verbose_name="Test Datetime", auto_now=True)
+    test_questionnaire = models.ForeignKey(Questionnaire, verbose_name="Questionnaire", null=False)
+    test_result_question=models.ForeignKey(Question,verbose_name="Question", null=False)
+    test_result_choice=models.ForeignKey(Choice, verbose_name="Choice", null=False)
+    test_token = models.CharField(_("Hiddentoken"), max_length=100)
+
+    def __str__(self):
+        return self.test_questionnaire.title

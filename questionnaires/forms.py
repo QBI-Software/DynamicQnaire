@@ -1,5 +1,7 @@
 from django import forms
 from django.forms import Form, ModelForm, DateInput
+from django.forms.formsets import BaseFormSet
+
 from .models import *
 
 class QuestionnaireForm(ModelForm):
@@ -14,27 +16,53 @@ class QuestionnaireForm(ModelForm):
         model = Questionnaire
         fields = '__all__'
 
-class QuestionForm(ModelForm):
-    qid = 1
-    question = Question.objects.get(pk=qid)
-    question_text = forms.ModelChoiceField(label=question.question_text, queryset=question.choice_set.all())
+class MultipageQuestionForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
-        print('DEBUG:Qform: kwargs=', kwargs)
+        print('DEBUG: Qform: kwargs=', kwargs)
         initvals = kwargs.get('initial')
-        qid = initvals.get('qid')
-        print("DEBUG: QformTEXT=", qid)
-        #print("FIELDS=", self.fields)
+        #print("DEBUG: initvals=", initvals)
         super().__init__(*args, **kwargs)
-        #print("DEBUG: QformTEXT2=", len(qtext))
-        #print("FIELDS2=", self.fields['question_text'])
-        #self.fields['question_text'].label = initvals.get('qtext')
-        #self.fields['question_text'].queryset = initvals.get('qchoices')
+        if (initvals):
+            qid = initvals.get('qid')
+            #print("DEBUG: Qid=", qid)
+
+            question = Question.objects.get(pk=qid)
+            print("DEBUG: Qn=", question.id)
+
+            self.fields['question'] = forms.ChoiceField(label=question.question_text,
+                                                        widget=forms.RadioSelect,
+                                                        choices=[(c.choice_value, c.choice_text) for c in question.choice_set.all()])
+            for field in iter(self.fields):
+                self.fields[field].widget.attrs.update({
+                    'class': 'form-check'
+                })
 
 
-    class Meta:
-        model = Question
-        fields = ['question_text']
+
+#Form for questionnaire test
+class BaseQuestionFormSet(BaseFormSet):
+    def get_form_kwargs(self, index):
+        kwargs = super(BaseQuestionFormSet, self).get_form_kwargs(index)
+        print('BASEFORM kwargs:', kwargs)
+        return kwargs
+
+    def clean(self):
+        """
+        Adds validation to check that no two links have the same anchor or URL
+        and that all links have both an anchor and URL.
+        """
+        if any(self.errors):
+            return
+        results = []
+        for form in self.forms:
+            print("FORM:", self)
+            title = form.cleaned_data #['question']
+
+        results.append(title)
+        return results
+
+
 
 # Test form wizard
 class ContactForm1(forms.Form):

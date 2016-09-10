@@ -1,0 +1,15 @@
+{% extends "questionnaires/base.html" %}
+{% block content %}{% load staticfiles %}
+<div class="container">
+    <h1>{{qtitle}}</h1>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="well">
+                {{messages}}
+          <form method="POST" action="" class="form-inline">
+              {% csrf_token %}
+              {{ formset }}
+              <button class="btn btn-primary" type="submit">Submit</button>
+           </form>
+</div>
+{% endblock content %}

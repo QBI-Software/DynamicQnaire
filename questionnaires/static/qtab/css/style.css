@@ -62,20 +62,8 @@ a.glyphicon:active{
     margin-left: 30px;
 }
 
-ul#id_frogs li, ul#id_expts li{
+form ul{
     list-style-type:none;
-}
-ul#id_frogs label, ul#id_expts label{
-    width:auto;
-}
-ul#id_frogs input[type=checkbox], ul#id_expts input[type=checkbox]{
-    vertical-align:middle;
-    display:inherit;
-    height:auto;
-    width:auto;
-    float:left;
-    margin:5px;
-    min-width:20px;
 }
 ul.errorlist{
     color: #a94442;
