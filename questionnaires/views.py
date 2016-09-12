@@ -18,6 +18,21 @@ class IndexView(generic.ListView):
         """Return the last five published questions."""
         return Questionnaire.objects.order_by('title')
 
+    def get_context_data(self, **kwargs):
+        context = super(IndexView, self).get_context_data(**kwargs)
+        user = self.request.user
+        print("DEBUG: User=", user, " self=", self)
+        user_results = TestResult.objects.filter(testee=user).order_by('test_datetime')
+        print("DEBUG: user_results=", user_results)
+        qlist=self.get_queryset()
+        rlist = {}
+        for r in user_results:
+            rlist[r.test_questionnaire.id] = (r.test_datetime, r.test_questionnaire.title)
+            qlist = qlist.exclude(pk=r.test_questionnaire.id)
+        context['questionnaire_list'] = qlist
+        context['result_list']= rlist
+        return context
+
 
 class DetailView(generic.DetailView):
     model = Questionnaire

@@ -31,7 +31,7 @@ class MultipageQuestionForm(forms.Form):
             print("DEBUG: Qn=", question.id)
 
             self.fields['question'] = forms.ChoiceField(label=question.question_text,
-                                                        widget=forms.RadioSelect,
+                                                        widget=forms.RadioSelect, required=True,
                                                         choices=[(c.choice_value, c.choice_text) for c in question.choice_set.all()])
             for field in iter(self.fields):
                 self.fields[field].widget.attrs.update({
