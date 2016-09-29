@@ -2,26 +2,28 @@
 {% block content %}{% load staticfiles %}
 <div class="container">
     <div class="jumbotron">
-        <span><img src="{% static "
-                   qtab/img/logo.png" %}" align="center" alt="QBI, The University of Queensland"/></span>
-        <h1>Welcome to the Queensland Twin Adolescent Brain database</h1>
-        <p>The QTAB database stores information on neurodevelopmental processes of children as they progress through
-            adolescence.
-        </p>
+        <span><img src="{% static "qtab/img/logo.png" %}" align="center" alt="QBI, The University of Queensland"/></span>
+        <h1>Welcome to the <br/>Queensland Twin Adolescent Brain Study</h1>
+        <p>Please sign in so you can access your questionnaires!</p>
+
 
     </div>
-
+{% if questionnaire_list %}
     <div class="row">
         <div class="col-sm-4">
             <div class="well">
-                <h3>Questionnaires</h3>
-                {% if questionnaire_list %}
-                <p>The database currently contains {{ questionnaire_list|length }} questionnaires.</p>
-                {% else %}
-                <p>There are no questionnaires.</p>
-                {% endif %}
+                <h3>Groups</h3>
+
+               <ol>
+                    {% for q in group_list %}
+                    <li>{{q}} </li>
+                    {% endfor %}
+
+                </ol>
+
             </div>
         </div>
+
         <div class="col-sm-4">
             <div class="well">
                 <h3>Questionnaires to begin</h3>
@@ -68,6 +70,6 @@
 
 
     </div>
-
+   {% endif %}
 </div>
 {% endblock %}

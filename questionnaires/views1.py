@@ -15,13 +15,9 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 from django.utils.decorators import method_decorator
 from django.conf import settings
-from collections import OrderedDict
-from django.utils import six
 from django.template import RequestContext
 from ipware.ip import get_ip
 from axes.utils import reset
-import os
-from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 try:
     from StringIO import StringIO
@@ -38,7 +34,7 @@ logger = logging.getLogger(__name__)
 import datetime
 ###Local classes
 from .models import Questionnaire, Question, Choice, TestResult
-from .forms import BaseQuestionFormSet, MultipageQuestionForm, AxesCaptchaForm, QuestionForm
+from .forms import BaseQuestionFormSet, MultipageQuestionForm, AxesCaptchaForm
 
 
 ## Login
@@ -199,70 +195,7 @@ class ResultsView(generic.DetailView):
     template_name = 'questionnaires/results.html'
 
 
-class QuestionnaireWizard(SessionWizardView):
-    template_name = 'questionnaires/results.html'
-    qid = 1
-    #model = Questionnaire
-    form_class = MultipageQuestionForm
-    form_list = [MultipageQuestionForm]
-    initial_dict = {}
-    instance_dict ={}
-    #file_storage = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'photos'))
-
-    # def generateFormList(self):
-    #     form_list=[]
-    #     if self.qid is not None:
-    #         questions = Question.objects.filter(qid=self.qid).order_by('order')
-    #         for qn in questions.items():
-    #             form = QuestionForm(qn)
-    #             idx = str(qn.order)
-    #             self.form_list[idx] = form
-    #     return form_list
-    #
-    # def __init__(self, **kwargs):
-    #     print('DEBUG: init kwargs=', kwargs)
-    #     self.qid = kwargs.pop('form_list')
-    #     self.generateFormList()
-    #     return super(QuestionnaireWizard, self).__init__(**kwargs)
-    #
-    # def get_form_instance(self, step):
-    #     print('DEBUG: get form instance')
-    #     if self.qnaire is not None:
-    #         question = self.qnaire.question_set.filter(order=step)
-    #         return self.instance_dict.get(step, question)
-    #
-    # def get_context_data(self, form, **kwargs):
-    #     print('DEBUG: get context data')
-    #     qid = kwargs.get('pk')
-    #     print('DEBUG: qid=', qid)
-    #     data = self.get_cleaned_data_for_step(self.get_prev_step(
-    #         self.steps.current))
-    #     if self.steps.current is not None:
-    #         print('DEBUG: form_step=', self.steps.current)
-    #         questions = Question.objects.filter(qid=qid).order_by('order')
-    #         for qn in questions.items():
-    #             form = QuestionForm(qn)
-    #             idx = str(qn.order)
-    #             self.form_list[idx] = form
-    #
-    #     context = super(QuestionnaireWizard, self).get_context_data(form=form,
-    #                                                               **kwargs)
-    #     return context
-
-
-    # In addition to form_list, the done() method is passed a form_dict, which allows you to access the wizard’s forms based on their step names.
-    def done(self, form_list, form_dict, **kwargs):
-        user = form_dict['user'].save()
-        return render(self.request, 'questionnaires/done.html', {
-            'form_data': [form.cleaned_data for form in form_list],
-        })
-
-
-
-
-
-############## TESTING ##################
-class QuestionnaireWizard1(generic.FormView):
+class QuestionnaireWizard(generic.FormView):
     #model = Questionnaire
     template_name = 'contact.html'
     form_class = MultipageQuestionForm

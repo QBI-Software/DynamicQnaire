@@ -42,7 +42,35 @@
 		  <a  class="navbar-brand" href="/questionnaires/">
 		  <img src="{% static 'qtab/img/kermit.png' %}" alt="QTAB"/></a>
 		</div>
+        {% if user.is_authenticated %}
+		   
+		  <div class="navbar-right">
+            <p>Welcome, {{ user.username }}
+                <a class="btn btn-warning" href="{% url 'questionnaires:password_change' %}">Change password</a>
+            <a id="logoutbtn" class="btn btn-success" href="{% url 'questionnaires:logout' %}">Logout</a></p>
+          </div>
+        {% else %}
+          {% if form.non_field_errors %}
+            <p class="col-sm-4 alert alert-danger">
+            {% for error in form.non_field_errors %}
+                {{ error }}
+            {% endfor %}
+                <a href="{% url 'questionnaires:password_reset' %}">Lost password?</a>
+          </p>
 
+            {% endif %}
+
+		  <form class="navbar-form navbar-right" role="form" method="post" action="{% url 'questionnaires:loginform' %}">
+              {% csrf_token %}
+              <span><i class="glyphicon glyphicon-user"></i></span><div class="form-group">
+              <input type="text" class="form-control" name="username" placeholder="Username">
+              </div>
+              <span><i class="glyphicon glyphicon-lock"></i></span>
+              <div class="form-group"><input type="password" class="form-control" name="password" placeholder="Password">
+              </div>
+              <button type="submit" class="btn btn-primary">Sign In</button>
+          </form>
+        {% endif %}
 	  </div>
 	</nav>
 	 <div class="container content">

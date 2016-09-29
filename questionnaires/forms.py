@@ -1,8 +1,33 @@
 from django import forms
 from django.forms import Form, ModelForm, DateInput
 from django.forms.formsets import BaseFormSet
+from django.contrib.auth.forms import AuthenticationForm
+from captcha.fields import CaptchaField
 
 from .models import *
+
+class LoginForm(AuthenticationForm):
+    class Meta:
+        fields = ('username', 'password')
+        widgets = {'username': forms.TextInput(attrs={'class': 'form-control', 'name': 'username'}),
+                   'password': forms.PasswordInput(attrs={'class': 'form-control', 'name': 'password'})
+                   }
+
+
+class AxesCaptchaForm(Form):
+    captcha = CaptchaField()
+
+class QuestionForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in iter(self.fields):
+            self.fields[field].widget.attrs.update({
+                'class': 'form-control'
+            })
+
+    class Meta:
+        model = TestResult
+        fields = ['test_result_question','test_result_choice']
 
 class QuestionnaireForm(ModelForm):
     def __init__(self, *args, **kwargs):
