@@ -1,9 +1,6 @@
 from django.conf.urls import url
 from django import forms
 
-from .forms import QuestionnaireForm
-from .preview import QuestionnaireFormPreview
-from .forms import ContactForm1, ContactForm2, MultipageQuestionForm
 from .views import QuestionnaireWizard
 from django.contrib.auth.views import password_change,password_change_done,password_reset,password_reset_complete, password_reset_confirm, password_reset_done
 from axes.decorators import watch_login
@@ -25,7 +22,7 @@ urlpatterns = [
     #url(r'^(?P<pk>[0-9]+)/results/$', views.ResultsView.as_view(), name='results'),
     #url(r'^(?P<question_id>[0-9]+)/vote/$', views.vote, name='vote'),
     #url(r'^(?P<pk>[0-9]+)/q/$', views.test_questionnaire, name='q'),
-    url(r'^(?P<pk>[0-9]+)/q/$', QuestionnaireWizard.as_view(), name='q'),
+    url(r'^(?P<pk>[0-9]+)/q/$', views.load_questionnaire, name='q'),
     #url(r'^post/$', QuestionnaireFormPreview(QuestionnaireForm)),
     #url(r'^contact/$', ContactWizard.as_view([ContactForm1, ContactForm2])),
 ]

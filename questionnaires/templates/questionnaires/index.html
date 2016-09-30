@@ -4,29 +4,18 @@
     <div class="jumbotron">
         <span><img src="{% static "qtab/img/logo.png" %}" align="center" alt="QBI, The University of Queensland"/></span>
         <h1>Welcome to the <br/>Queensland Twin Adolescent Brain Study</h1>
+        {% if not user.is_authenticated %}
         <p>Please sign in so you can access your questionnaires!</p>
+        {% endif %}
 
 
     </div>
 {% if questionnaire_list %}
     <div class="row">
-        <div class="col-sm-4">
+
+        <div class="col-sm-6">
             <div class="well">
-                <h3>Groups</h3>
-
-               <ol>
-                    {% for q in group_list %}
-                    <li>{{q}} </li>
-                    {% endfor %}
-
-                </ol>
-
-            </div>
-        </div>
-
-        <div class="col-sm-4">
-            <div class="well">
-                <h3>Questionnaires to begin</h3>
+                <h3>Questionnaires to do</h3>
                 <ol>
                     {% for q in questionnaire_list %}
                     <li><a href="{% url 'questionnaires:q' q.id %}" class="btn btn-success">{{q}} <span
@@ -37,7 +26,7 @@
 
             </div>
         </div>
-        <div class="col-sm-4">
+        <div class="col-sm-6">
             <div class="well">
                 <h3>Completed Questionnaires</h3>
                 {% if result_list.items %}

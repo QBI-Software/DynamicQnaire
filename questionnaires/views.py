@@ -10,6 +10,7 @@ from django.core.urlresolvers import reverse_lazy, reverse
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import REDIRECT_FIELD_NAME, login, logout, authenticate
 from django.contrib.auth.views import password_change
+from django.contrib.auth.models import User, Group
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
@@ -38,7 +39,7 @@ logger = logging.getLogger(__name__)
 import datetime
 ###Local classes
 from .models import Questionnaire, Question, Choice, TestResult
-from .forms import BaseQuestionFormSet, MultipageQuestionForm, AxesCaptchaForm, QuestionForm
+from .forms import BaseQuestionFormSet, AxesCaptchaForm, AnswerForm
 
 
 ## Login
@@ -176,16 +177,18 @@ class IndexView(generic.ListView):
             print("DEBUG: User=", user)
             user_results = TestResult.objects.filter(testee=user).order_by('test_datetime')
             print("DEBUG: user_results=", user_results)
-            # TODO Select questionnaires for user groups
-            qlist=self.get_queryset()
-           # grouplist = Groups.objects.filter
+            usergrouplist = [g.name for g in user.groups.all()]
+            usergrouplist = Group.objects.values_list('name') #TODO Check exclusive/inclusive
+            print("DEBUG: user groups=", usergrouplist)
+            qlist=self.get_queryset().filter(group__name__in=usergrouplist)
+
 
             for r in user_results:
                 rlist[r.test_questionnaire.id] = (r.test_datetime, r.test_questionnaire.title)
                 qlist = qlist.exclude(pk=r.test_questionnaire.id)
         context['questionnaire_list'] = qlist
         context['result_list']= rlist
-        context['group_list'] = grouplist
+
         return context
 
 
@@ -198,74 +201,105 @@ class ResultsView(generic.DetailView):
     model = Question
     template_name = 'questionnaires/results.html'
 
+def load_questionnaire(request, *args, **kwargs):
+    """ Prepare questionnaire wizard with required questions """
+    #print('DEBUG: load kwargs=', kwargs)
+    qid = kwargs.pop('pk')
+    if qid is not None:
+        qnaire = Questionnaire.objects.get(pk=qid)
+        formlist=[AnswerForm] * qnaire.question_set.count()
+        questions = qnaire.question_set.order_by('order')
+        linkdata = {}
+        for q in questions:
+            linkdata[str(q.order-1)] = {'qid': q}
+        initdata = OrderedDict(linkdata)
+        print("DEBUG:initdata=", initdata)
+
+    else:
+        print('DEBUG: qid is none')
+    print('DEBUG:form_list: ', formlist)
+    form = QuestionnaireWizard.as_view(form_list=formlist, initial_dict=initdata)
+    return form(context=RequestContext(request), request=request)
 
 class QuestionnaireWizard(SessionWizardView):
     template_name = 'questionnaires/results.html'
-    qid = 1
-    #model = Questionnaire
-    form_class = MultipageQuestionForm
-    form_list = [MultipageQuestionForm]
-    initial_dict = {}
-    instance_dict ={}
-    #file_storage = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'photos'))
+    file_storage = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'photos'))
 
-    # def generateFormList(self):
-    #     form_list=[]
-    #     if self.qid is not None:
-    #         questions = Question.objects.filter(qid=self.qid).order_by('order')
-    #         for qn in questions.items():
-    #             form = QuestionForm(qn)
-    #             idx = str(qn.order)
-    #             self.form_list[idx] = form
-    #     return form_list
-    #
-    # def __init__(self, **kwargs):
-    #     print('DEBUG: init kwargs=', kwargs)
-    #     self.qid = kwargs.pop('form_list')
-    #     self.generateFormList()
-    #     return super(QuestionnaireWizard, self).__init__(**kwargs)
-    #
-    # def get_form_instance(self, step):
-    #     print('DEBUG: get form instance')
-    #     if self.qnaire is not None:
-    #         question = self.qnaire.question_set.filter(order=step)
-    #         return self.instance_dict.get(step, question)
-    #
+    def get_form_initial(self, step):
+        initial = {}
+        print('DEBUG: form init: step=',step)
+        print('DEBUG: form init: self=', self)
+        print('DEBUG: form init: kwargs=', self.kwargs)
+        print('DEBUG: form init: dict=', self.initial_dict)
+        return self.initial_dict.get(step)
+
     # def get_context_data(self, form, **kwargs):
-    #     print('DEBUG: get context data')
-    #     qid = kwargs.get('pk')
-    #     print('DEBUG: qid=', qid)
-    #     data = self.get_cleaned_data_for_step(self.get_prev_step(
-    #         self.steps.current))
-    #     if self.steps.current is not None:
-    #         print('DEBUG: form_step=', self.steps.current)
-    #         questions = Question.objects.filter(qid=qid).order_by('order')
-    #         for qn in questions.items():
-    #             form = QuestionForm(qn)
-    #             idx = str(qn.order)
-    #             self.form_list[idx] = form
-    #
-    #     context = super(QuestionnaireWizard, self).get_context_data(form=form,
-    #                                                               **kwargs)
+    #     context = super(QuestionnaireWizard, self).get_context_data(form=form, **kwargs)
+    #     if self.steps.current == '0':
+    #         context.update({'user': self.request.user})
     #     return context
 
 
+    # def process_formdata(self,form):
+    #     print('DEBUG:processformdata form=', form)
+    #     #print('DEBUG: processformdata: user=', self.request.user)
+    #     fdata = self.process_step(form)
+    #     print("DEBUG: cleaned data: ", fdata) #THIS ONE GIVES VALUES
+    #     #fdata1 = self.get_form_step_data(fdata)
+    #     #print("DEBUG: form data: ", fdata1)
+    #     #save to database
+    #     return fdata
+
     # In addition to form_list, the done() method is passed a form_dict, which allows you to access the wizard’s forms based on their step names.
     def done(self, form_list, form_dict, **kwargs):
-        user = form_dict['user'].save()
+        #print('DEBUG: form done: self=', self)
+        #print('DEBUG: form done: kwargs=', kwargs)
+        print('DEBUG: form init: formlist=', form_list)
+        print('DEBUG: form done: init=', self.initial_dict)
+        print('DEBUG: form done: formdict=', form_dict)
+        #fdata = self.process_formdata(form_list)
+        for key in form_dict:
+            print('DEBUG:key=', key)
+            print('DEBUG:q=',self.initial_dict.get(key)['qid'] )
+            #Find question and questionnaire
+            qn = self.initial_dict.get(key)['qid']
+            print('DEBUG:questionid=', qn.id)
+            qnaire = qn.qid
+            print('DEBUG: questionnaire=', qnaire.title)
+            #Get response
+            response = list(form_list)[int(key)].cleaned_data
+            choiceidx = int(response['question'])
+            print('DEBUG: formdata=', response['question'])  # response {'question',: '0'}
+            answer = qn.choice_set.filter(choice_value=choiceidx)[0]
+            print('DEBUG: answer=', answer)
+            # Load save
+            tresult = TestResult()
+            tresult.testee = self.request.user
+            tresult.test_questionnaire = qnaire
+            tresult.test_result_question = qn
+            tresult.test_result_choice = answer
+            tresult.test_token = self.request.POST['csrfmiddlewaretoken']
+            tresult.save()
+            print('TESTRESULT:', " Qnaire:", tresult.test_questionnaire.title,
+                  " Qn:", tresult.test_result_question.question_text,
+                  " Val:", tresult.test_result_choice.choice_text)
+
         return render(self.request, 'questionnaires/done.html', {
             'form_data': [form.cleaned_data for form in form_list],
+            'qnaire_title' : qnaire.title,
         })
 
 
 
 
 
+
+
 ############## TESTING ##################
-class QuestionnaireWizard1(generic.FormView):
+class OnepageQuestionnaireWizard(generic.FormView):
     #model = Questionnaire
     template_name = 'contact.html'
-    form_class = MultipageQuestionForm
+    form_class = AnswerForm
     form_list={}
     templates={'q-info':'questionnaires/results.html'}
 
@@ -295,7 +329,7 @@ class QuestionnaireWizard1(generic.FormView):
             for q in qnaire.question_set.all.order_by('order'):
                 print("DEBUG: Q=", q.question_text)
                 step = 'step-%d' % q.order - 1
-                flist[step] = MultipageQuestionForm(prefix='q_info', initial={'qid':q.id,'qtext':q.question_text, 'qchoices': q.choice_set.all()})
+                flist[step] = AnswerForm(prefix='q_info', initial={'qid':q.id,'qtext':q.question_text, 'qchoices': q.choice_set.all()})
             #self.form_list = flist
             print("DEBUG: form_list=", flist)
             context.update({'form_list': flist})
@@ -344,7 +378,7 @@ def test_questionnaire(request,*args,**kwargs):
     qnaire = Questionnaire.objects.get(pk=qid)
 
     # Create the formset, specifying the form and formset we want to use.
-    LinkFormSet = formset_factory(MultipageQuestionForm, formset=BaseQuestionFormSet, validate_max=True)
+    LinkFormSet = formset_factory(AnswerForm, formset=BaseQuestionFormSet, validate_max=True)
     print("DEBUG: formset=",LinkFormSet)
     # Get our existing link data for this user.  This is used as initial data.
     questions = qnaire.question_set.order_by('order') #Question.objects.order_by('order')

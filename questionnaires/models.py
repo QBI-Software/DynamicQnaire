@@ -1,6 +1,6 @@
 from django.db import models
 from django.core import urlresolvers
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.utils.translation import ugettext_lazy as _
 
 ##### LISTS #############
@@ -20,9 +20,11 @@ TYPES=(('single','Single Page' ),('multi','Multi Page' ))
 class Questionnaire(models.Model):
     title = models.CharField(_("Title"), max_length=200)
     description = models.TextField(_("Description"), null=True, blank=True)
+    intropage = models.TextField(_("Introduction"),null=True,blank=True)
     code = models.CharField(_("Code"), max_length=10, unique=True)
     category = models.ForeignKey(Category, verbose_name="Category")
     type = models.CharField(_("Type"), max_length=20, choices=TYPES, default='single')
+    group = models.ManyToManyField(Group)
 
     def __str__(self):
         return self.code + ": " + self.title
@@ -32,6 +34,7 @@ class Question(models.Model):
     question_text = models.CharField(_("Question Text"), max_length=200)
     question_image = models.ImageField(verbose_name="Question Image", null=True, blank=True)
     order = models.IntegerField(_("Sequence Order"), default=0)
+    group = models.ManyToManyField(Group, verbose_name="Group", blank=True)
 
     def __str__(self):
         return self.question_text
@@ -41,6 +44,7 @@ class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     choice_text = models.CharField(_("Choice Text"), max_length=200)
     choice_value = models.IntegerField(_("Value"),default=0)
+    group = models.ManyToManyField(Group, verbose_name="Group", blank=True)
 
     def __str__(self):
         return self.choice_text

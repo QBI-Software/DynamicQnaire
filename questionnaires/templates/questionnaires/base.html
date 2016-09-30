@@ -33,7 +33,7 @@
           });
       });
     </script>
-
+ {% block head %}{% endblock %}
   </head>
   <body>
 	<nav class="navbar navbar-default">
@@ -45,7 +45,7 @@
         {% if user.is_authenticated %}
 		   
 		  <div class="navbar-right">
-            <p>Welcome, {{ user.username }}
+            <p>Welcome, {{ user.first_name }}
                 <a class="btn btn-warning" href="{% url 'questionnaires:password_change' %}">Change password</a>
             <a id="logoutbtn" class="btn btn-success" href="{% url 'questionnaires:logout' %}">Logout</a></p>
           </div>

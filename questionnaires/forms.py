@@ -17,56 +17,33 @@ class LoginForm(AuthenticationForm):
 class AxesCaptchaForm(Form):
     captcha = CaptchaField()
 
-class QuestionForm(ModelForm):
+
+class AnswerForm(Form):
+    """Loads a question and multiple choice answer - WORKING """
     def __init__(self, *args, **kwargs):
+        #print('DEBUG: Qform: kwargs=', kwargs)
+        qid = kwargs.get('initial')
+        #print("DEBUG: Qid=", qid)
         super().__init__(*args, **kwargs)
-        for field in iter(self.fields):
-            self.fields[field].widget.attrs.update({
-                'class': 'form-control'
-            })
+        if (qid):
+            question = qid.get('qid')
+            #print("DEBUG: Qn=", question.id)
+            self.fields['question'] = forms.ChoiceField(
+                        label=question.question_text,
+                        widget=forms.RadioSelect(attrs={'class': 'form-check'}),
+                        required=True,
+                        choices=[(c.choice_value, c.choice_text) for c in question.choice_set.all()],
+
+            )
+
 
     class Meta:
-        model = TestResult
-        fields = ['test_result_question','test_result_choice']
-
-class QuestionnaireForm(ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field in iter(self.fields):
-            self.fields[field].widget.attrs.update({
-                'class': 'form-control'
-            })
-
-    class Meta:
-        model = Questionnaire
-        fields = '__all__'
-
-class MultipageQuestionForm(forms.Form):
-
-    def __init__(self, *args, **kwargs):
-        print('DEBUG: Qform: kwargs=', kwargs)
-        initvals = kwargs.get('initial')
-        #print("DEBUG: initvals=", initvals)
-        super().__init__(*args, **kwargs)
-        if (initvals):
-            qid = initvals.get('qid')
-            #print("DEBUG: Qid=", qid)
-
-            question = Question.objects.get(pk=qid)
-            print("DEBUG: Qn=", question.id)
-
-            self.fields['question'] = forms.ChoiceField(label=question.question_text,
-                                                        widget=forms.RadioSelect, required=True,
-                                                        choices=[(c.choice_value, c.choice_text) for c in question.choice_set.all()])
-            for field in iter(self.fields):
-                self.fields[field].widget.attrs.update({
-                    'class': 'form-check'
-                })
+        fields =('question')
 
 
 
-#Form for questionnaire test
 class BaseQuestionFormSet(BaseFormSet):
+    """ Use for multiple questions per page as formset """
     def get_form_kwargs(self, index):
         kwargs = super(BaseQuestionFormSet, self).get_form_kwargs(index)
         print('BASEFORM kwargs:', kwargs)
@@ -87,12 +64,3 @@ class BaseQuestionFormSet(BaseFormSet):
         results.append(title)
         return results
 
-
-
-# Test form wizard
-class ContactForm1(forms.Form):
-    subject = forms.CharField(max_length=100)
-    sender = forms.EmailField()
-
-class ContactForm2(forms.Form):
-    message = forms.CharField(widget=forms.Textarea)
