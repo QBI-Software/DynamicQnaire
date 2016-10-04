@@ -42,12 +42,13 @@ class Question(models.Model):
 
 class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    choice_image = models.ImageField(verbose_name="Choice Image", null=True, blank=True)
     choice_text = models.CharField(_("Choice Text"), max_length=200)
     choice_value = models.IntegerField(_("Value"),default=0)
     group = models.ManyToManyField(Group, verbose_name="Group", blank=True)
 
     def __str__(self):
-        return self.choice_text
+       return self.choice_text
 
 class TestResult(models.Model):
     testee = models.ForeignKey(User)

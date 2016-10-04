@@ -3,6 +3,8 @@ from django.forms import Form, ModelForm, DateInput
 from django.forms.formsets import BaseFormSet
 from django.contrib.auth.forms import AuthenticationForm
 from captcha.fields import CaptchaField
+#from django.newforms.widgets import RadioFieldRenderer, RadioInput
+#from django.utils.encoding import StrAndUnicode, force_unicode
 
 from .models import *
 
@@ -18,7 +20,9 @@ class AxesCaptchaForm(Form):
     captcha = CaptchaField()
 
 
+
 class AnswerForm(Form):
+    qimage = None
     """Loads a question and multiple choice answer - WORKING """
     def __init__(self, *args, **kwargs):
         #print('DEBUG: Qform: kwargs=', kwargs)
@@ -27,13 +31,24 @@ class AnswerForm(Form):
         super().__init__(*args, **kwargs)
         if (qid):
             question = qid.get('qid')
-            #print("DEBUG: Qn=", question.id)
+            user = qid.get('u')
+            print("DEBUG: Qn=", question.id)
+            #Check type
+            if question.question_image is not None:
+                self.qimage = '/static/media/%s' % question.question_image
+            choices = []
+            #Filter for user groups
+            usergrouplist = user.groups.values_list('name')
+            clist = question.choice_set.all() #filter(group__name__in=usergrouplist)
+            for c in clist:
+                print('DEBUG: Groups=',c.group.count())# > 0 && c.groups.values_list('name')
+                index = (c.choice_value, c)
+                choices.append(index)
             self.fields['question'] = forms.ChoiceField(
                         label=question.question_text,
                         widget=forms.RadioSelect(attrs={'class': 'form-check'}),
                         required=True,
-                        choices=[(c.choice_value, c.choice_text) for c in question.choice_set.all()],
-
+                        choices=choices,
             )
 
 

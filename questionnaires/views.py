@@ -177,11 +177,11 @@ class IndexView(generic.ListView):
             print("DEBUG: User=", user)
             user_results = TestResult.objects.filter(testee=user).order_by('test_datetime')
             print("DEBUG: user_results=", user_results)
-            usergrouplist = [g.name for g in user.groups.all()]
-            usergrouplist = Group.objects.values_list('name') #TODO Check exclusive/inclusive
+            usergrouplist = user.groups.values_list('name') #ALL: Group.objects.values_list('name')
             print("DEBUG: user groups=", usergrouplist)
-            qlist=self.get_queryset().filter(group__name__in=usergrouplist)
-
+            qlist=self.get_queryset()
+            if (not user.is_superuser):
+                qlist = qlist.filter(group__name__in=usergrouplist) #q.group.all() for each group
 
             for r in user_results:
                 rlist[r.test_questionnaire.id] = (r.test_datetime, r.test_questionnaire.title)
@@ -211,7 +211,7 @@ def load_questionnaire(request, *args, **kwargs):
         questions = qnaire.question_set.order_by('order')
         linkdata = {}
         for q in questions:
-            linkdata[str(q.order-1)] = {'qid': q}
+            linkdata[str(q.order-1)] = {'qid': q, 'u': request.user}
         initdata = OrderedDict(linkdata)
         print("DEBUG:initdata=", initdata)
 

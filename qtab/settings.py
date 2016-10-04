@@ -129,7 +129,7 @@ USE_TZ = True
 STATIC_ROOT = os.path.join(BASE_DIR, 'questionnaires/static')
 STATIC_URL = '/static/'
 #PDF_URL='/static/pdfjs/web/viewer.html?file='
-MEDIA_URL = '/media/'
+MEDIA_URL = '/static/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'questionnaires/media')
 LOGIN_REDIRECT_URL ='/'
 LOGIN_URL ='/'
