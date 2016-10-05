@@ -13,56 +13,31 @@
     </div>
 </div>
 <form action="" method="post">{% csrf_token %}
-    <div class="container-responsive" align="center">
+    <div class="table-responsive">
+        <table class="table">
+            {{ wizard.management_form }}
+            {% if wizard.form.forms %}
+            {{ wizard.form.management_form }}
+            {% for form in wizard.form.forms %}
+            {{ form }}
+            {% endfor %}
+            {% else %}
+            {{ wizard.form }}
+            {% endif %}
+        </table>
+    </div>
 
-        {{ wizard.management_form }}
-        {% if wizard.form.forms %}
-        {{ wizard.form.management_form }}
-        {% for form in wizard.form.forms %}
-        {{ form }}
-        {% endfor %}
-        {% else %}
-        <div class="row">
-        {% if form.qimage != '/static/media/' %}
-        <div class="well col-sm-6"><img src="{{form.qimage}}" width="400px" alt="{{form.question.label}}"/><br/></div>
-        {% endif %}
-        <div class="col-sm-6">
+        {% if wizard.steps.prev %}
 
-            <label class="radio-inline" for="{{ form.question.id_for_label }}"><h3>{{form.question.label}}</h3></label>
-            <div class="radio" id="{{ form.question.auto_id }}">
-                {% for choice in form.question.field.choices %}
-                    <label class="radio-inline" for="{{form.question.auto_id}}_{{ forloop.counter}}">
-
-                        <input type="radio" id="{{form.question.auto_id}}_{{ forloop.counter}}" class="form-check"
-                               name="{{ form.question.name }}"
-                               value="{{ choice.0 }}"
-
-                        ><br/><img src="/static/media/{{ choice.1.choice_image }}" />
-                        <strong>{{ choice.1.choice_text }}</strong>
-                        </input></label>
+            <button name="wizard_goto_step" class="btn btn-primary" type="submit" value="{{ wizard.steps.first }}">{% trans "Restart" %}</button>
 
 
-                {% endfor %}
-            </div>
-
-        </div>
-</div>
-        {% endif %}
 
 
-<div class="row">
-    {% if wizard.steps.prev %}
-
-    <button name="wizard_goto_step" class="btn btn-primary" type="submit" value="{{ wizard.steps.first }}">{% trans "Restart" %}
-    </button>
+            <button name="wizard_goto_step" class="btn btn-default" type="submit" value="{{ wizard.steps.prev }}">{% trans "Previous" %}</button>
 
 
-    <button name="wizard_goto_step" class="btn btn-default" type="submit" value="{{ wizard.steps.prev }}">{% trans "Previous" %}
-    </button>
-
-
-    {% endif %}
-    <ul class="pager">
+        {% endif %}<ul class="pager">
         <li class="next">
             {% if wizard.steps.next %}
             <input type="submit" class="btn btn-info" value="{% trans "Next" %}"/>
@@ -71,8 +46,6 @@
             {% endif %}
         </li>
     </ul>
-    </div>
-    </div>
 </form>
 
 {% endblock content %}

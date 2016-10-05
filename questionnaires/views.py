@@ -211,27 +211,36 @@ def load_questionnaire(request, *args, **kwargs):
         questions = qnaire.question_set.order_by('order')
         linkdata = {}
         for q in questions:
-            linkdata[str(q.order-1)] = {'qid': q, 'u': request.user}
+            linkdata[str(q.order-1)] = {'qid': q}
         initdata = OrderedDict(linkdata)
         print("DEBUG:initdata=", initdata)
 
     else:
         print('DEBUG: qid is none')
     print('DEBUG:form_list: ', formlist)
+
     form = QuestionnaireWizard.as_view(form_list=formlist, initial_dict=initdata)
     return form(context=RequestContext(request), request=request)
 
 class QuestionnaireWizard(SessionWizardView):
-    template_name = 'questionnaires/results.html'
+    template_name = 'questionnaires/qpage.html'
     file_storage = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'photos'))
 
+    def dispatch(self, request, *args, **kwargs):
+    #     self.sheet_id_initial = kwargs.get('sheet_id_initial', None)
+        return super(QuestionnaireWizard, self).dispatch(request, *args, **kwargs)
+
+
     def get_form_initial(self, step):
-        initial = {}
+        initial = self.initial_dict.get(step)
+        initial.update({'myuser': self.request.user})
         print('DEBUG: form init: step=',step)
+        print('DEBUG: form init: current=', self.steps.current)
         print('DEBUG: form init: self=', self)
         print('DEBUG: form init: kwargs=', self.kwargs)
         print('DEBUG: form init: dict=', self.initial_dict)
-        return self.initial_dict.get(step)
+        #print('DEBUG: form init: conditional=', self.condition_dict)
+        return initial
 
     # def get_context_data(self, form, **kwargs):
     #     context = super(QuestionnaireWizard, self).get_context_data(form=form, **kwargs)

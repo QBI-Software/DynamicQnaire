@@ -23,27 +23,39 @@ class AxesCaptchaForm(Form):
 
 class AnswerForm(Form):
     qimage = None
-    """Loads a question and multiple choice answer - WORKING """
+    """Loads a question and multiple choice answer """
     def __init__(self, *args, **kwargs):
-        #print('DEBUG: Qform: kwargs=', kwargs)
+        print('DEBUG: Qform: args=', args)
+        print('DEBUG: Qform: kwargs=', kwargs)
         qid = kwargs.get('initial')
-        #print("DEBUG: Qid=", qid)
+        print("DEBUG: Qid=", qid)
         super().__init__(*args, **kwargs)
         if (qid):
             question = qid.get('qid')
-            user = qid.get('u')
+            user = qid.get('myuser')
             print("DEBUG: Qn=", question.id)
             #Check type
             if question.question_image is not None:
-                self.qimage = '/static/media/%s' % question.question_image
+                self.qimage = question.question_image
             choices = []
             #Filter for user groups
             usergrouplist = user.groups.values_list('name')
-            clist = question.choice_set.all() #filter(group__name__in=usergrouplist)
-            for c in clist:
-                print('DEBUG: Groups=',c.group.count())# > 0 && c.groups.values_list('name')
-                index = (c.choice_value, c)
-                choices.append(index)
+            print('DEBUG: user groups=', usergrouplist)
+            #clist = question.choice_set.all() #filter(group__name__in=usergrouplist)
+            for c in question.choice_set.all():
+                print('DEBUG: C=', c)
+                print('DEBUG: Group num=',c.group.count())# > 0 && c.groups.values_list('name')
+                includeflag = 1
+                #If choice has groups - check they are in user groups
+                if (c.group.count() > 0):
+                    choicegroups = c.group.values_list('name')
+                    print('DEBUG: choice groups=',choicegroups)
+                    includeflag = (set(choicegroups) <= set(usergrouplist))
+
+                if includeflag:
+                    index = (c.choice_value, c)
+                    choices.append(index)
+            #Load form data
             self.fields['question'] = forms.ChoiceField(
                         label=question.question_text,
                         widget=forms.RadioSelect(attrs={'class': 'form-check'}),
