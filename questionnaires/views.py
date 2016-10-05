@@ -175,12 +175,14 @@ class IndexView(generic.ListView):
         grouplist = {}
         if (user is not None and user.is_active):
             print("DEBUG: User=", user)
+            print("DEBUG: superuser=", user.is_superuser)
             user_results = TestResult.objects.filter(testee=user).order_by('test_datetime')
             print("DEBUG: user_results=", user_results)
             usergrouplist = user.groups.values_list('name') #ALL: Group.objects.values_list('name')
             print("DEBUG: user groups=", usergrouplist)
             qlist=self.get_queryset()
-            if (not user.is_superuser):
+            if (user.is_superuser == False):
+                print("DEBUG: not superuser")
                 qlist = qlist.filter(group__name__in=usergrouplist) #q.group.all() for each group
 
             for r in user_results:

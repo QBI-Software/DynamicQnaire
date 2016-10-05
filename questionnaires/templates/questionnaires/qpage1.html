@@ -21,8 +21,57 @@
         {{ form }}
         {% endfor %}
         {% else %}
+        <div class="row">
+            <p>{{ wizard.form.question.auto_id }}</p>
+            <p>{{wizard.form.question.id_for_label}}</p>
+            <p>{{wizard.form.question.name}}</p>
+            <p>{{wizard.form.prefix}}</p>
+            {% if form.errors %}<h1>{% trans "Please correct the following errors" %}</h1>{% else %}<h1>{% trans "Submit" %}</h1>{% endif %}
+                <div class="col-sm-6">
+
+                    <label class="radio-inline" for="id_0-question"><h3>Who are you?</h3></label>
+                    <div class="radio" id="id_0-question">
+
+                            <label class="radio-inline" for="id_0-question_0">
+                                <input type="radio"class="form-check" id="id_0-question_0"
+                                       name="0-question"
+                                       value="3"
+
+                                >
+
+                                <strong>Anyone</strong>
+                                </input></label>
 
 
+
+                            <label class="radio-inline" for="id_0-question_1">
+                                <input type="radio"class="form-check" id="id_0-question_1"
+                                       name="0-question"
+                                       value="2"
+
+                                >
+
+                                <strong>Not special</strong>
+                                </input></label>
+
+
+
+                            <label class="radio-inline" for="id_0-question_2">
+                                <input type="radio"class="form-check" id="id_0-question_2"
+                                       name="0-question"
+                                       value="1"
+
+                                >
+
+                                <strong>Special</strong>
+                                </input></label>
+
+
+
+                    </div>
+
+                </div>
+            </div>
             <!--{{ wizard.steps }}
         {{wizard.form }}-->
             <div class="row">
