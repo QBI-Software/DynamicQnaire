@@ -1,11 +1,17 @@
-<h1>{{ question.question_text }}</h1>
-{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+{% extends "questionnaires/base.html" %}
+{% block content %}{% load staticfiles %}
+<h1>{{ object.title }}</h1>
+<small>Date: {{ now|date:"d M Y" }}</small>
+<div class="container">
+    <div class="row">
+        <div class="col-md-3"></div>
+        <div class="well col-md-6">
+            <p>{{ object.intropage }}</p>
+            <p><a href="{% url 'questionnaires:q' object.id %}" class="btn btn-success">Start <span
+                            class="glyphicon glyphicon-circle-arrow-right"></span></a></p>
+        </div>
+        <div class="col-md-3"></div>
+    </div>
+</div>
 
-<form action="{% url 'questionnaires:vote' question.id %}" method="post">
-{% csrf_token %}
-{% for choice in question.choice_set.all %}
-    <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}" />
-    <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br />
-{% endfor %}
-<input type="submit" value="Vote" />
-</form>
+{% endblock content %}

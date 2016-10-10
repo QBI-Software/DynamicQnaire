@@ -38,16 +38,16 @@ class AnswerForm(Form):
             if question.question_image is not None:
                 self.qimage = question.question_image
             choices = []
-            #Filter for user groups
+            #Filter for user groups - ignore for superuser
             usergrouplist = user.groups.values_list('name')
             print('DEBUG: user groups=', usergrouplist)
-            #clist = question.choice_set.all() #filter(group__name__in=usergrouplist)
+
             for c in question.choice_set.all():
                 print('DEBUG: C=', c)
                 print('DEBUG: Group num=',c.group.count())# > 0 && c.groups.values_list('name')
                 includeflag = 1
                 #If choice has groups - check they are in user groups
-                if (c.group.count() > 0):
+                if (not user.is_superuser and c.group.count() > 0):
                     choicegroups = c.group.values_list('name')
                     print('DEBUG: choice groups=',choicegroups)
                     includeflag = (set(choicegroups) <= set(usergrouplist))

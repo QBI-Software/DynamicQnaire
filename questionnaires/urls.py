@@ -19,10 +19,8 @@ urlpatterns = [
     url('^reset/(?P<uidb64>[0-9A-Za-z\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', password_reset_confirm, {'template_name':'admin/password_reset_email.html'}, name='password_reset_confirm'),
     url('^reset/done/$', password_reset_complete, {'template_name':'admin/password_reset_complete.html'}, name='password_reset_complete'),
     url(r'^(?P<pk>[0-9]+)/$', views.DetailView.as_view(), name='detail'),
-    #url(r'^(?P<pk>[0-9]+)/results/$', views.ResultsView.as_view(), name='results'),
-    #url(r'^(?P<question_id>[0-9]+)/vote/$', views.vote, name='vote'),
-    #url(r'^(?P<pk>[0-9]+)/q/$', views.test_questionnaire, name='q'),
+    url(r'^results/$', views.ResultsView.as_view(), name='results'),
+    url(r'^(?P<pk>[0-9]+)/qintro/$', views.DetailView.as_view(), name='qintro'),
     url(r'^(?P<pk>[0-9]+)/q/$', views.load_questionnaire, name='q'),
-    #url(r'^post/$', QuestionnaireFormPreview(QuestionnaireForm)),
-    #url(r'^contact/$', ContactWizard.as_view([ContactForm1, ContactForm2])),
+
 ]

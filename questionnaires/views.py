@@ -19,10 +19,14 @@ from django.conf import settings
 from collections import OrderedDict
 from django.utils import six
 from django.template import RequestContext
+from django_tables2 import RequestConfig
+from django.utils import timezone
 from ipware.ip import get_ip
 from axes.utils import reset
 import os
+import collections
 from django.core.files.storage import FileSystemStorage
+from django.db.models import Count
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 try:
     from StringIO import StringIO
@@ -40,7 +44,7 @@ import datetime
 ###Local classes
 from .models import Questionnaire, Question, Choice, TestResult
 from .forms import BaseQuestionFormSet, AxesCaptchaForm, AnswerForm
-
+from .tables import ResultsReportTable
 
 ## Login
 class LoginView(FormView):
@@ -198,14 +202,49 @@ class DetailView(generic.DetailView):
     model = Questionnaire
     template_name = 'questionnaires/detail.html'
 
+    def get_context_data(self, **kwargs):
+        context = super(DetailView, self).get_context_data(**kwargs)
+        context['now'] = timezone.now()
+        return context
 
-class ResultsView(generic.DetailView):
-    model = Question
+# #Generic filtered table
+# class FilteredSingleTableView(tables.SingleTableView):
+#     filter_class = None
+#
+#     def get_table_data(self):
+#         data = super(FilteredSingleTableView, self).get_table_data()
+#         self.filter = self.filter_class(self.request.GET, queryset=data)
+#         return self.filter
+#
+#     def get_context_data(self, **kwargs):
+#         context = super(FilteredSingleTableView, self).get_context_data(**kwargs)
+#         context['filter'] = self.filter
+#         return context
+
+class ResultsView(generic.TemplateView):
     template_name = 'questionnaires/results.html'
+    raise_exception = True
+
+    def get_queryset(self, **kwargs):
+        qchoices = Choice.objects.annotate(choice_count=Count('testresult'))
+        print('DEBUG: Choice counts', qchoices)
+        for ch in qchoices:
+            print(ch,'=',ch.choice_count)
+
+        return qchoices.order_by('question__qid')
+
+    def get_context_data(self, **kwargs):
+        context = super(ResultsView, self).get_context_data(**kwargs)
+        table = self.get_queryset() #ResultsReportTable(self.get_queryset())
+        #RequestConfig(self.request).configure(table)
+        context['results_table'] = table
+
+        return context
+
 
 def load_questionnaire(request, *args, **kwargs):
     """ Prepare questionnaire wizard with required questions """
-    #print('DEBUG: load kwargs=', kwargs)
+    print('DEBUG: load kwargs=', kwargs)
     qid = kwargs.pop('pk')
     if qid is not None:
         qnaire = Questionnaire.objects.get(pk=qid)

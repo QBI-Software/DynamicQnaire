@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'axes',
     'captcha',
     'django_cleanup',
+    'django_tables2',
+    'django_tables2_reports',
 ]
 
 MIDDLEWARE = [
@@ -66,6 +68,7 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
+                'django.template.context_processors.static',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
@@ -130,7 +133,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'questionnaires/static')
 STATIC_URL = '/static/'
 #PDF_URL='/static/pdfjs/web/viewer.html?file='
 MEDIA_URL = '/static/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'questionnaires/media')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'questionnaires/static/media')
 LOGIN_REDIRECT_URL ='/'
 LOGIN_URL ='/'
 #Lockout params

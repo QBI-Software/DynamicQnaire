@@ -23,20 +23,19 @@
         {% endfor %}
         {% else %}
 
-
-            <!--{{ wizard.steps }}
-        {{wizard.form }}-->
             <div class="row">
+                <div class="well col-md-6 col-sm-8">
                 {% if wizard.form.qimage %}
-                <div class="well col-sm-6"><img src="/static/media/{{ wizard.form.qimage }}" width="400px" alt="{{wizard.form.question.label}}"/><br/></div>
+                <img src="/static/media/{{ wizard.form.qimage }}" width="400px" alt="{{wizard.form.question.label}}"/><br/>
                 {% endif %}
-                <div class="col-sm-6">
+
 
                     <label class="radio-inline" for="{{ wizard.form.question.auto_id }}"><h3>{{wizard.form.question.label}}</h3></label>
                     <div class="radio" id="{{wizard.form.question.auto_id}}">
                         {% for choice in wizard.form.question.field.choices %}
                             <label class="radio-inline" for="{{ wizard.form.question.id_for_label}}">
-                                <input type="radio"class="form-check" id="{{ wizard.form.question.id_for_label}}"
+                                <input type="radio" class="form-check"
+                                       id="{{ wizard.form.question.id_for_label}}"
                                        name="{{wizard.form.prefix}}-{{ wizard.form.question.name }}"
                                        value="{{ choice.0 }}"
 
@@ -57,18 +56,19 @@
 
 
             <div class="row">
-                {% if wizard.steps.prev %}
-
-                <button name="wizard_goto_step" class="btn btn-primary" type="submit" value="{{ wizard.steps.first }}">{% trans "Restart" %}
-                </button>
-
-
-                <button name="wizard_goto_step" class="btn btn-default" type="submit" value="{{ wizard.steps.prev }}">{% trans "Previous" %}
-                </button>
-
-
-                {% endif %}
+                <div class="well col-md-6 col-sm-8">
                 <ul class="pager">
+                    {% if wizard.steps.prev %}
+
+                    <li class="previous">
+                    <button name="wizard_goto_step" class="btn btn-default" type="submit" value="{{ wizard.steps.first }}">{% trans "Restart" %}
+                </button>
+                    </li>
+                    <li class="previous">
+                    <button name="wizard_goto_step" class="btn btn-default" type="submit" value="{{ wizard.steps.prev }}">{% trans "Previous" %}
+                </button>
+                    </li>
+                    {% endif %}
                     <li class="next">
                         {% if wizard.steps.next %}
                         <input type="submit" class="btn btn-info" value="{% trans "Next" %}"/>
@@ -78,7 +78,7 @@
                     </li>
                 </ul>
             </div>
-
+        </div>
     </div>
 </form>
 

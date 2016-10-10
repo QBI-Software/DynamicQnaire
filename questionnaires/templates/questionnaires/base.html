@@ -43,7 +43,9 @@
 		  <img src="{% static 'qtab/img/kermit.png' %}" alt="QTAB"/></a>
 		</div>
         {% if user.is_authenticated %}
-		   
+		   <ul class="nav navbar-nav">
+		    {% include "questionnaires/navlinks.html" %}
+		  </ul>
 		  <div class="navbar-right">
             <p>Welcome, {{ user.first_name }}
                 <a class="btn btn-warning" href="{% url 'questionnaires:password_change' %}">Change password</a>
