@@ -178,15 +178,10 @@ class IndexView(generic.ListView):
         qlist = {}
         grouplist = {}
         if (user is not None and user.is_active):
-            print("DEBUG: User=", user)
-            print("DEBUG: superuser=", user.is_superuser)
             user_results = TestResult.objects.filter(testee=user).order_by('test_datetime')
-            print("DEBUG: user_results=", user_results)
             usergrouplist = user.groups.values_list('name') #ALL: Group.objects.values_list('name')
-            print("DEBUG: user groups=", usergrouplist)
             qlist=self.get_queryset()
             if (user.is_superuser == False):
-                print("DEBUG: not superuser")
                 qlist = qlist.filter(group__name__in=usergrouplist) #q.group.all() for each group
 
             for r in user_results:
@@ -227,9 +222,6 @@ class ResultsView(generic.TemplateView):
 
     def get_queryset(self, **kwargs):
         qchoices = Choice.objects.annotate(choice_count=Count('testresult'))
-        print('DEBUG: Choice counts', qchoices)
-        for ch in qchoices:
-            print(ch,'=',ch.choice_count)
 
         return qchoices.order_by('question__qid')
 
@@ -244,7 +236,6 @@ class ResultsView(generic.TemplateView):
 
 def load_questionnaire(request, *args, **kwargs):
     """ Prepare questionnaire wizard with required questions """
-    print('DEBUG: load kwargs=', kwargs)
     qid = kwargs.pop('pk')
     if qid is not None:
         qnaire = Questionnaire.objects.get(pk=qid)
@@ -255,9 +246,6 @@ def load_questionnaire(request, *args, **kwargs):
             linkdata[str(q.order-1)] = {'qid': q}
         initdata = OrderedDict(linkdata)
         print("DEBUG:initdata=", initdata)
-
-    else:
-        print('DEBUG: qid is none')
     print('DEBUG:form_list: ', formlist)
 
     form = QuestionnaireWizard.as_view(form_list=formlist, initial_dict=initdata)
@@ -275,64 +263,46 @@ class QuestionnaireWizard(SessionWizardView):
     def get_form_initial(self, step):
         initial = self.initial_dict.get(step)
         initial.update({'myuser': self.request.user})
-        print('DEBUG: form init: step=',step)
-        print('DEBUG: form init: current=', self.steps.current)
-        print('DEBUG: form init: self=', self)
-        print('DEBUG: form init: kwargs=', self.kwargs)
-        print('DEBUG: form init: dict=', self.initial_dict)
-        #print('DEBUG: form init: conditional=', self.condition_dict)
         return initial
-
-    # def get_context_data(self, form, **kwargs):
-    #     context = super(QuestionnaireWizard, self).get_context_data(form=form, **kwargs)
-    #     if self.steps.current == '0':
-    #         context.update({'user': self.request.user})
-    #     return context
-
-
-    # def process_formdata(self,form):
-    #     print('DEBUG:processformdata form=', form)
-    #     #print('DEBUG: processformdata: user=', self.request.user)
-    #     fdata = self.process_step(form)
-    #     print("DEBUG: cleaned data: ", fdata) #THIS ONE GIVES VALUES
-    #     #fdata1 = self.get_form_step_data(fdata)
-    #     #print("DEBUG: form data: ", fdata1)
-    #     #save to database
-    #     return fdata
 
     # In addition to form_list, the done() method is passed a form_dict, which allows you to access the wizard’s forms based on their step names.
     def done(self, form_list, form_dict, **kwargs):
-        #print('DEBUG: form done: self=', self)
-        #print('DEBUG: form done: kwargs=', kwargs)
-        print('DEBUG: form init: formlist=', form_list)
-        print('DEBUG: form done: init=', self.initial_dict)
-        print('DEBUG: form done: formdict=', form_dict)
-        #fdata = self.process_formdata(form_list)
         for key in form_dict:
-            print('DEBUG:key=', key)
-            print('DEBUG:q=',self.initial_dict.get(key)['qid'] )
             #Find question and questionnaire
             qn = self.initial_dict.get(key)['qid']
-            print('DEBUG:questionid=', qn.id)
             qnaire = qn.qid
-            print('DEBUG: questionnaire=', qnaire.title)
             #Get response
             response = list(form_list)[int(key)].cleaned_data
-            choiceidx = int(response['question'])
-            print('DEBUG: formdata=', response['question'])  # response {'question',: '0'}
-            answer = qn.choice_set.filter(choice_value=choiceidx)[0]
-            print('DEBUG: answer=', answer)
-            # Load save
-            tresult = TestResult()
-            tresult.testee = self.request.user
-            tresult.test_questionnaire = qnaire
-            tresult.test_result_question = qn
-            tresult.test_result_choice = answer
-            tresult.test_token = self.request.POST['csrfmiddlewaretoken']
-            tresult.save()
-            print('TESTRESULT:', " Qnaire:", tresult.test_questionnaire.title,
-                  " Qn:", tresult.test_result_question.question_text,
-                  " Val:", tresult.test_result_choice.choice_text)
+            choiceidx = response['question']
+            qntype = qn.question_type
+            if qntype == 3:
+                # Not choice but free text
+                answerstring = True
+                answers = [choiceidx]
+            elif qntype == 2:
+                answers = qn.choice_set.filter(choice_value__in=choiceidx)
+            else:
+                answers = qn.choice_set.filter(choice_value=choiceidx)
+            # Load save for each choice
+            for answer in answers:
+                tresult = TestResult()
+                tresult.testee = self.request.user
+                tresult.test_questionnaire = qnaire
+                tresult.test_result_question = qn
+                if qntype == 3:
+                    tresult.test_result_text = answer
+                else:
+                    tresult.test_result_choice = answer
+
+                tresult.test_token = self.request.POST['csrfmiddlewaretoken']
+                tresult.save()
+
+                print('TESTRESULT:', " Qnaire:", tresult.test_questionnaire.title,
+                      " Qn:", tresult.test_result_question.question_text)
+                if qntype == 3:
+                    print(" ValText:", tresult.test_result_text)
+                else:
+                    print(" ValChoice:", tresult.test_result_choice.choice_text)
 
         return render(self.request, 'questionnaires/done.html', {
             'form_data': [form.cleaned_data for form in form_list],

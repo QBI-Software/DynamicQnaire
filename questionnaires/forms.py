@@ -25,10 +25,7 @@ class AnswerForm(Form):
     qimage = None
     """Loads a question and multiple choice answer """
     def __init__(self, *args, **kwargs):
-        print('DEBUG: Qform: args=', args)
-        print('DEBUG: Qform: kwargs=', kwargs)
         qid = kwargs.get('initial')
-        print("DEBUG: Qid=", qid)
         super().__init__(*args, **kwargs)
         if (qid):
             question = qid.get('qid')
@@ -42,9 +39,7 @@ class AnswerForm(Form):
             usergrouplist = user.groups.values_list('name')
             print('DEBUG: user groups=', usergrouplist)
 
-            for c in question.choice_set.all():
-                print('DEBUG: C=', c)
-                print('DEBUG: Group num=',c.group.count())# > 0 && c.groups.values_list('name')
+            for c in question.choice_set.order_by('pk'):
                 includeflag = 1
                 #If choice has groups - check they are in user groups
                 if (not user.is_superuser and c.group.count() > 0):
@@ -55,13 +50,41 @@ class AnswerForm(Form):
                 if includeflag:
                     index = (c.choice_value, c)
                     choices.append(index)
-            #Load form data
-            self.fields['question'] = forms.ChoiceField(
-                        label=question.question_text,
-                        widget=forms.RadioSelect(attrs={'class': 'form-check'}),
-                        required=True,
-                        choices=choices,
+            #Options for choices
+
+            if question.question_type == 1:
+                self.fields['question'] = forms.ChoiceField(
+                    label=question.question_text,
+                    help_text='radio',  # use this to detect type
+                    widget=forms.RadioSelect(attrs={'class': 'form-control'}),
+                    required=question.question_required,
+                    choices=choices,
+                )
+            elif question.question_type == 2:
+                self.fields['question'] = forms.MultipleChoiceField(
+                label=question.question_text,
+                help_text='checkbox',
+                widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-control'}),
+                required=question.question_required,
+                choices=choices,
             )
+            elif question.question_type == 3:
+                self.fields['question'] = forms.CharField(
+                    label=question.question_text,
+                    help_text='text',
+                    widget=forms.TextInput(attrs={'class': 'form-control'}),
+                    required=question.question_required,
+
+                )
+            elif question.question_type == 4:
+                print('DEBUG: Dropdown list')
+                self.fields['question'] = forms.CharField(
+                    label=question.question_text,
+                    widget=forms.Select(attrs={'class': 'form-control'}),
+                    help_text='select',
+                    required=question.question_required,
+                    choices=choices,
+                )
 
 
     class Meta:

@@ -2,6 +2,7 @@
 {% block title %}{% endblock %}
 {% block content %}{% load staticfiles %}
 {% load i18n %}
+
 {% block head %}
 {{ wizard.form.media }}
 {% endblock %}
@@ -26,33 +27,36 @@
             <div class="row">
                 <div class="well col-md-6 col-sm-8">
                 {% if wizard.form.qimage %}
-                <img src="/static/media/{{ wizard.form.qimage }}" width="400px" alt="{{wizard.form.question.label}}"/><br/>
+                    <img src="/static/media/{{ wizard.form.qimage }}" width="400px" alt="{{wizard.form.question.label}}"/><br/>
+                {% endif %}
+                {% if form.question.field.choices %}
+                    <label ><h3>{{wizard.form.question.label}}</h3></label>
+                    <div>
+                    {% for choice in wizard.form.question.field.choices %}
+                        <div class="radio-inline">
+                            <label><input type="{{wizard.form.question.help_text}}"
+                               id="{{ wizard.form.question.id_for_label}}"
+                               name="{{wizard.form.prefix}}-{{ wizard.form.question.name }}"
+                               value="{{ choice.0 }}"
+                        >
+                        {% if choice.1.choice_image %}
+                            <br/><img src="/static/media/{{choice.1.choice_image }}" />
+                        {% endif %}
+
+                        </input>{{ choice.1.choice_text }}</label>
+                        </div>
+
+                    {% endfor %}
+                     </div>
+                {% else %}
+                    <h3>{{form.question.field.label}}</h3>
+                    {{form.question}}
                 {% endif %}
 
 
-                    <label class="radio-inline" for="{{ wizard.form.question.auto_id }}"><h3>{{wizard.form.question.label}}</h3></label>
-                    <div class="radio" id="{{wizard.form.question.auto_id}}">
-                        {% for choice in wizard.form.question.field.choices %}
-                            <label class="radio-inline" for="{{ wizard.form.question.id_for_label}}">
-                                <input type="radio" class="form-check"
-                                       id="{{ wizard.form.question.id_for_label}}"
-                                       name="{{wizard.form.prefix}}-{{ wizard.form.question.name }}"
-                                       value="{{ choice.0 }}"
-
-                                >
-                                {% if choice.1.choice_image %}
-                                    <br/><img src="/static/media/{{choice.1.choice_image }}" />
-                                {% endif %}
-                                <strong>{{ choice.1.choice_text }}</strong>
-                                </input></label>
-
-
-                        {% endfor %}
-                    </div>
-
                 </div>
             </div>
- {% endif %}
+        {% endif %}
 
 
             <div class="row">
