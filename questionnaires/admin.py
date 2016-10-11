@@ -7,6 +7,10 @@ from .models import Questionnaire, Question, Choice, Category
 #TODO: Results: List of results per questionnaire and with percentage total and paginate
 #TODO: Results: Export raw results as csv
 
+class ChoiceAdmin(admin.ModelAdmin):
+    list_display = ('questionnaire','question','choice_text','choice_image','choice_value','choice_type')
+    list_filter =['choice_type']
+
 class ChoiceInline(admin.TabularInline):
     model = Choice
     extra = 3
@@ -16,18 +20,21 @@ class QuestionAdmin(admin.ModelAdmin):
         (None, {'fields': ['question_text']}),
     ]
     inlines = [ChoiceInline]
+    list_display = ('qid','question_text', 'question_image','order','num_choices')
+    list_filter = ['group']
     search_fields = ['question_text']
     actions = ['create_true',
                'create_never_always',
                'create_5number',
                'create_7number']
 
+
     def create_radiobuttons(self,request,queryset,labels):
         for obj in queryset:
             print(obj)
             num = obj.choice_set.count() + 1
             for label in labels:
-                ch = Choice(question=obj, choice_text=label, choice_value=num)
+                ch = Choice(question=obj, choice_text=label, choice_value=num, choice_type='1')
                 ch.save()
                 num += 1
 
@@ -56,20 +63,21 @@ class QuestionInline(admin.TabularInline):
     model = Question
     extra = 3
 
-
-
+#TODO: Use CKeditor for intropage field
 class QuestionnaireAdmin(admin.ModelAdmin):
     fieldsets = [
         (None, {'fields': ['title','description', 'intropage','group','code','category', 'type']}),
     ]
     inlines = [QuestionInline]
-
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "car":
-            kwargs["queryset"] = Question.objects.filter(owner=request.user)
-        return super(QuestionnaireAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+    list_display = ('title','description','code','category', 'type','num_questions')
+    list_filter = ['category','type']
+    search_fields = ['title']
+    # def formfield_for_foreignkey(self, db_field, request, **kwargs):
+    #     if db_field.name == "car":
+    #         kwargs["queryset"] = Question.objects.filter(owner=request.user)
+    #     return super(QuestionnaireAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 admin.site.register(Questionnaire, QuestionnaireAdmin)
 admin.site.register(Question, QuestionAdmin)
-admin.site.register(Choice)
+admin.site.register(Choice, ChoiceAdmin)
 admin.site.register(Category)
