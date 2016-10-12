@@ -25,7 +25,8 @@
         {% else %}
 
             <div class="row">
-                <div class="well col-md-8 col-sm-8">
+                <div class="col-md-2">&nbsp;</div>
+                <div class="well col-md-8 col-sm-8" align="center">
                     {{ wizard.form.non_field_errors }}
                 {% if wizard.form.qimage %}
                     <img src="/static/media/{{ wizard.form.qimage }}" width="400px" alt="{{wizard.form.question.label}}"/><br/>
@@ -44,7 +45,7 @@
                                value="{{ choice.0 }}"
 
                         {% if choice.1.choice_image %}
-                          class="imageradio">  <img src="/static/media/{{choice.1.choice_image }}" />
+                          class="imageradio">  <img src="/static/media/{{choice.1.choice_image }}" title="{{choice.1.choice_text}}" width="200"/>
                         {% else %}
                             >
                         {% endif %}
@@ -66,7 +67,8 @@
 
 
             <div class="row">
-                <div class="well col-md-8 col-sm-8">
+                <div class="col-md-2">&nbsp;</div>
+                <div class="well col-md-8 col-sm-8" align="center">
                 <ul class="pager">
                     {% if wizard.steps.prev %}
 

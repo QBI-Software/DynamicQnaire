@@ -1,34 +1,29 @@
-from django.shortcuts import get_object_or_404, render,redirect, resolve_url, render_to_response
-from django.http import HttpResponse, HttpResponseRedirect
-from django.urls import reverse
-from django.views import generic
-from formtools.wizard.views import SessionWizardView
-from django.views.generic import FormView, RedirectView
-from formtools_addons import WizardAPIView
-from django.forms.formsets import formset_factory
-from django.core.urlresolvers import reverse_lazy, reverse
+import os
+from collections import OrderedDict
+
+from axes.utils import reset
+from django.conf import settings
+from django.contrib.auth import REDIRECT_FIELD_NAME, login, logout
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import REDIRECT_FIELD_NAME, login, logout, authenticate
 from django.contrib.auth.views import password_change
-from django.contrib.auth.models import User, Group
+from django.core.files.storage import FileSystemStorage
+from django.core.urlresolvers import reverse_lazy
+from django.db import IntegrityError
+from django.db.models import Count
+from django.forms.formsets import formset_factory
+from django.http import HttpResponseRedirect
+from django.shortcuts import render,redirect, resolve_url, render_to_response
+from django.template import RequestContext
+from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views import generic
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
-from django.utils.decorators import method_decorator
-from django.conf import settings
-from collections import OrderedDict
-from django.utils import six
-from django.template import RequestContext
-from django_tables2 import RequestConfig
-from django.utils import timezone
+from django.views.generic import FormView, RedirectView
+from formtools.wizard.views import SessionWizardView
 from ipware.ip import get_ip
-from axes.utils import reset
-import os
-import collections
-from django.core.files.storage import FileSystemStorage
-from django.db.models import Count
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.db import IntegrityError
+
 try:
     from StringIO import StringIO
 except ImportError:
@@ -41,11 +36,10 @@ except ImportError:
 import logging
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
-import datetime
 ###Local classes
 from .models import Questionnaire, Question, Choice, TestResult, SubjectCategory,Category
 from .forms import SinglepageQuestionForm, BaseQuestionFormSet, AxesCaptchaForm, AnswerForm
-from .tables import ResultsReportTable
+
 
 ## Login
 class LoginView(FormView):
