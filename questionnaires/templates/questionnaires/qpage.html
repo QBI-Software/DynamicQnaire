@@ -1,6 +1,6 @@
 {% extends "questionnaires/base.html" %}
 {% block title %}{% endblock %}
-{% block content %}{% load staticfiles %}
+{% block content %}
 {% load i18n %}
 
 {% block head %}
@@ -9,7 +9,7 @@
 <p>Question {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</p>
 <div class="progress">
     <div class="progress-bar" role="progressbar"
-         aria-valuenow="{% widthratio wizard.steps.step1 wizard.steps.count 100 %}" aria-valuemin="0"
+         aria-valuenow="{% widthratio wizard.steps.step1 wizard.steps.count 100 %}%" aria-valuemin="0"
          aria-valuemax="100" style="width:{% widthratio wizard.steps.step1 wizard.steps.count 100 %}%">
         {% widthratio wizard.steps.step1 wizard.steps.count 100 %}
     </div>
@@ -25,12 +25,16 @@
         {% else %}
 
             <div class="row">
-                <div class="well col-md-6 col-sm-8">
+                <div class="well col-md-8 col-sm-8">
+                    {{ wizard.form.non_field_errors }}
                 {% if wizard.form.qimage %}
                     <img src="/static/media/{{ wizard.form.qimage }}" width="400px" alt="{{wizard.form.question.label}}"/><br/>
                 {% endif %}
                 {% if form.question.field.choices %}
                     <label ><h3>{{wizard.form.question.label}}</h3></label>
+                    {% if wizard.form.question.errors %}
+                    <p>{{ wizard.form.question.errors }}</p>
+                    {% endif %}
                     <div>
                     {% for choice in wizard.form.question.field.choices %}
                         <div class="radio-inline">
@@ -38,9 +42,11 @@
                                id="{{ wizard.form.question.id_for_label}}"
                                name="{{wizard.form.prefix}}-{{ wizard.form.question.name }}"
                                value="{{ choice.0 }}"
-                        >
+
                         {% if choice.1.choice_image %}
-                            <br/><img src="/static/media/{{choice.1.choice_image }}" />
+                          class="imageradio">  <img src="/static/media/{{choice.1.choice_image }}" />
+                        {% else %}
+                            >
                         {% endif %}
 
                         </input>{{ choice.1.choice_text }}</label>
@@ -60,7 +66,7 @@
 
 
             <div class="row">
-                <div class="well col-md-6 col-sm-8">
+                <div class="well col-md-8 col-sm-8">
                 <ul class="pager">
                     {% if wizard.steps.prev %}
 

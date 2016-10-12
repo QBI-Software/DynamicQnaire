@@ -30,15 +30,18 @@ class QuestionAdmin(admin.ModelAdmin):
     actions = ['create_true',
                'create_yesnosometimes',
                'create_never_always',
+               'create_never_often',
                'create_5number',
                'create_7number']
 
 
-
     def create_radiobuttons(self,request,queryset,labels):
         for obj in queryset:
+            #Clear previous choices
             print(obj)
-            num = obj.choice_set.count() + 1
+            for c in obj.choice_set.all():
+                c.delete()
+            num = 1
             for label in labels:
                 ch = Choice(question=obj, choice_text=label, choice_value=num)
                 ch.save()
@@ -56,6 +59,10 @@ class QuestionAdmin(admin.ModelAdmin):
         labels = ["Never", "Sometimes", "Often","Always"]
         self.create_radiobuttons(request, queryset, labels)
 
+    def create_never_often(self, request, queryset):
+        labels = ["Never", "Rarely", "Occasionally","Often","Very Often","Not Applicable"]
+        self.create_radiobuttons(request, queryset, labels)
+
     def create_5number(self, request, queryset):
         labels = ["1", "2", "3", "4", "5","NA"]
         self.create_radiobuttons(request, queryset, labels)
@@ -67,6 +74,7 @@ class QuestionAdmin(admin.ModelAdmin):
     create_true.short_description = "Create 'True' Options"
     create_yesnosometimes.short_description = "Create 'Yes/No/Sometimes/Don\'t know' Options"
     create_never_always.short_description = "Create 'Never - Always' Options"
+    create_never_often.short_description = "Create 'Never - Often' Options"
     create_5number.short_description ="Create range '1 to 5' options"
     create_7number.short_description = "Create range '1 to 7' options"
 
