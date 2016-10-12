@@ -1,9 +1,11 @@
 from django.contrib import admin
+from django import forms
+from ckeditor.widgets import CKEditorWidget
 from .models import Questionnaire, Question, Choice, Category
 
 
 ## Bulk Admin Actions
-
+#TODO: Use CKeditor for intropage field
 #TODO: Results: List of results per questionnaire and with percentage total and paginate
 #TODO: Results: Export raw results as csv
 
@@ -14,6 +16,8 @@ class ChoiceAdmin(admin.ModelAdmin):
 class ChoiceInline(admin.TabularInline):
     model = Choice
     extra = 3
+
+
 
 class QuestionAdmin(admin.ModelAdmin):
     fieldsets = [
@@ -70,8 +74,15 @@ class QuestionInline(admin.TabularInline):
     model = Question
     extra = 3
 
-#TODO: Use CKeditor for intropage field
+class QuestionnaireAdminForm(forms.ModelForm):
+    intropage = forms.CharField(widget=CKEditorWidget())
+
+    class Meta:
+        model = Questionnaire
+        fields = '__all__'
+
 class QuestionnaireAdmin(admin.ModelAdmin):
+    form = QuestionnaireAdminForm
     fieldsets = [
         (None, {'fields': ['title','description', 'intropage','group','code','category', 'type']}),
     ]

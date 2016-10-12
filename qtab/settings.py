@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django_cleanup',
     'django_tables2',
     'django_tables2_reports',
+    'ckeditor',
 #    'widget_tweaks',
 ]
 

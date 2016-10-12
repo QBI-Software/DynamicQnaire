@@ -90,6 +90,28 @@ class AnswerForm(Form):
     class Meta:
         fields =('question')
 
+############### SINGLE PAGE #################
+class SinglepageQuestionForm(forms.Form):
+
+    def __init__(self, *args, **kwargs):
+        print('DEBUG: Qform: kwargs=', kwargs)
+        initvals = kwargs.get('initial')
+        #print("DEBUG: initvals=", initvals)
+        super().__init__(*args, **kwargs)
+        if (initvals):
+            qid = initvals.get('qid')
+            #print("DEBUG: Qid=", qid)
+
+            question = Question.objects.get(pk=qid)
+            print("DEBUG: Qn=", question.id)
+
+            self.fields['question'] = forms.ChoiceField(label=question.question_text,
+                                                        widget=forms.RadioSelect, required=True,
+                                                        choices=[(c.choice_value, c.choice_text) for c in question.choice_set.all()])
+            for field in iter(self.fields):
+                self.fields[field].widget.attrs.update({
+                    'class': 'form-check'
+                })
 
 
 class BaseQuestionFormSet(BaseFormSet):

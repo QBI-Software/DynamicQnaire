@@ -1,5 +1,6 @@
 from django.db import models
 from django.core import urlresolvers
+from ckeditor.fields import RichTextField
 from django.contrib.auth.models import User, Group
 from django.utils.translation import ugettext_lazy as _
 
@@ -22,7 +23,7 @@ class Questionnaire(models.Model):
     TYPES=(('single','Single Page' ),('multi','Multi Page' ))
     title = models.CharField(_("Title"), max_length=200)
     description = models.TextField(_("Description"), null=True, blank=True)
-    intropage = models.TextField(_("Introduction"),null=True,blank=True)
+    intropage = RichTextField(_("Introduction"),null=True, blank=True)
     code = models.CharField(_("Code"), max_length=10, unique=True)
     category = models.ForeignKey(Category, verbose_name="Category")
     type = models.CharField(_("Type"), max_length=20, choices=TYPES, default='single')
@@ -42,10 +43,11 @@ class Question(models.Model):
     qid = models.ForeignKey(Questionnaire, verbose_name="Questionnaire", null=False)
     question_text = models.CharField(_("Question Text"), max_length=200)
     question_image = models.ImageField(verbose_name="Question Image", null=True, blank=True)
-    order = models.IntegerField(_("Sequence Order"), default=0) #initial=qid.getNextOrder() ?TODO: how to get this to work
+    order = models.IntegerField(_("Sequence Order"), default=0)
     group = models.ManyToManyField(Group, verbose_name="Group", blank=True)
     question_type = models.IntegerField(_("Type"), default=1, choices=INPUTS)
     question_required = models.BooleanField(_("Required"), default=True)
+    question_help = models.CharField(_("Question Help"), max_length=200, blank=True, null=True)
 
     def num_choices(self):
         return self.choice_set.count()
@@ -78,3 +80,12 @@ class TestResult(models.Model):
 
     def __str__(self):
         return self.test_questionnaire.title
+
+class SubjectCategory(models.Model):
+    """Store category accessed by user - track Waves"""
+    subject = models.ForeignKey(User)
+    questionnaire = models.ForeignKey(Questionnaire, null=False) #stored as questionnaire to facilitate delete/update
+    date_stored = models.DateField(auto_now=True) #relevant to Wave
+
+    def __str__(self):
+        return self.subject.username + ": " + self.questionnaire.category.name

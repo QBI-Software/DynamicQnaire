@@ -17,10 +17,9 @@
             <div class="well">
                 <h3>My Questionnaires to do</h3>
                 {% if questionnaire_list %}
-                <ol>
+                <ol class="list-group">
                     {% for q in questionnaire_list %}
-                    <li><a href="{% url 'questionnaires:qintro' q.id %}" class="btn btn-success">{{q}} <span
-                            class="glyphicon glyphicon-circle-arrow-right"></span></a></li>
+                    <li class="list-group-item"><a href="{% url 'questionnaires:qintro' q.id %}" class="btn btn-success">{{q}}  <span class="glyphicon glyphicon-circle-arrow-right"></span></a><span class="badge">{{ q.category}}</span></li>
                     {% endfor %}
 
                 </ol>
@@ -39,6 +38,7 @@
                         <th></th>
                         <th>Date</th>
                         <th>Questionnaire</th>
+                        <th>Category</th>
 
                     </tr>
                     </thead>
@@ -49,6 +49,7 @@
                             <span class="glyphicon glyphicon-check"></span></td>
                         <td>{{q.0|date:"d-M-Y"}}</td>
                         <td>{{q.1}}</td>
+                        <td>{{q.2}}</td>
                     </tr>
                     {% endfor %}
                     </tbody>

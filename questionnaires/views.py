@@ -28,6 +28,7 @@ import collections
 from django.core.files.storage import FileSystemStorage
 from django.db.models import Count
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.db import IntegrityError
 try:
     from StringIO import StringIO
 except ImportError:
@@ -42,8 +43,8 @@ import logging
 logger = logging.getLogger(__name__)
 import datetime
 ###Local classes
-from .models import Questionnaire, Question, Choice, TestResult
-from .forms import BaseQuestionFormSet, AxesCaptchaForm, AnswerForm
+from .models import Questionnaire, Question, Choice, TestResult, SubjectCategory,Category
+from .forms import SinglepageQuestionForm, BaseQuestionFormSet, AxesCaptchaForm, AnswerForm
 from .tables import ResultsReportTable
 
 ## Login
@@ -178,19 +179,37 @@ class IndexView(generic.ListView):
         qlist = {}
         grouplist = {}
         if (user is not None and user.is_active):
-            user_results = TestResult.objects.filter(testee=user).order_by('test_datetime')
+            user_results = TestResult.objects.filter(testee=user).distinct('test_questionnaire') #.order_by('test_datetime')
             usergrouplist = user.groups.values_list('name') #ALL: Group.objects.values_list('name')
+            usercategory = self.getCurrentSubjectCategory(usergrouplist)
             qlist=self.get_queryset()
-            if (user.is_superuser == False):
-                qlist = qlist.filter(group__name__in=usergrouplist) #q.group.all() for each group
+            if (not user.is_superuser):
+                qlist = qlist.filter(category=usercategory).filter(group__name__in=usergrouplist) #q.group.all() for each group
 
             for r in user_results:
-                rlist[r.test_questionnaire.id] = (r.test_datetime, r.test_questionnaire.title)
+                rlist[r.test_questionnaire.id] = (r.test_datetime, r.test_questionnaire.title, r.test_questionnaire.category)
                 qlist = qlist.exclude(pk=r.test_questionnaire.id)
         context['questionnaire_list'] = qlist
         context['result_list']= rlist
 
         return context
+
+    def getCurrentSubjectCategory(self, usergrouplist):
+        catlist = SubjectCategory.objects.filter(subject=self.request.user)
+        cat = Category.objects.filter(code='W1')  # Wave 1 default
+        if (catlist):
+            #For each category, check number of entries matches number in questionnaires
+            checklist = Category.objects.all().order_by('code')
+            for c in checklist:
+                cat = c
+                num = catlist.filter(questionnaire__category=c).count()
+                print("DEBUG: CAT=", c,' has done', num, ' tests')
+                qnum = Questionnaire.objects.filter(category=c).filter(group__name__in=usergrouplist).count()
+                if (num < qnum):
+                    break
+        return cat
+
+
 
 
 class DetailView(generic.DetailView):
@@ -223,7 +242,7 @@ class ResultsView(generic.TemplateView):
     def get_queryset(self, **kwargs):
         qchoices = Choice.objects.annotate(choice_count=Count('testresult'))
 
-        return qchoices.order_by('question__qid')
+        return qchoices.order_by('question')
 
     def get_context_data(self, **kwargs):
         context = super(ResultsView, self).get_context_data(**kwargs)
@@ -236,17 +255,18 @@ class ResultsView(generic.TemplateView):
 
 def load_questionnaire(request, *args, **kwargs):
     """ Prepare questionnaire wizard with required questions """
-    qid = kwargs.pop('pk')
+    qid = kwargs.get('pk')
     if qid is not None:
         qnaire = Questionnaire.objects.get(pk=qid)
+        if qnaire.type =='single':
+            return singlepage_questionnaire(request, *args, **kwargs)
+
         formlist=[AnswerForm] * qnaire.question_set.count()
         questions = qnaire.question_set.order_by('order')
         linkdata = {}
         for q in questions:
             linkdata[str(q.order-1)] = {'qid': q}
         initdata = OrderedDict(linkdata)
-        print("DEBUG:initdata=", initdata)
-    print('DEBUG:form_list: ', formlist)
 
     form = QuestionnaireWizard.as_view(form_list=formlist, initial_dict=initdata)
     return form(context=RequestContext(request), request=request)
@@ -267,10 +287,15 @@ class QuestionnaireWizard(SessionWizardView):
 
     # In addition to form_list, the done() method is passed a form_dict, which allows you to access the wizard’s forms based on their step names.
     def done(self, form_list, form_dict, **kwargs):
+
+        # Find question and questionnaire
+        qn = self.initial_dict.get('0')['qid']
+        qnaire = qn.qid
+        # Store category for user
+        subjectcat = SubjectCategory(subject=self.request.user, questionnaire=qnaire)
+        subjectcat.save()
         for key in form_dict:
-            #Find question and questionnaire
-            qn = self.initial_dict.get(key)['qid']
-            qnaire = qn.qid
+
             #Get response
             response = list(form_list)[int(key)].cleaned_data
             choiceidx = response['question']
@@ -310,155 +335,59 @@ class QuestionnaireWizard(SessionWizardView):
         })
 
 
+###################################
+# ############# SINGLE PAGE ##################
 
-
-
-
-
-############## TESTING ##################
-class OnepageQuestionnaireWizard(generic.FormView):
-    #model = Questionnaire
-    template_name = 'contact.html'
-    form_class = AnswerForm
-    form_list={}
-    templates={'q-info':'questionnaires/results.html'}
-
-    def get_template_names(self):
-        return [self.templates[self.steps.current]]
-
-    def get_form_initial(self, step):
-        print('DEBUG: initial step=', step)
-        return self.initial_dict.get(step, {})
-
-    def get_form_instance(self, step):
-        print('DEBUG: instance=', step)
-        return self.instance_dict.get(step, None)
-
-    def get_context_data(self, **kwargs):
-        context = super(QuestionnaireWizard, self).get_context_data(**kwargs)
-
-        print('DEBUG: context=', context)
-        if self.steps.current == 0:
-            print("DEBUG:Initial step")
-            qid = self.kwargs.get('pk')
-            print("DEBUG: Qid=", qid)
-            #get forms from Questions
-            qnaire = Questionnaire.objects.get(pk=qid)
-            flist=[0] * qnaire.question_set.count() #initialize
-            num = 1
-            for q in qnaire.question_set.all.order_by('order'):
-                print("DEBUG: Q=", q.question_text)
-                step = 'step-%d' % q.order - 1
-                flist[step] = AnswerForm(prefix='q_info', initial={'qid':q.id,'qtext':q.question_text, 'qchoices': q.choice_set.all()})
-            #self.form_list = flist
-            print("DEBUG: form_list=", flist)
-            context.update({'form_list': flist})
-        print('DEBUG: context2=', context)
-        return context
-
-
-
-    def done(self, form_list, **kwargs):
-        print("DEBUG: DONE")
-        return render(self.request, 'questionnaires/done.html', {
-            'form_data': [form.cleaned_data for form in form_list],
-        })
-
-
-class ContactWizard(SessionWizardView):
-
-
-    def done(self, form_list, form_dict, **kwargs):
-        print("DEBUG: form_dict=", form_dict)
-        print("DEBUG: form_list=", form_list)
-        form_data = self.process_formdata(form_dict)
-
-        return self.render('/questionnaires/done.html')
-
-    def process_formdata(self,form):
-        print('DEBUG:process_step', form)
-        fdata = self.get_all_cleaned_data()
-        print("DEBUG: cleaned data: ", fdata) #THIS ONE GIVES VALUES
-        #fdata1 = self.get_form_step_data(fdata)
-        #print("DEBUG: form data: ", fdata1)
-        #save to database
-        return fdata
-
-
-def test_questionnaire(request,*args,**kwargs):
+def singlepage_questionnaire(request,*args,**kwargs):
+    template = 'questionnaires/test.html'
     """
     Detect user
     """
     user = request.user
-    print('DEBUG: user=', user)
     messages = ''
     #Questionnaire ID
-    print("DEBUG:kwargs=",kwargs)
     qid = kwargs.get('pk')
     qnaire = Questionnaire.objects.get(pk=qid)
 
     # Create the formset, specifying the form and formset we want to use.
-    LinkFormSet = formset_factory(AnswerForm, formset=BaseQuestionFormSet, validate_max=True)
-    print("DEBUG: formset=",LinkFormSet)
+    LinkFormSet = formset_factory(SinglepageQuestionForm, formset=BaseQuestionFormSet, validate_max=True)
     # Get our existing link data for this user.  This is used as initial data.
     questions = qnaire.question_set.order_by('order') #Question.objects.order_by('order')
     link_data = [{'qid': q.id} for q in questions]
-    print("DEBUG:linkdata=",link_data)
 
     if request.method == 'POST':
-        print("POST=",request.POST)
-        for f in request.POST:
-            print("POST ITEM=",f)
-        # Now save the data for each form in the formset TODO Validate data input
-        new_data = []
-        for i in range(0,len(link_data)):
-            formid = 'form-%d-question' % i
-            val = request.POST[formid]
-            print(formid, "=" , val ) #need to validate
-            tresult = TestResult()
-            tresult.testee = user
-            #tresult.test_datetime = datetime.now() #?defaultdatetime.datetime.fromtimestamp(tresult.test_datetime),
-            tresult.test_questionnaire = qnaire
-            qn = Question.objects.get(pk=link_data[i]['qid'])
-            tresult.test_result_question = qn
-            q1 = qn.choice_set.filter(choice_value=val)[0]
-            #print(q1)
-            tresult.test_result_choice = q1
-            tresult.test_token = request.POST['csrfmiddlewaretoken']
-            tresult.save()
-            print('TESTRESULT:',  " Qnaire:", tresult.test_questionnaire.title,
-                  " Qn:", tresult.test_result_question.question_text,
-                  " Val:", tresult.test_result_choice.choice_text)
 
         link_formset = LinkFormSet(request.POST) #cannot reload as dynamic
 
         if link_formset.is_valid():
+            # Now save the data for each form in the formset
+            new_data = []
+            for i in range(0, len(link_data)):
+                formid = 'form-%d-question' % i
+                val = request.POST[formid]  # TODO Validate data input
+                tresult = TestResult()
+                tresult.testee = user
+                tresult.test_questionnaire = qnaire
+                qn = Question.objects.get(pk=link_data[i]['qid'])
+                tresult.test_result_question = qn
+                q1 = qn.choice_set.filter(choice_value=val)[0]
+                # print(q1)
+                tresult.test_result_choice = q1
+                tresult.test_token = request.POST['csrfmiddlewaretoken']
+                tresult.save()
+                print('SINGLEPAGE: TESTRESULT:', " Qnaire:", tresult.test_questionnaire.title,
+                      " Qn:", tresult.test_result_question.question_text,
+                      " Val:", tresult.test_result_choice.choice_text)
 
-            # Save user info
-            messages ='Congratulations, %s!  You have completed the questionnaire.' % user
-           # print("DATASET=", link_formset)
+            # Save user info with category
+            template='questionnaires/done.html'
+            try:
+                subjectcat = SubjectCategory(subject=user, questionnaire=qnaire)
+                subjectcat.save()
+                messages='Congratulations, %s!  You have completed the questionnaire.' % user
+            except IntegrityError:
+                messages.error(request, 'There was an error saving your result.')
 
-
-            # for f in link_formset:
-            #     cd = f.cleaned_data
-            #     print("DATA=",cd.get('form-0-question'))
-
-                #if question:
-                 #   print("DEBUG: Adding question data:", question.label)
-                    #new_links.append(UserLink(user=user, anchor=anchor, url=url))
-
-            # try:
-            #     with transaction.atomic():
-            #         #Replace the old with the new
-            #         UserLink.objects.filter(user=user).delete()
-            #         UserLink.objects.bulk_create(new_links)
-            #
-            #         # And notify our users that it worked
-            #         messages.success(request, 'You have updated your profile.')
-            #
-            # except IntegrityError: #If the transaction failed
-            #     messages.error(request, 'There was an error saving your profile.')
-            #     return redirect(reverse('profile-settings'))
 
     else:
         link_formset = LinkFormSet(initial=link_data)
@@ -469,4 +398,4 @@ def test_questionnaire(request,*args,**kwargs):
         'messages': messages,
     }
 
-    return render(request, 'questionnaires/test.html', context)
+    return render(request, template, context)

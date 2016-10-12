@@ -17,6 +17,7 @@ from django.conf.urls import url, include
 from django.contrib import admin
 
 urlpatterns = [
+    url(r'^', include('questionnaires.urls')),
     url(r'^questionnaires/', include('questionnaires.urls')),
     url(r'^admin/', admin.site.urls),
     url(r'^captcha/', include('captcha.urls')),
