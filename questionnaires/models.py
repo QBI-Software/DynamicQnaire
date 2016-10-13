@@ -1,8 +1,8 @@
-from django.db import models
-from django.core import urlresolvers
-from ckeditor.fields import RichTextField
+from ckeditor_uploader.fields import RichTextUploadingField
 from django.contrib.auth.models import User, Group
+from django.db import models
 from django.utils.translation import ugettext_lazy as _
+
 
 ##### LISTS #############
 class Category(models.Model):
@@ -23,7 +23,7 @@ class Questionnaire(models.Model):
     TYPES=(('single','Single Page' ),('multi','Multi Page' ))
     title = models.CharField(_("Title"), max_length=200)
     description = models.TextField(_("Description"), null=True, blank=True)
-    intropage = RichTextField(_("Introduction"),null=True, blank=True)
+    intropage = RichTextUploadingField(_("Introduction"),null=True, blank=True)
     code = models.CharField(_("Code"), max_length=10, unique=True)
     category = models.ForeignKey(Category, verbose_name="Category")
     type = models.CharField(_("Type"), max_length=20, choices=TYPES, default='single')
@@ -85,7 +85,8 @@ class SubjectCategory(models.Model):
     """Store category accessed by user - track Waves"""
     subject = models.ForeignKey(User)
     questionnaire = models.ForeignKey(Questionnaire, null=False) #stored as questionnaire to facilitate delete/update
-    date_stored = models.DateField(auto_now=True) #relevant to Wave
+    date_stored = models.DateTimeField(auto_now=True) #relevant to Wave
+    session_token = models.CharField(_("Hiddentoken"), max_length=100)
 
     def __str__(self):
         return self.subject.username + ": " + self.questionnaire.category.name

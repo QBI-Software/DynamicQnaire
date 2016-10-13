@@ -44,7 +44,9 @@ INSTALLED_APPS = [
     'django_cleanup',
     'django_tables2',
     'django_tables2_reports',
+    'django_filters',
     'ckeditor',
+    'ckeditor_uploader',
 #    'widget_tweaks',
 ]
 
@@ -142,3 +144,26 @@ LOGIN_URL ='/'
 AXES_LOGIN_FAILURE_LIMIT = 3
 AXES_COOLOFF_TIME = 1 #hours
 AXES_LOCKOUT_URL ='/questionnaires/locked'
+#ckeditor
+CKEDITOR_UPLOAD_PATH = os.path.join(BASE_DIR, 'questionnaires/static/media')
+CKEDITOR_UPLOAD_PATH   = "uploads/"
+CKEDITOR_UPLOAD_SLUGIFY_FILENAME = False
+CKEDITOR_RESTRICT_BY_USER = True
+CKEDITOR_JQUERY_URL = 'http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js'
+CKEDITOR_IMAGE_BACKEND = "pillow"
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'Custom',
+        'toolbar_Custom': [
+            ['Bold', 'Italic', 'Underline'],
+            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+            ['Link', 'Unlink'],
+            {'name': 'insert',
+             'items': ['Image', 'Flash', 'Table', 'HorizontalRule', 'Smiley', 'SpecialChar', 'PageBreak', 'Iframe']},
+            '/',
+            {'name': 'styles', 'items': ['Styles', 'Format', 'Font', 'FontSize']},
+            {'name': 'colors', 'items': ['TextColor', 'BGColor']},
+            ['RemoveFormat', 'Source']
+        ]
+    }
+}

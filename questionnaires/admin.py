@@ -82,15 +82,8 @@ class QuestionInline(admin.TabularInline):
     model = Question
     extra = 3
 
-class QuestionnaireAdminForm(forms.ModelForm):
-    intropage = forms.CharField(widget=CKEditorWidget())
-
-    class Meta:
-        model = Questionnaire
-        fields = '__all__'
 
 class QuestionnaireAdmin(admin.ModelAdmin):
-    form = QuestionnaireAdminForm
     fieldsets = [
         (None, {'fields': ['title','description', 'intropage','group','code','category', 'type']}),
     ]

@@ -1,22 +1,39 @@
 {% extends "questionnaires/base.html" %}
 {% load i18n %}
-{% load render_table from django_tables2 %}
+{% load django_tables2 %}
 {% block title %}Questionnaire Results{% endblock %}
-{% block content %}{% load staticfiles %}
 
+{% block content %}
+<div class="sidebar">
+   <div class="well col-xs-8">
+    <button data-toggle="collapse" class="btn btn-small btn-primary" data-target="#searchform"><h4>Search Results</h4></button>
+       <div id="searchform" class="collapse">
+           <br/>
+            <form method='GET'>
+                {{ filter.form.as_p }}
+                <br/>
+                <input type='submit' class="btn btn-info" value='Search'/>
+                <a href='{{ request.path }}' class="btn btn-default">Clear</a>
+                <br/>
+                <div class="small">|&nbsp;
+                Displaying {{ filter.qs|length }} of {{ filter.queryset|length }} items.
+                &nbsp;|</div>
 
+            </form>
+       </div>
+    </div>
+
+</div>
 <div class="container">
-
-    {% if results_table %}
+    <div class="row col-xs-12">
+    {% if table %}
     <div class="panel panel-info">
         <div class="panel-heading"><h3 class="panel-title">Questionnaire Results</h3></div>
         <div class="panel-body">
-
-
-            {% render_table results_table %}
+            {% render_table table %}
 
         </div>
     </div>
     {% endif %}
-</div>
+</div></div>
 {% endblock content %}

@@ -12,7 +12,6 @@
     <link rel="stylesheet" href="{% static "qtab/css/style.css" %}"/>
     <!-- Add fancyBox -->
     <link rel="stylesheet" href="{% static "fancybox/source/jquery.fancybox.css" %}" type="text/css" media="screen" />
-
     <script type="text/javascript" src="{% static "qtab/js/jquery-1.12.3.min.js" %}"></script>
     <script type="text/javascript" src="{% static "bootstrap/js/bootstrap.min.js" %}"></script>
     <script type="text/javascript" src="{% static "ckeditor/ckeditor/ckeditor.js" %}"></script>
@@ -45,12 +44,14 @@
 		  <img src="{% static 'qtab/img/kermit.png' %}" alt="QTAB"/></a>
 		</div>
         {% if user.is_authenticated %}
+          {% if user.is_superuser %}
 		   <ul class="nav navbar-nav">
 		    {% include "questionnaires/navlinks.html" %}
 		  </ul>
+          {% endif %}
 		  <div class="navbar-right">
             <p>Welcome, {{ user.first_name }}
-                <a class="btn btn-warning" href="{% url 'questionnaires:password_change' %}">Change password</a>
+                <!--<a class="btn btn-warning" href="{% url 'questionnaires:password_change' %}">Change password</a>-->
             <a id="logoutbtn" class="btn btn-success" href="{% url 'questionnaires:logout' %}">Logout</a></p>
           </div>
         {% else %}

@@ -21,4 +21,5 @@ urlpatterns = [
     url(r'^questionnaires/', include('questionnaires.urls')),
     url(r'^admin/', admin.site.urls),
     url(r'^captcha/', include('captcha.urls')),
+    url(r'^ckeditor/', include('ckeditor_uploader.urls')),
 ]

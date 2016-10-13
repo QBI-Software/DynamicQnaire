@@ -4,10 +4,12 @@ from collections import OrderedDict
 from axes.utils import reset
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME, login, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.auth.views import password_change
 from django.core.files.storage import FileSystemStorage
-from django.core.urlresolvers import reverse_lazy
+from django.core.urlresolvers import reverse_lazy, reverse
 from django.db import IntegrityError
 from django.db.models import Count
 from django.forms.formsets import formset_factory
@@ -38,7 +40,9 @@ import logging
 logger = logging.getLogger(__name__)
 ###Local classes
 from .models import Questionnaire, Question, Choice, TestResult, SubjectCategory,Category
-from .forms import SinglepageQuestionForm, BaseQuestionFormSet, AxesCaptchaForm, AnswerForm
+from .forms import SinglepageQuestionForm, BaseQuestionFormSet, AxesCaptchaForm, AnswerForm, TestResultBulkDeleteForm
+from .tables import FilteredSingleTableView, TestResultTable,SubjectCategoryTable
+from .filters import TestResultFilter,SubjectCategoryFilter
 
 
 ## Login
@@ -162,16 +166,17 @@ def csrf_failure(request, reason=""):
 class IndexView(generic.ListView):
     template_name = 'questionnaires/index.html'
     context_object_name = 'questionnaire_list'
+    raise_exception = True
 
     def get_queryset(self):
-        return Questionnaire.objects.all()
+        return Questionnaire.objects.order_by('pk')
 
     def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
         user = self.request.user
         rlist = {}
         qlist = {}
-        grouplist = {}
+
         if (user is not None and user.is_active):
             user_results = TestResult.objects.filter(testee=user).distinct('test_questionnaire') #.order_by('test_datetime')
             usergrouplist = user.groups.values_list('name') #ALL: Group.objects.values_list('name')
@@ -189,7 +194,7 @@ class IndexView(generic.ListView):
         return context
 
     def getCurrentSubjectCategory(self, usergrouplist):
-        catlist = SubjectCategory.objects.filter(subject=self.request.user)
+        catlist = SubjectCategory.objects.filter(subject=self.request.user).distinct('questionnaire','date_stored')
         cat = Category.objects.filter(code='W1')  # Wave 1 default
         if (catlist):
             #For each category, check number of entries matches number in questionnaires
@@ -199,14 +204,12 @@ class IndexView(generic.ListView):
                 num = catlist.filter(questionnaire__category=c).count()
                 print("DEBUG: CAT=", c,' has done', num, ' tests')
                 qnum = Questionnaire.objects.filter(category=c).filter(group__name__in=usergrouplist).count()
-                if (num < qnum):
+                if (c.code != 'W0' and num < qnum):
                     break
         return cat
 
-
-
-
-class DetailView(generic.DetailView):
+# Questionnaire Intro page
+class DetailView(LoginRequiredMixin, generic.DetailView):
     model = Questionnaire
     template_name = 'questionnaires/detail.html'
 
@@ -215,23 +218,28 @@ class DetailView(generic.DetailView):
         context['now'] = timezone.now()
         return context
 
-# #Generic filtered table
-# class FilteredSingleTableView(tables.SingleTableView):
-#     filter_class = None
-#
-#     def get_table_data(self):
-#         data = super(FilteredSingleTableView, self).get_table_data()
-#         self.filter = self.filter_class(self.request.GET, queryset=data)
-#         return self.filter
-#
-#     def get_context_data(self, **kwargs):
-#         context = super(FilteredSingleTableView, self).get_context_data(**kwargs)
-#         context['filter'] = self.filter
-#         return context
+# TABLES
 
-class ResultsView(generic.TemplateView):
+class TestResultFilterView(LoginRequiredMixin, FilteredSingleTableView):
+    template_name = 'questionnaires/results_summary.html'
+    model = TestResult
+    #context_object_name = 'results_table'
+    table_class = TestResultTable
+    filter_class = TestResultFilter
+    raise_exception = True
+
+class SubjectFilterView(LoginRequiredMixin, FilteredSingleTableView):
+    template_name = 'questionnaires/results_summary.html'
+    model = SubjectCategory
+    #context_object_name = 'results_table'
+    table_class = SubjectCategoryTable
+    filter_class = SubjectCategoryFilter
+    raise_exception = True
+
+class ResultsView(LoginRequiredMixin, PermissionRequiredMixin, generic.TemplateView):
     template_name = 'questionnaires/results.html'
     raise_exception = True
+    permission_required = 'questionnaires.choice.can_add_choice'
 
     def get_queryset(self, **kwargs):
         qchoices = Choice.objects.annotate(choice_count=Count('testresult'))
@@ -247,7 +255,54 @@ class ResultsView(generic.TemplateView):
         return context
 
 
+class TestResultBulkDelete(LoginRequiredMixin, PermissionRequiredMixin, generic.FormView):
+    template_name = 'questionnaires/confirm_delete.html'
+    form_class=TestResultBulkDeleteForm
+    raise_exception = True
+    permission_required = 'questionnaires.delete_testresult'
+
+    def post(self, request, *args, **kwargs):
+        mylist = self.get_queryset()
+        token = mylist[0].test_token
+        sc = SubjectCategory.objects.get(session_token = token)
+        try:
+            r = mylist.delete()
+            sc.delete()
+            message = 'Successfully deleted questionnaire with ' + str(r[0]) + ' questions'
+        except IntegrityError:
+            message = 'Unable to delete - please refer to db administrator'
+            #transaction.rollback()
+            #print('DELETED: ', message, ' r=', r)
+            message = message + ' ' + token
+        logger.info(message)
+        return render(request, self.template_name, {'msg': message})
+
+    def get_context_data(self, **kwargs):
+        context = super(TestResultBulkDelete, self).get_context_data(**kwargs)
+        resultlist = self.get_queryset()
+        if (resultlist.count() > 0):
+            context.update({
+                'qnaire': resultlist[0].test_questionnaire,
+                'subject' : resultlist[0].testee,
+                'date': resultlist[0].test_datetime
+            })
+        else:
+            context['msg'] = 'There are NO results to delete'
+        return context
+
+    def get_queryset(self):
+        fid = self.kwargs.get('token')
+        print('DEBUG: token=', fid)
+        sc = SubjectCategory.objects.get(pk=fid)
+        return TestResult.objects.filter(test_token=sc.session_token)
+
+    def get_success_url(self):
+        return reverse('questionnaires:subjects')
+
+
+@login_required
 def load_questionnaire(request, *args, **kwargs):
+    raise_exception = True
     """ Prepare questionnaire wizard with required questions """
     qid = kwargs.get('pk')
     if qid is not None:
@@ -265,7 +320,7 @@ def load_questionnaire(request, *args, **kwargs):
     form = QuestionnaireWizard.as_view(form_list=formlist, initial_dict=initdata)
     return form(context=RequestContext(request), request=request)
 
-class QuestionnaireWizard(SessionWizardView):
+class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
     template_name = 'questionnaires/qpage.html'
     file_storage = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'photos'))
 
@@ -285,18 +340,15 @@ class QuestionnaireWizard(SessionWizardView):
         # Find question and questionnaire
         qn = self.initial_dict.get('0')['qid']
         qnaire = qn.qid
-        # Store category for user
-        subjectcat = SubjectCategory(subject=self.request.user, questionnaire=qnaire)
-        subjectcat.save()
-        for key in form_dict:
 
+        for key in form_dict:
+            qn = self.initial_dict.get(key)['qid']
             #Get response
             response = list(form_list)[int(key)].cleaned_data
             choiceidx = response['question']
             qntype = qn.question_type
             if qntype == 3:
                 # Not choice but free text
-                answerstring = True
                 answers = [choiceidx]
             elif qntype == 2:
                 answers = qn.choice_set.filter(choice_value__in=choiceidx)
@@ -322,7 +374,10 @@ class QuestionnaireWizard(SessionWizardView):
                     print(" ValText:", tresult.test_result_text)
                 else:
                     print(" ValChoice:", tresult.test_result_choice.choice_text)
-
+        # Store category for user
+        subjectcat = SubjectCategory(subject=self.request.user, questionnaire=qnaire,
+                                     session_token=self.request.POST['csrfmiddlewaretoken'])
+        subjectcat.save()
         return render(self.request, 'questionnaires/done.html', {
             'form_data': [form.cleaned_data for form in form_list],
             'qnaire_title' : qnaire.title,
@@ -376,7 +431,7 @@ def singlepage_questionnaire(request,*args,**kwargs):
             # Save user info with category
             template='questionnaires/done.html'
             try:
-                subjectcat = SubjectCategory(subject=user, questionnaire=qnaire)
+                subjectcat = SubjectCategory(subject=user, questionnaire=qnaire, session_token=request.POST['csrfmiddlewaretoken'])
                 subjectcat.save()
                 messages='Congratulations, %s!  You have completed the questionnaire.' % user
             except IntegrityError:
@@ -393,3 +448,4 @@ def singlepage_questionnaire(request,*args,**kwargs):
     }
 
     return render(request, template, context)
+

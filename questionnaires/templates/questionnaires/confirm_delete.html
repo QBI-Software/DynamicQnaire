@@ -1,0 +1,23 @@
+{% extends "questionnaires/base.html" %}
+{% block title %}Delete{% endblock %}
+{% block content %}
+<div class="container">
+<div class="page-header">
+    <h2>Delete Test Result</h2></div>
+    <div class="row col-md-6">
+    <div class="well">
+    <form role="form" method="post">{% csrf_token %}
+        {% if msg  %}
+           <p class="info"> {{ msg|force_escape }}</p>
+        {% else %}
+            <p>Are you sure you want to delete this test result?</p>
+        <ul><li>Questionnaire: {{qnaire.title|force_escape}}</li>
+        <li>Subject: {{subject.username|force_escape}}</li>
+        <li>Timestamp: {{date}}</li></ul>
+            <input type="submit" class="btn btn-success" value="Confirm" />
+            <input type="button" class="btn btn-default" onclick="javascript:history.back();return false;" value="Cancel" />
+        {% endif %}
+
+    </form>
+    </div></div></div>
+{% endblock %}

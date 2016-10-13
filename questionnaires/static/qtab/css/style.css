@@ -116,7 +116,16 @@ ul.errorlist{
 #searchform label{
     width:30%;
 }
-
+input.imageradio + img{
+    width: 46px;
+    height: 44px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 2px;
+}
+input.imageradio + img:hover{
+   border: 1px solid #777;
+}
 label > input.imageradio{ /* HIDE RADIO */
   visibility: hidden; /* Makes input not-clickable */
   position: absolute; /* Remove input from document flow */
@@ -128,3 +137,4 @@ label > input.imageradio + img{ /* IMAGE STYLES */
 label > input.imageradio:checked + img{ /* (RADIO CHECKED) IMAGE STYLES */
   border:2px solid #f00;
 }
+/* TODO Special styled checkboxes with CSS3: http://code.stephenmorley.org/html-and-css/styling-checkboxes-and-radio-buttons/ */

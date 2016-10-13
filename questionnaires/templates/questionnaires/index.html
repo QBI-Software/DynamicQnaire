@@ -10,7 +10,7 @@
 
 
     </div>
-
+{% if user.is_authenticated %}
     <div class="row">
 
         <div class="col-sm-6">
@@ -39,6 +39,7 @@
                         <th>Date</th>
                         <th>Questionnaire</th>
                         <th>Category</th>
+                        <th></th>
 
                     </tr>
                     </thead>
@@ -50,6 +51,7 @@
                         <td>{{q.0|date:"d-M-Y"}}</td>
                         <td>{{q.1}}</td>
                         <td>{{q.2}}</td>
+                        <td><a href="{% url 'questionnaires:qintro' i %}" class="btn btn-primary btn-small" title="Repeat Questionnaire"><span class="glyphicon glyphicon-refresh"></span></a></td>
                     </tr>
                     {% endfor %}
                     </tbody>
@@ -63,7 +65,7 @@
 
 
     </div>
-
+{% endif %}
 
 </div>
 {% endblock %}

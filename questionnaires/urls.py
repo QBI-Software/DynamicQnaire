@@ -1,10 +1,6 @@
-from django.conf.urls import url
-from django import forms
-
-from .views import QuestionnaireWizard
-from django.contrib.auth.views import password_change,password_change_done,password_reset,password_reset_complete, password_reset_confirm, password_reset_done
 from axes.decorators import watch_login
-
+from django.conf.urls import url
+from django.contrib.auth.views import password_change, password_reset,password_reset_complete, password_reset_confirm, password_reset_done
 
 from . import views
 app_name = 'questionnaires'
@@ -18,9 +14,10 @@ urlpatterns = [
     url('^password_reset/done/$', password_reset_done, name='password_reset_done'),
     url('^reset/(?P<uidb64>[0-9A-Za-z\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', password_reset_confirm, {'template_name':'admin/password_reset_email.html'}, name='password_reset_confirm'),
     url('^reset/done/$', password_reset_complete, {'template_name':'admin/password_reset_complete.html'}, name='password_reset_complete'),
-    url(r'^(?P<pk>[0-9]+)/$', views.DetailView.as_view(), name='detail'),
-    url(r'^results/$', views.ResultsView.as_view(), name='results'),
+    url(r'^results/$', views.TestResultFilterView.as_view(), name='results'),
+    #url(r'^tests/$', views.TestResultFilterView.as_view(), name='tests'),
+    url(r'^subjects/$', views.SubjectFilterView.as_view(), name='subjects'),
     url(r'^(?P<pk>[0-9]+)/qintro/$', views.DetailView.as_view(), name='qintro'),
     url(r'^(?P<pk>[0-9]+)/q/$', views.load_questionnaire, name='q'),
-
+    url(r'^(?P<token>[0-9]+)/deleteresults/$', views.TestResultBulkDelete.as_view(), name='deleteresults'),
 ]

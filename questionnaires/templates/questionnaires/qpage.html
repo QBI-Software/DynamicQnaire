@@ -9,9 +9,9 @@
 <p>Question {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</p>
 <div class="progress">
     <div class="progress-bar" role="progressbar"
-         aria-valuenow="{% widthratio wizard.steps.step1 wizard.steps.count 100 %}%" aria-valuemin="0"
+         aria-valuenow="{% widthratio wizard.steps.step1 wizard.steps.count 100 %}" aria-valuemin="0"
          aria-valuemax="100" style="width:{% widthratio wizard.steps.step1 wizard.steps.count 100 %}%">
-        {% widthratio wizard.steps.step1 wizard.steps.count 100 %}
+        {% widthratio wizard.steps.step1 wizard.steps.count 100 %}&#37;
     </div>
 </div>
 <form action="" method="post">{% csrf_token %}
@@ -25,8 +25,8 @@
         {% else %}
 
             <div class="row">
-                <div class="col-md-2">&nbsp;</div>
-                <div class="well col-md-8 col-sm-8" align="center">
+                <div class="col-xs-2">&nbsp;</div>
+                <div class="well col-xs-8" align="center">
                     {{ wizard.form.non_field_errors }}
                 {% if wizard.form.qimage %}
                     <img src="/static/media/{{ wizard.form.qimage }}" width="400px" alt="{{wizard.form.question.label}}"/><br/>
@@ -45,7 +45,7 @@
                                value="{{ choice.0 }}"
 
                         {% if choice.1.choice_image %}
-                          class="imageradio">  <img src="/static/media/{{choice.1.choice_image }}" title="{{choice.1.choice_text}}" width="200"/>
+                          class="imageradio">  <img src="/static/media/{{choice.1.choice_image }}" title="{{choice.1.choice_text}}" />
                         {% else %}
                             >
                         {% endif %}
@@ -62,13 +62,14 @@
 
 
                 </div>
+                 <div class="col-xs-2">&nbsp;</div>
             </div>
         {% endif %}
 
 
             <div class="row">
-                <div class="col-md-2">&nbsp;</div>
-                <div class="well col-md-8 col-sm-8" align="center">
+                <div class="col-xs-2">&nbsp;</div>
+                <div class="well col-xs-8" align="center">
                 <ul class="pager">
                     {% if wizard.steps.prev %}
 
@@ -90,6 +91,7 @@
                     </li>
                 </ul>
             </div>
+                 <div class="col-xs-2">&nbsp;</div>
         </div>
     </div>
 </form>
