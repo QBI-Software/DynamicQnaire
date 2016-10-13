@@ -25,7 +25,7 @@ from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic import FormView, RedirectView
 from formtools.wizard.views import SessionWizardView
 from ipware.ip import get_ip
-
+from datetime import datetime
 try:
     from StringIO import StringIO
 except ImportError:
@@ -39,10 +39,10 @@ import logging
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 ###Local classes
-from .models import Questionnaire, Question, Choice, TestResult, SubjectCategory,Category
+from .models import Questionnaire, Question, Choice, TestResult, SubjectQuestionnaire,Category,SubjectVisit
 from .forms import SinglepageQuestionForm, BaseQuestionFormSet, AxesCaptchaForm, AnswerForm, TestResultBulkDeleteForm
-from .tables import FilteredSingleTableView, TestResultTable,SubjectCategoryTable
-from .filters import TestResultFilter,SubjectCategoryFilter
+from .tables import FilteredSingleTableView, TestResultTable,SubjectQuestionnaireTable
+from .filters import TestResultFilter,SubjectQuestionnaireFilter
 
 
 ## Login
@@ -162,7 +162,7 @@ def csrf_failure(request, reason=""):
     template_name= 'admin/csrf_failure.html'
     return render_to_response(template_name, ctx)
 ###########################################################################################
-####
+
 class IndexView(generic.ListView):
     template_name = 'questionnaires/index.html'
     context_object_name = 'questionnaire_list'
@@ -176,37 +176,48 @@ class IndexView(generic.ListView):
         user = self.request.user
         rlist = {}
         qlist = {}
-
+        category1 = Category.objects.filter(code='W1')
         if (user is not None and user.is_active):
-            user_results = TestResult.objects.filter(testee=user).distinct('test_questionnaire') #.order_by('test_datetime')
-            usergrouplist = user.groups.values_list('name') #ALL: Group.objects.values_list('name')
-            usercategory = self.getCurrentSubjectCategory(usergrouplist)
-            qlist=self.get_queryset()
+            qlist = self.get_queryset()
+            user_results = user.subjectquestionnaire_set.all() #SubjectQuestionnaire.objects.filter(subject=user)
+            usercategory = Category.objects.filter(name__icontains='all') #include all - also others?
+
             if (not user.is_superuser):
-                qlist = qlist.filter(category=usercategory).filter(group__name__in=usergrouplist) #q.group.all() for each group
+                visit = SubjectVisit.objects.get(subject=user)
+                print("DEBUG: Visit=",visit)
+                if (not visit):
+                    visit = SubjectVisit(subject=user, category=category1, date_visit=datetime.now())
+                    visit.save()
+                category1 = visit.category
+                usergrouplist = user.groups.values_list('name')
+                usercategory.append(category1)
+                user_results = user_results.filter(questionnaire__category__in=usercategory)
+                qlist = qlist.filter(category__in=usercategory).filter(group__name__in=usergrouplist)
 
             for r in user_results:
-                rlist[r.test_questionnaire.id] = (r.test_datetime, r.test_questionnaire.title, r.test_questionnaire.category)
-                qlist = qlist.exclude(pk=r.test_questionnaire.id)
+                rlist[r.questionnaire.id] = r
+                qlist = qlist.exclude(pk=r.questionnaire.id)
+
         context['questionnaire_list'] = qlist
         context['result_list']= rlist
+        context['visit'] = category1
 
         return context
 
-    def getCurrentSubjectCategory(self, usergrouplist):
-        catlist = SubjectCategory.objects.filter(subject=self.request.user).distinct('questionnaire','date_stored')
-        cat = Category.objects.filter(code='W1')  # Wave 1 default
-        if (catlist):
-            #For each category, check number of entries matches number in questionnaires
-            checklist = Category.objects.all().order_by('code')
-            for c in checklist:
-                cat = c
-                num = catlist.filter(questionnaire__category=c).count()
-                print("DEBUG: CAT=", c,' has done', num, ' tests')
-                qnum = Questionnaire.objects.filter(category=c).filter(group__name__in=usergrouplist).count()
-                if (c.code != 'W0' and num < qnum):
-                    break
-        return cat
+    # def getCurrentSubjectQuestionnaire(self, usergrouplist):
+    #     catlist = SubjectQuestionnaire.objects.filter(subject=self.request.user).distinct('questionnaire','date_stored')
+    #     cat = Category.objects.filter(code='W1')  # Wave 1 default
+    #     if (catlist):
+    #         #For each category, check number of entries matches number in questionnaires
+    #         checklist = Category.objects.all().order_by('code')
+    #         for c in checklist:
+    #             cat = c
+    #             num = catlist.filter(questionnaire__category=c).count()
+    #             print("DEBUG: CAT=", c,' has done', num, ' tests')
+    #             qnum = Questionnaire.objects.filter(category=c).filter(group__name__in=usergrouplist).count()
+    #             if (c.code != 'W0' and num < qnum):
+    #                 break
+    #     return cat
 
 # Questionnaire Intro page
 class DetailView(LoginRequiredMixin, generic.DetailView):
@@ -230,10 +241,10 @@ class TestResultFilterView(LoginRequiredMixin, FilteredSingleTableView):
 
 class SubjectFilterView(LoginRequiredMixin, FilteredSingleTableView):
     template_name = 'questionnaires/results_summary.html'
-    model = SubjectCategory
+    model = SubjectQuestionnaire
     #context_object_name = 'results_table'
-    table_class = SubjectCategoryTable
-    filter_class = SubjectCategoryFilter
+    table_class = SubjectQuestionnaireTable
+    filter_class = SubjectQuestionnaireFilter
     raise_exception = True
 
 class ResultsView(LoginRequiredMixin, PermissionRequiredMixin, generic.TemplateView):
@@ -264,7 +275,7 @@ class TestResultBulkDelete(LoginRequiredMixin, PermissionRequiredMixin, generic.
     def post(self, request, *args, **kwargs):
         mylist = self.get_queryset()
         token = mylist[0].test_token
-        sc = SubjectCategory.objects.get(session_token = token)
+        sc = SubjectQuestionnaire.objects.get(session_token = token)
         try:
             r = mylist.delete()
             sc.delete()
@@ -293,7 +304,7 @@ class TestResultBulkDelete(LoginRequiredMixin, PermissionRequiredMixin, generic.
     def get_queryset(self):
         fid = self.kwargs.get('token')
         print('DEBUG: token=', fid)
-        sc = SubjectCategory.objects.get(pk=fid)
+        sc = SubjectQuestionnaire.objects.get(pk=fid)
         return TestResult.objects.filter(test_token=sc.session_token)
 
     def get_success_url(self):
@@ -375,7 +386,7 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
                 else:
                     print(" ValChoice:", tresult.test_result_choice.choice_text)
         # Store category for user
-        subjectcat = SubjectCategory(subject=self.request.user, questionnaire=qnaire,
+        subjectcat = SubjectQuestionnaire(subject=self.request.user, questionnaire=qnaire,
                                      session_token=self.request.POST['csrfmiddlewaretoken'])
         subjectcat.save()
         return render(self.request, 'questionnaires/done.html', {
@@ -431,7 +442,7 @@ def singlepage_questionnaire(request,*args,**kwargs):
             # Save user info with category
             template='questionnaires/done.html'
             try:
-                subjectcat = SubjectCategory(subject=user, questionnaire=qnaire, session_token=request.POST['csrfmiddlewaretoken'])
+                subjectcat = SubjectQuestionnaire(subject=user, questionnaire=qnaire, session_token=request.POST['csrfmiddlewaretoken'])
                 subjectcat.save()
                 messages='Congratulations, %s!  You have completed the questionnaire.' % user
             except IntegrityError:

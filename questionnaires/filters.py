@@ -1,6 +1,6 @@
 import django_filters
 from django.contrib.auth.models import User
-from .models import TestResult,SubjectCategory
+from .models import TestResult,SubjectQuestionnaire
 
 class TestResultFilter(django_filters.FilterSet):
     test_datetime = django_filters.DateFromToRangeFilter(label="Test Date (from-to)",
@@ -19,12 +19,12 @@ class TestResultFilter(django_filters.FilterSet):
 
 
 
-class SubjectCategoryFilter(django_filters.FilterSet):
+class SubjectQuestionnaireFilter(django_filters.FilterSet):
     date_stored = django_filters.DateFromToRangeFilter(label="Test Date (from-to)",
                                                          widget=django_filters.widgets.RangeWidget(
                                                              attrs={'class': 'myDateClass', 'type': 'date',
                                                                     'placeholder': 'Select a date'}), )
 
     class Meta:
-        model = SubjectCategory
+        model = SubjectQuestionnaire
         fields = ['date_stored','subject', 'questionnaire']

@@ -23,7 +23,7 @@ class SummingColumn(tables.Column):
         return sum(bound_column.accessor.resolve(row) for row in table.data)
 
 
-class SubjectCategoryTable(tables.Table):
+class SubjectQuestionnaireTable(tables.Table):
     total = tables.LinkColumn('questionnaires:deleteresults', accessor=A('session_token'),  args=[A('session_token')], verbose_name='Delete')
     date_stored = tables.Column(verbose_name="Date")
     questionnaire = tables.Column(verbose_name="Questionnaire")
@@ -31,11 +31,11 @@ class SubjectCategoryTable(tables.Table):
 
     def render_total(self,value):
         print('DEBUG: render_total=',value)
-        sc = SubjectCategory.objects.get(session_token=value)
+        sc = SubjectQuestionnaire.objects.get(session_token=value)
         return format_html('<a href="/{}/deleteresults"><span class="glyphicon glyphicon-remove"></span></a>', sc.pk)
 
     class Meta:
-        model = SubjectCategory
+        model = SubjectQuestionnaire
         attrs = {"class": "ui-responsive table table-hover"}
         fields =['date_stored','questionnaire','subject','total']
         sortable = True

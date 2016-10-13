@@ -1,13 +1,7 @@
 from django.contrib import admin
-from django import forms
-from ckeditor.widgets import CKEditorWidget
-from .models import Questionnaire, Question, Choice, Category
 
+from .models import Questionnaire, Question, Choice, Category,SubjectVisit
 
-## Bulk Admin Actions
-#TODO: Use CKeditor for intropage field
-#TODO: Results: List of results per questionnaire and with percentage total and paginate
-#TODO: Results: Export raw results as csv
 
 class ChoiceAdmin(admin.ModelAdmin):
     list_display = ('questionnaire','question','choice_text','choice_image','choice_value')
@@ -106,12 +100,17 @@ class QuestionnaireAdmin(admin.ModelAdmin):
             print('AdminBulkMethod:Updated ',num, 'questions in ',obj)
 
     sequence_questions.short_description = 'Generate order sequences for questions'
-    # def formfield_for_foreignkey(self, db_field, request, **kwargs):
-    #     if db_field.name == "car":
-    #         kwargs["queryset"] = Question.objects.filter(owner=request.user)
-    #     return super(QuestionnaireAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+class SubjectVisitAdmin(admin.ModelAdmin):
+    fieldsets = [
+        (None, {'fields': ['date_visit', 'subject', 'category']}),
+    ]
+    list_display = ('date_visit', 'subject', 'category')
+    list_filter = ['category']
+    search_fields = ['subject__username']
 
 admin.site.register(Questionnaire, QuestionnaireAdmin)
 admin.site.register(Question, QuestionAdmin)
 admin.site.register(Choice, ChoiceAdmin)
+admin.site.register(SubjectVisit,SubjectVisitAdmin)
 admin.site.register(Category)

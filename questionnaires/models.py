@@ -70,6 +70,7 @@ class Choice(models.Model):
        return self.choice_text
 
 class TestResult(models.Model):
+    """Stores result of each question or multiple entries for multi-select"""
     testee = models.ForeignKey(User)
     test_datetime = models.DateTimeField(verbose_name="Test Datetime", auto_now=True)
     test_questionnaire = models.ForeignKey(Questionnaire, verbose_name="Questionnaire", null=False)
@@ -81,12 +82,21 @@ class TestResult(models.Model):
     def __str__(self):
         return self.test_questionnaire.title
 
-class SubjectCategory(models.Model):
-    """Store category accessed by user - track Waves"""
+class SubjectQuestionnaire(models.Model):
+    """Manage questionnaires done per user - entered once per questionnaire - synch manually with TestResult"""
     subject = models.ForeignKey(User)
     questionnaire = models.ForeignKey(Questionnaire, null=False) #stored as questionnaire to facilitate delete/update
     date_stored = models.DateTimeField(auto_now=True) #relevant to Wave
     session_token = models.CharField(_("Hiddentoken"), max_length=100)
 
     def __str__(self):
-        return self.subject.username + ": " + self.questionnaire.category.name
+        return self.subject.username + ": " + self.questionnaire.title
+
+class SubjectVisit(models.Model):
+    """Store wave visit for user - managed by Admin per visit"""
+    subject = models.OneToOneField(User)
+    category = models.ForeignKey(Category)
+    date_visit = models.DateTimeField(null=False)  # only one entry per visit
+
+    def __str__(self):
+        return self.subject.username + ": " + self.category.name
