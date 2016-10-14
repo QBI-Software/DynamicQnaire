@@ -28,6 +28,7 @@ class Questionnaire(models.Model):
     category = models.ForeignKey(Category, verbose_name="Category")
     type = models.CharField(_("Type"), max_length=20, choices=TYPES, default='single')
     group = models.ManyToManyField(Group)
+    active = models.BooleanField(_("Active"), default=True)
 
     def num_questions(self):
         return self.question_set.count()

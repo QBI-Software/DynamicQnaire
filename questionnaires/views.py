@@ -169,38 +169,41 @@ class IndexView(generic.ListView):
     raise_exception = True
 
     def get_queryset(self):
-        return Questionnaire.objects.order_by('pk')
+        return Questionnaire.objects.filter(active=True).order_by('pk')
 
     def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
         user = self.request.user
-        rlist = {}
+        rlist = []
         qlist = {}
-        category1 = Category.objects.filter(code='W1')
+        cat1 = None
         if (user is not None and user.is_active):
+            # set defaults
+            cat1 = Category.objects.get(code='W1')  # Wave 1
+            catlist = [c for c in Category.objects.filter(name__icontains='all')]  # include ALL
             qlist = self.get_queryset()
-            user_results = user.subjectquestionnaire_set.all() #SubjectQuestionnaire.objects.filter(subject=user)
-            usercategory = Category.objects.filter(name__icontains='all') #include all - also others?
+            #user_results = user.subjectquestionnaire_set.all() #SubjectQuestionnaire.objects.filter(subject=user)
+            rlist = user.subjectquestionnaire_set.all()
 
             if (not user.is_superuser):
-                visit = SubjectVisit.objects.get(subject=user)
-                print("DEBUG: Visit=",visit)
+                visit = user.subjectvisit #SubjectVisit.objects.get(subject=user)
+                #If missing, create visit and set to first category
                 if (not visit):
-                    visit = SubjectVisit(subject=user, category=category1, date_visit=datetime.now())
+                    visit = SubjectVisit(subject=user, category=cat1, date_visit=datetime.now())
                     visit.save()
-                category1 = visit.category
+                cat1 = visit.category
+                catlist.append(cat1)
                 usergrouplist = user.groups.values_list('name')
-                usercategory.append(category1)
-                user_results = user_results.filter(questionnaire__category__in=usercategory)
-                qlist = qlist.filter(category__in=usercategory).filter(group__name__in=usergrouplist)
 
-            for r in user_results:
-                rlist[r.questionnaire.id] = r
+                rlist = rlist.filter(questionnaire__category__in=catlist)
+                qlist = qlist.filter(category__in=catlist).filter(group__name__in=usergrouplist)
+            #exclude completed
+            for r in rlist:
                 qlist = qlist.exclude(pk=r.questionnaire.id)
 
         context['questionnaire_list'] = qlist
         context['result_list']= rlist
-        context['visit'] = category1
+        context['visit'] = cat1
 
         return context
 

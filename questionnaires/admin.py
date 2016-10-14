@@ -79,11 +79,11 @@ class QuestionInline(admin.TabularInline):
 
 class QuestionnaireAdmin(admin.ModelAdmin):
     fieldsets = [
-        (None, {'fields': ['title','description', 'intropage','group','code','category', 'type']}),
+        (None, {'fields': ['title','description', 'intropage','group','code','category', 'type','active']}),
     ]
     inlines = [QuestionInline]
-    list_display = ('title','description','code','category', 'type','num_questions')
-    list_filter = ['category','type']
+    list_display = ('title','description','code','category', 'type','active','num_questions')
+    list_filter = ['category','type','active']
     search_fields = ['title']
     actions=['sequence_questions']
 
@@ -105,7 +105,7 @@ class SubjectVisitAdmin(admin.ModelAdmin):
     fieldsets = [
         (None, {'fields': ['date_visit', 'subject', 'category']}),
     ]
-    list_display = ('date_visit', 'subject', 'category')
+    list_display = ( 'subject','category', 'date_visit')
     list_filter = ['category']
     search_fields = ['subject__username']
 

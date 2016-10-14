@@ -30,21 +30,21 @@ class AnswerForm(Form):
         if (qid):
             question = qid.get('qid')
             user = qid.get('myuser')
-            print("DEBUG: Qn=", question.id)
+           # print("DEBUG: Qn=", question.id)
             #Check type
             if question.question_image is not None:
                 self.qimage = question.question_image
             choices = []
             #Filter for user groups - ignore for superuser
             usergrouplist = user.groups.values_list('name')
-            print('DEBUG: user groups=', usergrouplist)
+           # print('DEBUG: user groups=', usergrouplist)
 
             for c in question.choice_set.order_by('pk'):
                 includeflag = 1
                 #If choice has groups - check they are in user groups
                 if (not user.is_superuser and c.group.count() > 0):
                     choicegroups = c.group.values_list('name')
-                    print('DEBUG: choice groups=',choicegroups)
+                  #  print('DEBUG: choice groups=',choicegroups)
                     includeflag = (set(choicegroups) <= set(usergrouplist))
 
                 if includeflag:
@@ -94,7 +94,7 @@ class AnswerForm(Form):
 class SinglepageQuestionForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
-        print('DEBUG: Qform: kwargs=', kwargs)
+        #print('DEBUG: Qform: kwargs=', kwargs)
         initvals = kwargs.get('initial')
         #print("DEBUG: initvals=", initvals)
         super().__init__(*args, **kwargs)
@@ -103,14 +103,14 @@ class SinglepageQuestionForm(forms.Form):
             #print("DEBUG: Qid=", qid)
 
             question = Question.objects.get(pk=qid)
-            print("DEBUG: Qn=", question.id)
+            #print("DEBUG: Qn=", question.id)
 
             self.fields['question'] = forms.ChoiceField(label=question.question_text,
                                                         widget=forms.RadioSelect, required=True,
                                                         choices=[(c.choice_value, c.choice_text) for c in question.choice_set.all()])
             for field in iter(self.fields):
                 self.fields[field].widget.attrs.update({
-                    'class': 'form-check'
+                    'class': 'form-control'
                 })
 
 
@@ -118,7 +118,7 @@ class BaseQuestionFormSet(BaseFormSet):
     """ Use for multiple questions per page as formset """
     def get_form_kwargs(self, index):
         kwargs = super(BaseQuestionFormSet, self).get_form_kwargs(index)
-        print('BASEFORM kwargs:', kwargs)
+        #print('BASEFORM kwargs:', kwargs)
         return kwargs
 
     def clean(self):
@@ -130,7 +130,7 @@ class BaseQuestionFormSet(BaseFormSet):
             return
         results = []
         for form in self.forms:
-            print("FORM:", self)
+            #print("FORM:", self)
             title = form.cleaned_data #['question']
 
         results.append(title)

@@ -19,7 +19,9 @@
                 {% if questionnaire_list %}
                 <ol class="list-group">
                     {% for q in questionnaire_list %}
-                    <li class="list-group-item"><a href="{% url 'questionnaires:qintro' q.id %}" class="btn btn-success">{{q}}  <span class="glyphicon glyphicon-circle-arrow-right"></span></a><span class="badge">{{ q.category}}</span></li>
+                    <li class="list-group-item">
+                        <a href="{% url 'questionnaires:qintro' q.id %}" class="btn btn-success">{{q}} <span class="label"> [ {{q.question_set.count}} questions ]</span> <span class="glyphicon glyphicon-circle-arrow-right"></span></a>
+                        <span class="badge">{{ q.category}}</span></li>
                     {% endfor %}
 
                 </ol>
@@ -44,14 +46,14 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {% for i,q in result_list.items %}
+                    {% for q in result_list %}
                     <tr>
                         <td>
                             <span class="glyphicon glyphicon-check"></span></td>
                         <td>{{q.date_stored|date:"d-M-Y"}}</td>
                         <td>{{q.questionnaire.title|force_escape}}</td>
                         <td>{{q.questionnaire.category.name}}</td>
-                        <td><a href="{% url 'questionnaires:qintro' i %}" class="btn btn-primary btn-small" title="Repeat Questionnaire"><span class="glyphicon glyphicon-refresh"></span></a></td>
+                        <td><a href="{% url 'questionnaires:qintro' q.questionnaire.id %}" class="btn btn-primary btn-small" title="Repeat Questionnaire"><span class="glyphicon glyphicon-refresh"></span></a></td>
                     </tr>
                     {% endfor %}
                     </tbody>
