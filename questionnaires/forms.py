@@ -30,7 +30,7 @@ class AnswerForm(Form):
         if (qid):
             question = qid.get('qid')
             user = qid.get('myuser')
-           # print("DEBUG: Qn=", question.id)
+            print("DEBUG: Qn=", question)
             #Check type
             if question.question_image is not None:
                 self.qimage = question.question_image
@@ -44,7 +44,7 @@ class AnswerForm(Form):
                 #If choice has groups - check they are in user groups
                 if (not user.is_superuser and c.group.count() > 0):
                     choicegroups = c.group.values_list('name')
-                  #  print('DEBUG: choice groups=',choicegroups)
+                    print('DEBUG: choice groups=',choicegroups)
                     includeflag = (set(choicegroups) <= set(usergrouplist))
 
                 if includeflag:
@@ -78,9 +78,9 @@ class AnswerForm(Form):
                 )
             elif question.question_type == 4:
                 print('DEBUG: Dropdown list')
-                self.fields['question'] = forms.CharField(
+                self.fields['question'] = forms.ChoiceField(
                     label=question.question_text,
-                    widget=forms.Select(attrs={'class': 'form-control'}),
+                    #widget=forms.Select(attrs={'class': 'form-control'}),
                     help_text='select',
                     required=question.question_required,
                     choices=choices,

@@ -6,8 +6,12 @@ from django.utils.translation import ugettext_lazy as _
 
 ##### LISTS #############
 class Category(models.Model):
-    name = models.CharField(_("Name"), max_length=60)
-    code = models.CharField(_("Code"), max_length=5, unique=True)
+    CATEGORIES = (('W1', 'Wave 1'), ('W2', 'Wave 2'), ('W3', 'Wave 3'))
+    name = models.CharField(_("Name"), max_length=10,choices=CATEGORIES, default='W1')
+    #code = models.CharField(_("Code"), max_length=5, unique=True)
+
+    def code(self):
+        return self.name[1]
 
     def __str__(self):
         return self.name
@@ -25,10 +29,16 @@ class Questionnaire(models.Model):
     description = models.TextField(_("Description"), null=True, blank=True)
     intropage = RichTextUploadingField(_("Introduction"),null=True, blank=True)
     code = models.CharField(_("Code"), max_length=10, unique=True)
-    category = models.ForeignKey(Category, verbose_name="Category")
+    #category = models.ForeignKey(Category, verbose_name="Category")
+    category = models.ManyToManyField(Category)
     type = models.CharField(_("Type"), max_length=20, choices=TYPES, default='single')
     group = models.ManyToManyField(Group)
     active = models.BooleanField(_("Active"), default=True)
+
+    def categorylist(self):
+        catlist = [c.get_name_display() for c in self.category.all()]
+        print('DEBUG: Catlist=', catlist)
+        return ", ".join(catlist)
 
     def num_questions(self):
         return self.question_set.count()

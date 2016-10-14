@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Questionnaire, Question, Choice, Category,SubjectVisit
+from .models import Questionnaire, Question, Choice, SubjectVisit
 
 
 class ChoiceAdmin(admin.ModelAdmin):
@@ -78,12 +78,13 @@ class QuestionInline(admin.TabularInline):
 
 
 class QuestionnaireAdmin(admin.ModelAdmin):
+
     fieldsets = [
-        (None, {'fields': ['title','description', 'intropage','group','code','category', 'type','active']}),
+        (None, {'fields': ['title','active','description', 'intropage','code','type','category','group']}),
     ]
     inlines = [QuestionInline]
-    list_display = ('title','description','code','category', 'type','active','num_questions')
-    list_filter = ['category','type','active']
+    list_display = ('title','description','code','type','active','categorylist','num_questions')
+    list_filter = ['type','active']
     search_fields = ['title']
     actions=['sequence_questions']
 
@@ -113,4 +114,4 @@ admin.site.register(Questionnaire, QuestionnaireAdmin)
 admin.site.register(Question, QuestionAdmin)
 admin.site.register(Choice, ChoiceAdmin)
 admin.site.register(SubjectVisit,SubjectVisitAdmin)
-admin.site.register(Category)
+#admin.site.register(Category)

@@ -169,7 +169,7 @@ class IndexView(generic.ListView):
     raise_exception = True
 
     def get_queryset(self):
-        return Questionnaire.objects.filter(active=True).order_by('pk')
+        return Questionnaire.objects.order_by('pk')
 
     def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
@@ -179,7 +179,7 @@ class IndexView(generic.ListView):
         cat1 = None
         if (user is not None and user.is_active):
             # set defaults
-            cat1 = Category.objects.get(code='W1')  # Wave 1
+            cat1 = Category.objects.get(name='Wave 1')  # Wave 1
             catlist = [c for c in Category.objects.filter(name__icontains='all')]  # include ALL
             qlist = self.get_queryset()
             #user_results = user.subjectquestionnaire_set.all() #SubjectQuestionnaire.objects.filter(subject=user)
@@ -195,8 +195,8 @@ class IndexView(generic.ListView):
                 catlist.append(cat1)
                 usergrouplist = user.groups.values_list('name')
 
-                rlist = rlist.filter(questionnaire__category__in=catlist)
-                qlist = qlist.filter(category__in=catlist).filter(group__name__in=usergrouplist)
+                rlist = rlist.filter(questionnaire__category__in=catlist).distinct('questionnaire')
+                qlist = qlist.filter(active=True).filter(category__in=catlist).filter(group__name__in=usergrouplist)
             #exclude completed
             for r in rlist:
                 qlist = qlist.exclude(pk=r.questionnaire.id)
