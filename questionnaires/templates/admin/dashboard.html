@@ -1,0 +1,178 @@
+<div class="row">
+    <h3>Staff Dashboard</h3>
+    <div class="col-sm-6">
+        <div class="well">
+            <button type="button" class="btn btn-info" data-toggle="collapse" data-target="#createq"><h3>Create A
+                Questionnaire</h3><span class="caret"></span></button>
+            <div id="createq" class="collapse">
+                <ul class="list-group">
+                <li class="list-group-item" data-toggle="collapse" data-target="#createq1"><h4>Questionnaire <span class="caret"></span></h4>
+                <div id="createq1" class="collapse">
+                    <p>Go to <a href="/admin/questionnaires/questionnaire/add" class="btn btn-primary">Create Questionnaire</a></p>
+                    <dl><em>Fields (most are mandatory)</em>
+                        <dt>Title</dt>
+                        <dd>Short but descriptive title for all users</dd>
+                        <dt>Active</dt>
+                        <dd>Will show up for Subjects if checked (hidden if not)</dd>
+                        <dt>Description</dt>
+                        <dd>Description for all admin users only - will not be displayed to Subjects</dd>
+                        <dt>Introduction</dt>
+                        <dd>First page of questionnaire to explain to Subjects what it is about and what to do - full
+                            WYSIWYG editor
+                        </dd>
+                        <dt>Code</dt>
+                        <dd>A reference code for the questionnaire - will show in lists</dd>
+                        <dt>Type</dt>
+                        <dd>Choose whether every question is on a separate page (multi-page) or all on one page (single
+                            page)
+                        </dd>
+                        <dt>Category</dt>
+                        <dd>Select one or more visit categories</dd>
+                        <dt>Group</dt>
+                        <dd>Select one or more groups to ensure questionnaire is only given to the correct group - leave
+                            blank for all
+                        </dd>
+
+                    </dl>
+                </div></li>
+                <li class="list-group-item" data-toggle="collapse" data-target="#createq2"><h4>Questions <span class="caret"></span></h4>
+                <div id="createq2" class="collapse">
+                    <p>Scroll to the bottom of the questionnaire page (questions only - answers are separately added).
+                        Note 3 questions are shown initially, if not required just use two and save.
+                        If more required, just click on the "Add another question" at the bottom.</p>
+                    <dl><em>Fields</em>
+                        <dt>Question Text</dt>
+                        <dd>Short textual question (max of 200 characters)</dd>
+                        <dt>Question Image</dt>
+                        <dd>An option to have an image instead with the question text showing as alternative and as
+                            popup text.
+                            Best results when the image is resized prior to upload - displayed at 400px width max
+                        </dd>
+                        <dt>Sequence Order</dt>
+                        <dd>Mandatory field - allows manual ordering of questions. Note there is a batch process for
+                            this after the questionnaire is saved.
+                        </dd>
+                        <dt>Group</dt>
+                        <dd>Select one or more groups to ensure question is only shown to the correct groups - leave
+                            blank for all
+                        </dd>
+                        <dt>Type</dt>
+                        <dd>Select from Radio (single), Checkbox (many), Text field (free text) or Dropdown (long lists)
+                            - this can be changed at any time as it is independent of the choices
+                        </dd>
+                        <dt>Required</dt>
+                        <dd>Indicates whether the Subject must answer this question (ie optional text questions should
+                            uncheck this)
+                        </dd>
+                        <dt>Question Help</dt>
+                        <dd>Not currently implemented</dd>
+                    </dl>
+                </div></li>
+
+                <li class="list-group-item" data-toggle="collapse" data-target="#createq3"><h4>Save and Check <span class="caret"></span></h4>
+                <div id="createq3" class="collapse">
+                    <ol>
+                        <li><em>SAVE</em> the questionnaire with one of the save options</li>
+                        <li>Ensure you have set the order for the questions:
+                            <ol>Go to the <a href="admin/questionnaires/questionnaire/" class="btn btn-primary">Questionnaire List</a>
+                            <li>check one or more questionnaires</li>
+                            <li>from the "Action" dropdown, select "Generate order sequences for questions"</li>
+                            <li>click on the "Go" button</li>
+                                </ol>
+                        </li>
+                    </ol>
+                </div></li>
+
+                <li class="list-group-item" data-toggle="collapse"  data-target="#createq4"><h4>Choices <span class="caret"></span></h4>
+                <div id="createq4" class="collapse">
+                    <ol>There are two ways to create Choices for the questions, first go to <a href="admin/questionnaires/question/" class="btn btn-primary">Question
+                            List</a>
+                        <li><em>Batch process:</em> check one or more questions, then select the "Action" dropdown and select from
+                            preset lists. This will generate a set of choices for each question selected - overwriting any existing
+                            ones.</li>
+                        <li><em>Manually create</em> the choices by selecting the question from the Question List then adding the
+                            Choices:
+                            <dl><em>Fields</em>
+                                <dt>Choice Image</dt>
+                                <dd>Option to upload an image (preferably sized at 100px width or less)</dd>
+                                <dt>Choice Text</dt>
+                                <dd>Text to display</dd>
+                                <dt>Value</dt>
+                                <dd>Number (preferable) or word to indicate which choice was selected - this should have
+                                    some relevance for analysing the results
+                                </dd>
+                                <dt>Show Label</dt>
+                                <dd>Option to show or hide the choice text (this can be applied as alternative to the
+                                    image if not displayed)
+                                </dd>
+                                <dt>Group</dt>
+                                <dd>Select one or more groups to ensure choice is only shown to the correct groups -
+                                    leave blank for all
+                                </dd>
+
+                            </dl>
+                        </li>
+                        <li>SAVE with one of the save options at the bottom of the page</li>
+                    </ol>
+                </div></li>
+                    </ul>
+
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6">
+        <div class="well">
+            <button type="button" class="btn btn-warning" data-toggle="collapse" data-target="#user"><h3>Setup a Subject</h3><span class="caret"></span></button>
+            <div id="user" class="collapse">
+                <ul class="list-group">
+                <li class="list-group-item" data-toggle="collapse" data-target="#user1"><h4>Subject Visit <span class="caret"></span></h4>
+                <div id="user1" class="collapse">
+                    <p>Go to <a href="/admin/questionnaires/subjectvisit/add/" class="btn btn-primary">Create Subject Visit</a></p>
+                    <dl><em>Fields (most are mandatory)</em>
+                        <dt>Date visit</dt>
+                        <dd>Set to the date and time of the visit (in advance is fine)</dd>
+                        <dt>Subject</dt>
+                        <dd>Add a new Subject with the green "plus" button (if they are not in the list).  This popups up a separate screen - edit username and password (remember this!).
+                            Groups will need to be added separately - see below.
+                            (Note, if the Subject has already been added to the Users, it will appear in the dropdown list.)</dd>
+                        <dt>Category</dt>
+                        <dd>Select Wave for this visit. (Note this is not editable) </dd>
+                        <dt>XNAT ID (optional)</dt>
+                        <dd>ID to link to Subject's record in XNAT</dd>
+                        <dt>Parent (optional)</dt>
+                        <dd>Select from list if already added to Users or click on plus as above</dd>
+                        </dl>
+                    </div></li>
+                 <li class="list-group-item" data-toggle="collapse" data-target="#user2"><h4>Subject Details <span class="caret"></span></h4>
+                <div id="user2" class="collapse">
+                    <p>Go to <a href="/admin/auth/user" class="btn btn-primary">Add or Edit User</a> This is required to add Groups to a Subject/Parent.
+                        Subjects (and parents) can be added here first and then Subject visits set up.</p>
+                    <dl><em>Fields (most are mandatory)</em>
+                        <dt>Username</dt>
+                        <dd>Edit username (no spaces)</dd>
+                        <dt>Password</dt>
+                        <dd>To change, click on the text <strong style="color:blue;">"this form"</strong> in tiny font under the password field.</dd>
+                        <dt>Personal Information</dt>
+                        <dd>First name is used in the Welcome message.
+                            Email address is used for resetting a forgotten password but it must be unique so use only if you are allowing Subjects to change their own password.</dd>
+                        <dt>Active</dt>
+                        <dd>Will only be able to login if this is checked</dd>
+                        <dt>Staff status</dt>
+                        <dd>Staff only - most likely yourself</dd>
+                        <dt>Superuser status</dt>
+                        <dd>Highly restricted - only users who understand the system</dd>
+                        <dt>Groups <span class="badge">Very Important</span></dt>
+                        <dd>Select one or more groups for the Subject - these should match with Questionnaire groups</dd>
+                        <dt>Other fields</dt>
+                        <dd>That's it - except you may need to enter a value in the "Last Login" - today is fine</dd>
+                        </dl>
+                    <p>And don't forget to SAVE!</p>
+                    </div>
+                    </li>
+                    </ul>
+                </div>
+        </div>
+    </div>
+</div>
+
+

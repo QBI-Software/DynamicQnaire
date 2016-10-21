@@ -2,7 +2,7 @@ from ckeditor_uploader.fields import RichTextUploadingField
 from django.contrib.auth.models import User, Group
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-
+from colorfield.fields import ColorField
 
 ##### LISTS #############
 class Category(models.Model):
@@ -59,6 +59,10 @@ class Question(models.Model):
     question_type = models.IntegerField(_("Type"), default=1, choices=INPUTS)
     question_required = models.BooleanField(_("Required"), default=True)
     question_help = models.CharField(_("Question Help"), max_length=200, blank=True, null=True)
+    #bgcolor = models.CharField(_("Background Color"), max_length=10, blank=False, default="white")
+    #textcolor = models.CharField(_("Text Color"), max_length=10, blank=False, default="gray")
+    bgcolor = ColorField(_("Background Color"),default='#FFFFFF')
+    textcolor = ColorField(_("Text Color"),default='#666666')
 
     def num_choices(self):
         return self.choice_set.count()
@@ -72,6 +76,7 @@ class Choice(models.Model):
     choice_image = models.ImageField(verbose_name="Choice Image", null=True, blank=True)
     choice_text = models.CharField(_("Choice Text"), max_length=200)
     choice_value = models.CharField(_("Value"),default='0', max_length=200) #Can accept integer list for checkboxes
+    show_label = models.BooleanField(_("Show label"), default=True)
     group = models.ManyToManyField(Group, verbose_name="Group", blank=True)
 
     def questionnaire(self):
@@ -104,9 +109,11 @@ class SubjectQuestionnaire(models.Model):
         return self.subject.username + ": " + self.questionnaire.title
 
 class SubjectVisit(models.Model):
-    """Store wave visit for user - managed by Admin per visit"""
+    """One Visit for user - managed by Admin per visit"""
     subject = models.OneToOneField(User)
-    category = models.ForeignKey(Category)
+    parent = models.OneToOneField(User, null=True, blank=True, related_name="parent")
+    xnatid = models.CharField(_("XNAT ID"), null=True, blank=True,max_length=20, unique=True)
+    category = models.ForeignKey(Category) #ie Wave number
     date_visit = models.DateTimeField(null=False)  # only one entry per visit
 
     def __str__(self):

@@ -6,7 +6,8 @@
 {% block head %}
 {{ wizard.form.media }}
 {% endblock %}
-<p>Question {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</p>
+
+
 <div class="progress">
     <div class="progress-bar" role="progressbar"
          aria-valuenow="{% widthratio wizard.steps.step1 wizard.steps.count 100 %}" aria-valuemin="0"
@@ -14,6 +15,8 @@
         {% widthratio wizard.steps.step1 wizard.steps.count 100 %}&#37;
     </div>
 </div>
+<div style="background-color:{{wizard.form.qbgcolor}}; color:{{wizard.form.textcolor}};">
+    <p>Question {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</p>
 <form action="" method="post">{% csrf_token %}
     <div class="container-responsive" align="center">
         {{ wizard.management_form }}
@@ -24,9 +27,9 @@
         {% endfor %}
         {% else %}
 
-        <div class="row">
+        <div class="row" >
             <div class="col-xs-2">&nbsp;</div>
-            <div class="well col-xs-8 form-group" align="center">
+            <div class="col-xs-8 form-group" align="center" >
                 {{ wizard.form.non_field_errors }}
                 {% if wizard.form.qimage %}
                 <img src="/static/media/{{ wizard.form.qimage }}" width="400px"
@@ -51,14 +54,17 @@
                                           id="{{ wizard.form.question.id_for_label}}"
                                           name="{{wizard.form.prefix}}-{{ wizard.form.question.name }}"
                                           value="{{ choice.0 }}"
-                                          {% if choice.1.choice_image %}
+                                  {% if choice.1.choice_image %}
                                           class="imageradio"> <img src="/static/media/{{choice.1.choice_image }}"
                                                                    title="{{choice.1.choice_text}}"/>
                                 {% else %}
                                 >
                                 {% endif %}
+                                </input>{% if choice.1.show_label %}
+                                {{ choice.1.choice_text }}
+                                {% endif %}
+                            </label>
 
-                                </input>{{ choice.1.choice_text }}</label>
                         </div>
                         {% endif %}
 
@@ -81,7 +87,7 @@
 
         <div class="row">
             <div class="col-xs-2">&nbsp;</div>
-            <div class="well col-xs-8" align="center">
+            <div class="col-xs-8" align="center">
                 <ul class="pager">
                     {% if wizard.steps.prev %}
 
@@ -109,5 +115,5 @@
         </div>
     </div>
 </form>
-
+</div>
 {% endblock content %}

@@ -1,6 +1,6 @@
 from django.contrib import admin
-
-from .models import Questionnaire, Question, Choice, SubjectVisit
+#from suit.widgets import HTML5Input
+from .models import Questionnaire, Question, Choice, SubjectVisit, Category
 
 
 class ChoiceAdmin(admin.ModelAdmin):
@@ -75,6 +75,10 @@ class QuestionAdmin(admin.ModelAdmin):
 class QuestionInline(admin.TabularInline):
     model = Question
     extra = 3
+    # class Meta:
+    #     widgets = {
+    #         'bgcolor': HTML5Input(input_type='color'),
+    #     }
 
 
 class QuestionnaireAdmin(admin.ModelAdmin):
@@ -104,9 +108,9 @@ class QuestionnaireAdmin(admin.ModelAdmin):
 
 class SubjectVisitAdmin(admin.ModelAdmin):
     fieldsets = [
-        (None, {'fields': ['date_visit', 'subject', 'category']}),
+        (None, {'fields': ['date_visit', 'subject', 'category', 'xnatid','parent']}),
     ]
-    list_display = ( 'subject','category', 'date_visit')
+    list_display = ( 'subject','category', 'date_visit', 'xnatid','parent')
     list_filter = ['category']
     search_fields = ['subject__username']
 

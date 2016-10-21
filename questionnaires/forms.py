@@ -23,6 +23,8 @@ class AxesCaptchaForm(Form):
 
 class AnswerForm(Form):
     qimage = None
+    qbgcolor = "white"
+    textcolor = "gray"
     """Loads a question and multiple choice answer """
     def __init__(self, *args, **kwargs):
         qid = kwargs.get('initial')
@@ -34,6 +36,8 @@ class AnswerForm(Form):
             #Check type
             if question.question_image is not None:
                 self.qimage = question.question_image
+            self.qbgcolor= question.bgcolor
+            self.textcolor = question.textcolor
             choices = []
             #Filter for user groups - ignore for superuser
             usergrouplist = user.groups.values_list('name')

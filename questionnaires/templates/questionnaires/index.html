@@ -11,11 +11,19 @@
 
     </div>
 {% if user.is_authenticated %}
+    {% if user.is_staff %}
+    {% include "admin/dashboard.html" %}
+    {% endif %}
+
     <div class="row">
 
         <div class="col-sm-6">
             <div class="well">
+                {% if user.is_staff %}
+                <h3>Questionnaires to do</h3>
+                {% else %}
                 <h3>My Questionnaires for {{visit.name|force_escape}}</h3>
+                {% endif %}
                 {% if questionnaire_list %}
                 <ol class="list-group">
                     {% for q in questionnaire_list %}
