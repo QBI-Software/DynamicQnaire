@@ -58,9 +58,10 @@ class Question(models.Model):
     group = models.ManyToManyField(Group, verbose_name="Group", blank=True)
     question_type = models.IntegerField(_("Type"), default=1, choices=INPUTS)
     question_required = models.BooleanField(_("Required"), default=True)
-    question_help = models.CharField(_("Question Help"), max_length=200, blank=True, null=True)
-    #bgcolor = models.CharField(_("Background Color"), max_length=10, blank=False, default="white")
-    #textcolor = models.CharField(_("Text Color"), max_length=10, blank=False, default="gray")
+    question_help = models.CharField(_("Additional"), max_length=200, blank=True, null=True)
+    #show_value = models.CharField(_("Show next if value"), max_length=200, blank=True, null=True)
+    skip_value = models.CharField(_("Show next if value"), max_length=200, blank=True, null=True)
+    skip_goto = models.IntegerField(_("Skip to question"), blank=True, null=True)
     bgcolor = ColorField(_("Background Color"),default='#FFFFFF')
     textcolor = ColorField(_("Text Color"),default='#666666')
 

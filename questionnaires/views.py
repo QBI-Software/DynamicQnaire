@@ -313,6 +313,19 @@ class TestResultBulkDelete(LoginRequiredMixin, PermissionRequiredMixin, generic.
     def get_success_url(self):
         return reverse('questionnaires:subjects')
 
+def skip_form_condition(wizard):
+    # try to get the cleaned data of step 1
+    print('wizard form=',wizard.form)
+    if (wizard.condition_dict):
+        currentstep = wizard.steps.current
+        qn_val = wizard.condition_dict.get(currentstep)['val']
+        print("Process step: value=", qn_val)
+    cleaned_data = wizard.get_cleaned_data_for_step(currentstep) or {}
+    # check if the field value same as conditional
+    return cleaned_data.get('0-question', qn_val)
+
+def return_true(wizard): #  callable function called in _condition_dict
+    return True
 
 @login_required
 def load_questionnaire(request, *args, **kwargs):
@@ -327,11 +340,18 @@ def load_questionnaire(request, *args, **kwargs):
         formlist=[AnswerForm] * qnaire.question_set.count()
         questions = qnaire.question_set.order_by('order')
         linkdata = {}
+        condata = {}
         for q in questions:
             linkdata[str(q.order-1)] = {'qid': q}
-        initdata = OrderedDict(linkdata)
+            if (q.skip_value and q.skip_goto):
+                condata[str(q.order-1)] = {'val': q.skip_value} #{skip_form_condition} #
+            # else:
+            #     condata[str(q.order-1)] = {return_true}
 
-    form = QuestionnaireWizard.as_view(form_list=formlist, initial_dict=initdata)
+        initdata = OrderedDict(linkdata)
+        cond_data = OrderedDict(condata)
+
+    form = QuestionnaireWizard.as_view(form_list=formlist, initial_dict=initdata, condition_dict =cond_data)
     return form(context=RequestContext(request), request=request)
 
 class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
@@ -342,6 +362,34 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
     #     self.sheet_id_initial = kwargs.get('sheet_id_initial', None)
         return super(QuestionnaireWizard, self).dispatch(request, *args, **kwargs)
 
+    def process_step(self, form):
+        rtn = True
+        print("Process step: list=", self.form_list)
+        currentstep = str(self.get_step_index())
+        fdata = self.get_form_step_data(form)
+        print("Process step: fdata=",fdata)
+        #self.get_cleaned_data_for_step(currentstep)  #
+        if (self.condition_dict.get(currentstep)):
+            qn_val = self.condition_dict.get(currentstep)['val']
+            print("Process step: value=", qn_val)
+            print("Process step: form value=", fdata['0-question'])
+            if (qn_val != fdata['0-question']):
+                self.form_list.pop(str(self.steps.next))
+        return self.get_form_step_data(form)
+
+    # def get_context_data(self, form, **kwargs):
+    #     previous_data = {}
+    #     currentstep = str(self.steps.current)  # 0 for first form, 1 for the second form..
+    #     fdata = self.get_form_step_data(form)
+    #     if (self.condition_dict.get(currentstep)):
+    #         qn_val = self.condition_dict.get(currentstep)['val']
+    #         qn_goto = self.condition_dict.get(currentstep)['goto']
+    #         if (qn_val != fdata['0-question']):
+    #             self.steps.next = str(qn_goto)
+    #
+    #     context = super(QuestionnaireWizard, self).get_context_data(form=form, **kwargs)
+    #     #context.update({'previous_cleaned_data': previous_data})
+    #     return context
 
     def get_form_initial(self, step):
         initial = self.initial_dict.get(step)
