@@ -1,6 +1,7 @@
 import django_tables2 as tables
 from django_tables2.utils import A
 from django.utils.html import format_html
+from django_tables2_reports.tables import TableReport
 from .models import *
 
 
@@ -25,19 +26,24 @@ class SummingColumn(tables.Column):
 
 class SubjectQuestionnaireTable(tables.Table):
     total = tables.LinkColumn('questionnaires:deleteresults', accessor=A('session_token'),  args=[A('session_token')], verbose_name='Delete')
+    download = tables.LinkColumn('questionnaires:download', accessor=A('pk'), args=[A('pk')], verbose_name='Download')
     date_stored = tables.Column(verbose_name="Date")
     questionnaire = tables.Column(verbose_name="Questionnaire")
     subject = tables.Column(verbose_name="Subject")
 
+    def render_download(self,value):
+        print("DEBUG: download value=", value)
+        return format_html('<a href="/{}/download"><span class="glyphicon glyphicon-download"></span></a>', value)
+
     def render_total(self,value):
-        print('DEBUG: render_total=',value)
+        #print('DEBUG: render_total=',value)
         sc = SubjectQuestionnaire.objects.get(session_token=value)
         return format_html('<a href="/{}/deleteresults"><span class="glyphicon glyphicon-remove"></span></a>', sc.pk)
 
     class Meta:
         model = SubjectQuestionnaire
         attrs = {"class": "ui-responsive table table-hover"}
-        fields =['date_stored','questionnaire','subject','total']
+        fields =['date_stored','questionnaire','subject','total','download']
         sortable = True
 
 
@@ -49,6 +55,11 @@ class TestResultTable(tables.Table):
     class Meta:
         model = TestResult
         attrs = {"class": "ui-responsive table table-hover"}
-        fields =['test_datetime','testee','test_questionnaire','test_result_question','test_result_choice']
+        fields =['test_datetime','testee','test_questionnaire','test_result_question','test_result_choice','test_result_text']
         sortable = True
 
+class SubjectResult(TableReport):
+
+    class Meta:
+        model = SubjectQuestionnaire
+        exclude_from_report = ('session_token')

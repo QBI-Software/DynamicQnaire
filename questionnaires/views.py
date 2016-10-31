@@ -1,5 +1,6 @@
 import os
 from collections import OrderedDict
+from datetime import datetime
 
 from axes.utils import reset
 from django.conf import settings
@@ -14,6 +15,7 @@ from django.db import IntegrityError
 from django.db.models import Count
 from django.forms.formsets import formset_factory
 from django.http import HttpResponseRedirect
+from django.http import HttpResponse
 from django.shortcuts import render,redirect, resolve_url, render_to_response
 from django.template import RequestContext
 from django.utils import timezone
@@ -23,9 +25,13 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic import FormView, RedirectView
+from django.template import loader, Context
+from django_tables2_reports.config import RequestConfigReport as RequestConfig
+from django_tables2_reports.views import ReportTableView
+from django_tables2_reports import utils as reportutils
 from formtools.wizard.views import SessionWizardView
 from ipware.ip import get_ip
-from datetime import datetime
+
 try:
     from StringIO import StringIO
 except ImportError:
@@ -41,7 +47,7 @@ logger = logging.getLogger(__name__)
 ###Local classes
 from .models import Questionnaire, Question, Choice, TestResult, SubjectQuestionnaire,Category,SubjectVisit
 from .forms import SinglepageQuestionForm, BaseQuestionFormSet, AxesCaptchaForm, AnswerForm, TestResultBulkDeleteForm
-from .tables import FilteredSingleTableView, TestResultTable,SubjectQuestionnaireTable
+from .tables import FilteredSingleTableView, TestResultTable,SubjectQuestionnaireTable,SubjectResult
 from .filters import TestResultFilter,SubjectQuestionnaireFilter
 
 
@@ -232,7 +238,7 @@ class DetailView(LoginRequiredMixin, generic.DetailView):
         context['now'] = timezone.now()
         return context
 
-# TABLES
+################REPORT TABLES ##########################################
 
 class TestResultFilterView(LoginRequiredMixin, FilteredSingleTableView):
     template_name = 'questionnaires/results_summary.html'
@@ -249,6 +255,59 @@ class SubjectFilterView(LoginRequiredMixin, FilteredSingleTableView):
     table_class = SubjectQuestionnaireTable
     filter_class = SubjectQuestionnaireFilter
     raise_exception = True
+
+def download_report(request, *args, **kwargs):
+    filename="qtab_report.csv"
+    # Get subject id
+    sid = kwargs.get('subjectid')
+    qs = SubjectQuestionnaire.objects.all()
+    if (sid):
+        qs = qs.filter(pk=sid)
+        filename = "qtab_report_%s.csv" % sid
+    print('DEBUG:subject results=', qs.count())
+    # Create the HttpResponse object with the appropriate CSV header.
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=%s' % filename
+
+    headers = ((u"Subject", u"Date", u"Questionnaire", u"Total"))
+    csv_data = list()
+    csv_data.append(headers)
+    for qresult in qs:
+        print("Row=", qresult)
+        csv_data.append((qresult.subject.username, qresult.date_stored, qresult.questionnaire.title, qresult.questionnaire.question_set.count()))
+
+    t = loader.get_template('questionnaires/report.txt')
+    c = Context({
+        'data': tuple(csv_data),
+    })
+    response.write(t.render(c))
+    return response
+
+    # objs = SubjectQuestionnaire.objects.all()
+    # table = SubjectResult(objs, prefix='my-prefix')
+    # #RequestConfig(request).configure(table)
+    # RequestConfig(request, paginate={"per_page": 20}).configure(table)
+    # return render_to_response('questionnaires/report.html',
+    #                           {'table': table}, context=RequestContext(request))
+
+class SubjectReportView(ReportTableView):
+    model = SubjectQuestionnaire
+    table_class = SubjectResult
+    template_name = 'questionnaires/report.html'
+    context_object_name = 'table'
+    table_pagination = True
+
+    def get_queryset(self):
+        #print('DEBUG:kwargs', self.kwargs)
+        qs = SubjectQuestionnaire.objects.all().order_by('subject')
+        if (self.kwargs.get('subjectid')):
+            sid = self.kwargs.get('subjectid')
+            qs = qs.filter(subject__pk=sid)
+            print('DEBUG:subject results=', qs.count())
+        #table = SubjectResult(qs)
+        #RequestConfig(self.request, paginate={"per_page": 20}).configure(table)
+        return qs
+
 
 class ResultsView(LoginRequiredMixin, PermissionRequiredMixin, generic.TemplateView):
     template_name = 'questionnaires/results.html'
@@ -313,19 +372,23 @@ class TestResultBulkDelete(LoginRequiredMixin, PermissionRequiredMixin, generic.
     def get_success_url(self):
         return reverse('questionnaires:subjects')
 
-def skip_form_condition(wizard):
-    # try to get the cleaned data of step 1
-    print('wizard form=',wizard.form)
-    if (wizard.condition_dict):
-        currentstep = wizard.steps.current
-        qn_val = wizard.condition_dict.get(currentstep)['val']
-        print("Process step: value=", qn_val)
-    cleaned_data = wizard.get_cleaned_data_for_step(currentstep) or {}
-    # check if the field value same as conditional
-    return cleaned_data.get('0-question', qn_val)
 
-def return_true(wizard): #  callable function called in _condition_dict
-    return True
+
+
+################QUESTIONNAIRE FORMS ####################################
+# def skip_form_condition(wizard):
+#     # try to get the cleaned data of step 1
+#     print('wizard form=',wizard.form)
+#     if (wizard.condition_dict):
+#         currentstep = wizard.steps.current
+#         qn_val = wizard.condition_dict.get(currentstep)['val']
+#         print("Process step: value=", qn_val)
+#     cleaned_data = wizard.get_cleaned_data_for_step(currentstep) or {}
+#     # check if the field value same as conditional
+#     return cleaned_data.get('0-question', qn_val)
+
+# def return_true(wizard): #  callable function called in _condition_dict
+#     return True
 
 @login_required
 def load_questionnaire(request, *args, **kwargs):
@@ -344,9 +407,7 @@ def load_questionnaire(request, *args, **kwargs):
         for q in questions:
             linkdata[str(q.order-1)] = {'qid': q}
             if (q.skip_value and q.skip_goto):
-                condata[str(q.order-1)] = {'val': q.skip_value} #{skip_form_condition} #
-            # else:
-            #     condata[str(q.order-1)] = {return_true}
+                condata[str(q.order-1)] = {'val': q.skip_value, 'goto': q.skip_goto} #{skip_form_condition} #
 
         initdata = OrderedDict(linkdata)
         cond_data = OrderedDict(condata)
@@ -371,10 +432,14 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
         #self.get_cleaned_data_for_step(currentstep)  #
         if (self.condition_dict.get(currentstep)):
             qn_val = self.condition_dict.get(currentstep)['val']
+            qn_goto = self.condition_dict.get(currentstep)['goto']
             print("Process step: value=", qn_val)
             print("Process step: form value=", fdata['0-question'])
-            if (qn_val != fdata['0-question']):
-                self.form_list.pop(str(self.steps.next))
+            if (qn_val == fdata['0-question']):
+                next = int(self.steps.next)
+                while(qn_goto and qn_goto > next+1): #TODO check this value and not more than total questions
+                    self.form_list.pop(str(next))
+                    next = next + 1
         return self.get_form_step_data(form)
 
     # def get_context_data(self, form, **kwargs):
@@ -450,7 +515,7 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
 # ############# SINGLE PAGE ##################
 
 def singlepage_questionnaire(request,*args,**kwargs):
-    template = 'questionnaires/test.html'
+    template = 'questionnaires/single.html'
     """
     Detect user
     """

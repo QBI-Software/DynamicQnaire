@@ -75,10 +75,7 @@ class QuestionAdmin(admin.ModelAdmin):
 class QuestionInline(admin.TabularInline):
     model = Question
     extra = 3
-    # class Meta:
-    #     widgets = {
-    #         'bgcolor': HTML5Input(input_type='color'),
-    #     }
+
 
 
 class QuestionnaireAdmin(admin.ModelAdmin):

@@ -29,8 +29,7 @@ class Questionnaire(models.Model):
     description = models.TextField(_("Description"), null=True, blank=True)
     intropage = RichTextUploadingField(_("Introduction"),null=True, blank=True)
     code = models.CharField(_("Code"), max_length=10, unique=True)
-    #category = models.ForeignKey(Category, verbose_name="Category")
-    category = models.ManyToManyField(Category)
+    category = models.ManyToManyField(Category, verbose_name="Visit Category")
     type = models.CharField(_("Type"), max_length=20, choices=TYPES, default='single')
     group = models.ManyToManyField(Group)
     active = models.BooleanField(_("Active"), default=True)
@@ -59,8 +58,7 @@ class Question(models.Model):
     question_type = models.IntegerField(_("Type"), default=1, choices=INPUTS)
     question_required = models.BooleanField(_("Required"), default=True)
     question_help = models.CharField(_("Additional"), max_length=200, blank=True, null=True)
-    #show_value = models.CharField(_("Show next if value"), max_length=200, blank=True, null=True)
-    skip_value = models.CharField(_("Show next if value"), max_length=200, blank=True, null=True)
+    skip_value = models.CharField(_("Skip to if value"), max_length=200, blank=True, null=True)
     skip_goto = models.IntegerField(_("Skip to question"), blank=True, null=True)
     bgcolor = ColorField(_("Background Color"),default='#FFFFFF')
     textcolor = ColorField(_("Text Color"),default='#666666')
@@ -73,10 +71,12 @@ class Question(models.Model):
 
 
 class Choice(models.Model):
+    CSSCLASSES=((1,'default'),(2,'greenbox'),(3,'redbox'),(4,'bluebox'))
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     choice_image = models.ImageField(verbose_name="Choice Image", null=True, blank=True)
     choice_text = models.CharField(_("Choice Text"), max_length=200)
-    choice_value = models.CharField(_("Value"),default='0', max_length=200) #Can accept integer list for checkboxes
+    choice_value = models.CharField(_("Value"),default='0', max_length=200)
+    choice_css = models.IntegerField(_("CSS class"), choices=CSSCLASSES, default=1)
     show_label = models.BooleanField(_("Show label"), default=True)
     group = models.ManyToManyField(Group, verbose_name="Group", blank=True)
 
@@ -104,7 +104,7 @@ class SubjectQuestionnaire(models.Model):
     subject = models.ForeignKey(User)
     questionnaire = models.ForeignKey(Questionnaire, null=False) #stored as questionnaire to facilitate delete/update
     date_stored = models.DateTimeField(auto_now=True) #relevant to Wave
-    session_token = models.CharField(_("Hiddentoken"), max_length=100)
+    session_token = models.CharField(_("Hidden token"), max_length=100)
 
     def __str__(self):
         return self.subject.username + ": " + self.questionnaire.title

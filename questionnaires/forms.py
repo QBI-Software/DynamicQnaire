@@ -33,6 +33,8 @@ class AnswerForm(Form):
             question = qid.get('qid')
             user = qid.get('myuser')
             print("DEBUG: Qn=", question)
+            if (type(question) is not Question):
+                question = Question.objects.get(pk=question)
             #Check type
             if question.question_image is not None:
                 self.qimage = question.question_image
@@ -95,7 +97,7 @@ class AnswerForm(Form):
         fields =('question')
 
 ############### SINGLE PAGE #################
-class SinglepageQuestionForm(forms.Form):
+class SinglepageQuestionForm(Form):
 
     def __init__(self, *args, **kwargs):
         #print('DEBUG: Qform: kwargs=', kwargs)
@@ -108,21 +110,55 @@ class SinglepageQuestionForm(forms.Form):
 
             question = Question.objects.get(pk=qid)
             #print("DEBUG: Qn=", question.id)
+            choices = [(c.choice_value, c) for c in question.choice_set.all()]
+            if question.question_type == 1:
+                self.fields['question'] = forms.ChoiceField(
+                    label=question.question_text,
+                    help_text='radio',  # use this to detect type
+                    widget=forms.RadioSelect(attrs={'class': 'form-control'}),
+                    required=question.question_required,
+                    choices=choices,
+                )
+            elif question.question_type == 2:
+                self.fields['question'] = forms.MultipleChoiceField(
+                label=question.question_text,
+                help_text='checkbox',
+                widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-control'}),
+                required=question.question_required,
+                choices=choices,
+            )
+            elif question.question_type == 3:
+                self.fields['question'] = forms.CharField(
+                    label=question.question_text,
+                    help_text='text',
+                    widget=forms.TextInput(attrs={'class': 'form-control'}),
+                    required=question.question_required,
 
-            self.fields['question'] = forms.ChoiceField(label=question.question_text,
-                                                        widget=forms.RadioSelect, required=True,
-                                                        choices=[(c.choice_value, c.choice_text) for c in question.choice_set.all()])
-            for field in iter(self.fields):
-                self.fields[field].widget.attrs.update({
-                    'class': 'form-control'
-                })
+                )
+            elif question.question_type == 4:
+                print('DEBUG: Dropdown list')
+                self.fields['question'] = forms.ChoiceField(
+                    label=question.question_text,
+                    #widget=forms.Select(attrs={'class': 'form-control'}),
+                    help_text='select',
+                    required=question.question_required,
+                    choices=choices,
+                )
+
+            # self.fields['question'] = forms.ChoiceField(label=question.question_text,
+            #                                             widget=forms.RadioSelect, required=True,
+            #                                             choices=[(c.choice_value, c.choice_text) for c in question.choice_set.all()])
+            # for field in iter(self.fields):
+            #     self.fields[field].widget.attrs.update({
+            #         'class': 'form-control'
+            #     })
 
 
 class BaseQuestionFormSet(BaseFormSet):
     """ Use for multiple questions per page as formset """
     def get_form_kwargs(self, index):
         kwargs = super(BaseQuestionFormSet, self).get_form_kwargs(index)
-        #print('BASEFORM kwargs:', kwargs)
+        print('BASEFORM kwargs:', kwargs)
         return kwargs
 
     def clean(self):

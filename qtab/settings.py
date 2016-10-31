@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     'ckeditor',
     'ckeditor_uploader',
     'colorfield',
-#    'widget_tweaks',
 ]
 
 MIDDLEWARE = [
