@@ -2,7 +2,6 @@
 {% block title %}{% endblock %}
 {% block content %}
 {% load i18n %}
-
 {% block head %}
 {{ wizard.form.media }}
 {% endblock %}
@@ -21,10 +20,10 @@
         <div class="container-responsive" align="center">
             {{ wizard.management_form }}
             {% if wizard.form.forms %}
-            {{ wizard.form.management_form }}
-            {% for form in wizard.form.forms %}
-            {{ form }}
-            {% endfor %}
+                {{ wizard.form.management_form }}
+                {% for form in wizard.form.forms %}
+                {{ form }}
+                {% endfor %}
             {% else %}
 
             <div class="row">
@@ -35,54 +34,60 @@
                     <img src="/static/media/{{ wizard.form.qimage }}" width="400px"
                          alt="{{wizard.form.question.label}}"/><br/>
                     {% endif %}
-                    {% if form.question.field.choices %}
-                    <label><h3>{{wizard.form.question.label}}</h3></label>
+    {% if wizard.form.question.field.choices %}
+
+                     <label><h3>{{wizard.form.question.label}}</h3></label>
                     {% if wizard.form.question.errors %}
-                    <p>{{ wizard.form.question.errors }}</p>
+                    <p>{{ wizard.form.question.errors.as_ul }}</p>
                     {% endif %}
-                    <div>
-                        {% if wizard.form.question.help_text == 'select' %}
-                        <input type="select" class="form-control" id="{{ wizard.form.question.id_for_label}}"
-                               name="{{wizard.form.prefix}}-{{ wizard.form.question.name }}">
-                        {% endif %}
-                        {% for choice in wizard.form.question.field.choices %}
-                        {% if wizard.form.question.help_text == 'select' %}
-                        <option value="{{ choice.0 }}">{{choice.1.choice_text}}</option>
-                        {% else %}
-                        <div class="radio-inline">
-                            <label><input type="{{wizard.form.question.help_text}}"
-                                          id="{{ wizard.form.question.id_for_label}}"
-                                          name="{{wizard.form.prefix}}-{{ wizard.form.question.name }}"
-                                          value="{{ choice.0 }}"
-                                          {% if choice.1.choice_image %}
-                                          class="imageradio"> <img src="/static/media/{{choice.1.choice_image }}"
-                                                                   title="{{choice.1.choice_text}}"/>
-                                {% else %}
-                                >
-                                {% endif %}
-                                </input>{% if choice.1.show_label %}
-                                {{ choice.1.choice_text }}
-                                {% endif %}
-                            </label>
+                    <div class="table-responsive">
 
-                        </div>
-                        {% endif %}
+          {% if wizard.form.question.help_text == 'select' %}
+                            <select class="form-control" id="{{ wizard.form.question.id_for_label}}"
+                                        name="{{wizard.form.prefix}}-{{ wizard.form.question.name }}">
+                                {% for choice in wizard.form.question.field.choices %}
+                                <option value="{{ choice.0 }}">{{choice.1.choice_text}}</option>
+                                {% endfor %}
+                            </select>
 
-                        {% endfor %}
-                        {% if wizard.form.question.help_text == 'select' %}
-                        </inputselect>
-                        {% endif %}
-                    </div>
-                    {% else %}
-                    <h3>{{form.question.field.label}}</h3>
-                    {{form.question}}
-                    {% endif %}
+          {% else %}
+{% if wizard.form.usegrid %}<table class="table"> <tbody> <tr>{% else %} <div class="radio-inline">{% endif %}
+         {% for choice in wizard.form.question.field.choices %}
+{% if wizard.form.usegrid %}<td></td><td> {%else %} <div class="radio-inline">{% endif %}
+                                <label><input type="{{wizard.form.question.help_text}}"
+                                              id="{{ wizard.form.question.id_for_label}}"
+                                              name="{{wizard.form.prefix}}-{{ wizard.form.question.name }}"
+                                              value="{{ choice.0 }}"
+                                  {% if choice.1.choice_image %}
+                                              class="imageradio"> <img src="/static/media/{{choice.1.choice_image }}"
+                                                                       title="{{choice.1.choice_text}}"/>
+                                    {% else %}
+                                    />
+                                    {% endif %}
+
+                                    {% if choice.1.show_label %}{{ choice.1.choice_text }}{% endif %}
+                                </label>
+{% if wizard.form.usegrid %}</td>
+      {% if forloop.counter|divisibleby:"3"%}</tr><tr>{% endif %}
+                        {%else %} </div>
+{% endif %}
+
+           {% endfor %}
+
+
+{% if wizard.form.usegrid %}</tr></tbody></table> {% else %} </div>{%endif%}
+{% endif %}
+
+    {% else %}
+                    <h3>{{wizard.form.question.field.label}}</h3>
+                    {{wizard.form.question}}
+    {% endif %}
 
 
                 </div>
                 <div class="col-xs-2">&nbsp;</div>
             </div>
-            {% endif %}
+
 
 
             <div class="row">
@@ -90,7 +95,6 @@
                 <div class="col-xs-8" align="center">
                     <ul class="pager">
                         {% if wizard.steps.prev %}
-
                         <li class="previous">
                             <button name="wizard_goto_step" class="btn btn-default" type="submit"
                                     value="{{ wizard.steps.first }}">{% trans "Restart" %}
@@ -104,15 +108,16 @@
                         {% endif %}
                         <li class="next">
                             {% if wizard.steps.next %}
-                            <input type="submit" class="btn btn-info" value="{% trans " Next" %}"/>
+                                <input type="submit" class="btn btn-info" value="Next"/>
                             {% else %}
-                            <input type="submit" class="btn btn-success" value="{% trans " Finish" %}"/>
+                                <input type="submit" class="btn btn-info" value="Finish"/>
                             {% endif %}
                         </li>
                     </ul>
                 </div>
                 <div class="col-xs-2">&nbsp;</div>
             </div>
+            {% endif %}
         </div>
     </form>
 </div>

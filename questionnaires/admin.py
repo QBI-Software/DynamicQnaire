@@ -105,9 +105,9 @@ class QuestionnaireAdmin(admin.ModelAdmin):
 
 class SubjectVisitAdmin(admin.ModelAdmin):
     fieldsets = [
-        (None, {'fields': ['date_visit', 'subject', 'category', 'xnatid','parent']}),
+        (None, {'fields': ['date_visit', 'subject', 'category', 'xnatid','parent','twin','icon']}),
     ]
-    list_display = ( 'subject','category', 'date_visit', 'xnatid','parent')
+    list_display = ( 'subject','category', 'date_visit', 'xnatid','parent','twin','icon')
     list_filter = ['category']
     search_fields = ['subject__username']
 

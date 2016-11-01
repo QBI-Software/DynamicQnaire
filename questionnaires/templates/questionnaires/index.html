@@ -3,9 +3,15 @@
 <div class="container">
     <div class="jumbotron">
         <span><img src="{% static "qtab/img/logo.png" %}" align="center" alt="QBI, The University of Queensland"/></span>
+        {%if user.subjectvisit.icon %}
+
+        <img align="right" width="200px" src="/static/media/{{user.subjectvisit.icon}}" alt="{{user.first_name}}"/>
+
+        {% endif %}
         <h1>Welcome to the <br/>Queensland Twin Adolescent Brain Study</h1>
         {% if not user.is_authenticated %}
         <p>Please sign in so you can access your questionnaires.</p>
+
         {% endif %}
 
 
@@ -42,7 +48,7 @@
             <div class="well">
                 <h3>My Completed Questionnaires</h3>
                 {% if result_list %}
-                <table class="table table-striped table-responsive">
+                <table class="table table-condensed table-responsive">
                     <thead>
                     <tr>
                         <th></th>

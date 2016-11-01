@@ -50,6 +50,7 @@ class Questionnaire(models.Model):
 
 class Question(models.Model):
     INPUTS = ((1, 'Radio'), (2, 'Checkbox'), (3, 'Textfield'), (4, 'Dropdown'))
+    CSSCLASSES = ((1, 'default'), (2, 'greenbox'), (3, 'redbox'), (4, 'bluebox'))
     qid = models.ForeignKey(Questionnaire, verbose_name="Questionnaire", null=False)
     question_text = models.CharField(_("Question Text"), max_length=200)
     question_image = models.ImageField(verbose_name="Question Image", null=True, blank=True)
@@ -58,10 +59,12 @@ class Question(models.Model):
     question_type = models.IntegerField(_("Type"), default=1, choices=INPUTS)
     question_required = models.BooleanField(_("Required"), default=True)
     question_help = models.CharField(_("Additional"), max_length=200, blank=True, null=True)
-    skip_value = models.CharField(_("Skip to if value"), max_length=200, blank=True, null=True)
+    skip_value = models.CharField(_("If value"), max_length=200, blank=True, null=True)
     skip_goto = models.IntegerField(_("Skip to question"), blank=True, null=True)
     bgcolor = ColorField(_("Background Color"),default='#FFFFFF')
     textcolor = ColorField(_("Text Color"),default='#666666')
+    css = models.IntegerField(_("CSS class"), choices=CSSCLASSES, default=1)
+    usegrid = models.BooleanField(_("Use Grid Layout"), default=False)
 
     def num_choices(self):
         return self.choice_set.count()
@@ -71,12 +74,10 @@ class Question(models.Model):
 
 
 class Choice(models.Model):
-    CSSCLASSES=((1,'default'),(2,'greenbox'),(3,'redbox'),(4,'bluebox'))
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     choice_image = models.ImageField(verbose_name="Choice Image", null=True, blank=True)
-    choice_text = models.CharField(_("Choice Text"), max_length=200)
+    choice_text = models.CharField(_("Choice Text"), max_length=200, default="")
     choice_value = models.CharField(_("Value"),default='0', max_length=200)
-    choice_css = models.IntegerField(_("CSS class"), choices=CSSCLASSES, default=1)
     show_label = models.BooleanField(_("Show label"), default=True)
     group = models.ManyToManyField(Group, verbose_name="Group", blank=True)
 
@@ -112,10 +113,12 @@ class SubjectQuestionnaire(models.Model):
 class SubjectVisit(models.Model):
     """One Visit for user - managed by Admin per visit"""
     subject = models.OneToOneField(User)
-    parent = models.OneToOneField(User, null=True, blank=True, related_name="parent")
+    twin = models.OneToOneField(User, null=True, blank=True, related_name="twin", verbose_name="Twin")
+    parent = models.ForeignKey(User, null=True, blank=True, related_name="parent", verbose_name="Parent")
     xnatid = models.CharField(_("XNAT ID"), null=True, blank=True,max_length=20, unique=True)
     category = models.ForeignKey(Category) #ie Wave number
-    date_visit = models.DateTimeField(null=False)  # only one entry per visit
+    date_visit = models.DateTimeField(verbose_name="Date of Visit", null=False)  # only one entry per visit
+    icon = models.ImageField(verbose_name="Subject icon", null=True, blank=True)
 
     def __str__(self):
         return self.subject.username + ": " + self.category.name

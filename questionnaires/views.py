@@ -260,35 +260,80 @@ def download_report(request, *args, **kwargs):
     filename="qtab_report.csv"
     # Get subject id
     sid = kwargs.get('subjectid')
-    qs = SubjectQuestionnaire.objects.all()
-    if (sid):
-        qs = qs.filter(pk=sid)
-        filename = "qtab_report_%s.csv" % sid
-    print('DEBUG:subject results=', qs.count())
+    #if (sid):
+    qs = SubjectQuestionnaire.objects.get(pk=sid)
+    filename = "qtab_report_%s.csv" % sid
+    print('DEBUG:subject results=', qs)
     # Create the HttpResponse object with the appropriate CSV header.
+    import csv
+    from django.utils.encoding import smart_str
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename=%s' % filename
+    response.write(u'\ufeff'.encode('utf8'))  # BOM (optional...Excel needs it to open UTF-8 file properly)
+    writer = csv.writer(response, csv.excel)
+    writer.writerow([
+        smart_str(u"ID"),
+        smart_str(u"Date"),
+        smart_str(u"Questionnaire"),
+        smart_str(u"Code"),
+        smart_str(u"Description"),
+        smart_str(u"Visit"),
+        smart_str(u"Total Qns"),
+    ])
 
-    headers = ((u"Subject", u"Date", u"Questionnaire", u"Total"))
-    csv_data = list()
-    csv_data.append(headers)
-    for qresult in qs:
-        print("Row=", qresult)
-        csv_data.append((qresult.subject.username, qresult.date_stored, qresult.questionnaire.title, qresult.questionnaire.question_set.count()))
+    if (hasattr(qs.subject, 'subjectvisit')):
+        id = qs.subject.subjectvisit.xnatid
+        visit = qs.subject.subjectvisit.category.name
+    else:
+        id = qs.subject
+        visit = "Unknown"
+    writer.writerow([
+        smart_str(id),
+        smart_str(qs.date_stored),
+        smart_str(qs.questionnaire.title),
+        smart_str(qs.questionnaire.code),
+        smart_str(qs.questionnaire.description),
+        smart_str(visit),
+        smart_str(qs.questionnaire.question_set.count()),
+    ])
+    #Output question results
+    writer.writerow([smart_str(u"**Results**")])
+    writer.writerow([
+            smart_str(u"Question"),
+            smart_str(u"Options"),
+            smart_str(u"Option values"),
+            smart_str(u"Choice"),
+            smart_str(u"Value"),
+            smart_str(u"Text"),
+     ])
+    testresults = TestResult.objects.filter(test_token=qs.session_token)
+    for qresult in testresults:
+        #check testee == user
+        choicetext = ""
+        choicevalue = ""
+        freetext = ""
+        if (qresult.testee == qs.subject):
+            #TODO: Check type if single,multi,text
+            choices = qresult.test_result_question.choice_set.all()
+            choicetexts = [choice.choice_text for choice in choices]
+            choicevalues = [choice.choice_value for choice in choices]
+            if (qresult.test_result_choice):
+                choicetext = qresult.test_result_choice.choice_text
+                choicevalue = qresult.test_result_choice.choice_value
+            elif (qresult.test_result_text):
+                freetext = qresult.test_result_text
 
-    t = loader.get_template('questionnaires/report.txt')
-    c = Context({
-        'data': tuple(csv_data),
-    })
-    response.write(t.render(c))
+
+            writer.writerow([
+                smart_str(qresult.test_result_question.question_text),
+                smart_str(choicetexts),
+                smart_str(choicevalues),
+                smart_str(choicetext),
+                smart_str(choicevalue),
+                smart_str(freetext),
+            ])
     return response
 
-    # objs = SubjectQuestionnaire.objects.all()
-    # table = SubjectResult(objs, prefix='my-prefix')
-    # #RequestConfig(request).configure(table)
-    # RequestConfig(request, paginate={"per_page": 20}).configure(table)
-    # return render_to_response('questionnaires/report.html',
-    #                           {'table': table}, context=RequestContext(request))
 
 class SubjectReportView(ReportTableView):
     model = SubjectQuestionnaire
@@ -376,19 +421,20 @@ class TestResultBulkDelete(LoginRequiredMixin, PermissionRequiredMixin, generic.
 
 
 ################QUESTIONNAIRE FORMS ####################################
-# def skip_form_condition(wizard):
-#     # try to get the cleaned data of step 1
-#     print('wizard form=',wizard.form)
-#     if (wizard.condition_dict):
-#         currentstep = wizard.steps.current
-#         qn_val = wizard.condition_dict.get(currentstep)['val']
-#         print("Process step: value=", qn_val)
-#     cleaned_data = wizard.get_cleaned_data_for_step(currentstep) or {}
-#     # check if the field value same as conditional
-#     return cleaned_data.get('0-question', qn_val)
+def skip_form_condition(wizard):
+    # try to get the cleaned data of step 1
+    print('wizard form=',wizard.form)
+    if (wizard.condition_dict):
+        currentstep = wizard.steps.current
+        qn_val = wizard.condition_dict.get(currentstep)['val']
+        print("Process step: value=", qn_val)
+    cleaned_data = wizard.get_cleaned_data_for_step(currentstep) or {}
+    # check if the field value same as conditional
+    qn = "%s-question" % currentstep
+    return cleaned_data.get(qn, qn_val)
 
-# def return_true(wizard): #  callable function called in _condition_dict
-#     return True
+def return_true(wizard): #  callable function called in _condition_dict
+    return True
 
 @login_required
 def load_questionnaire(request, *args, **kwargs):
@@ -407,10 +453,12 @@ def load_questionnaire(request, *args, **kwargs):
         for q in questions:
             linkdata[str(q.order-1)] = {'qid': q}
             if (q.skip_value and q.skip_goto):
-                condata[str(q.order-1)] = {'val': q.skip_value, 'goto': q.skip_goto} #{skip_form_condition} #
+                condata[str(q.order-1)] = {'val': q.skip_value, 'goto': q.skip_goto}
+                #condata[str(q.order - 1)] = {skip_form_condition}
 
         initdata = OrderedDict(linkdata)
         cond_data = OrderedDict(condata)
+        print("DEBUG: Cond data=", cond_data)
 
     form = QuestionnaireWizard.as_view(form_list=formlist, initial_dict=initdata, condition_dict =cond_data)
     return form(context=RequestContext(request), request=request)
@@ -429,32 +477,22 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
         currentstep = str(self.get_step_index())
         fdata = self.get_form_step_data(form)
         print("Process step: fdata=",fdata)
-        #self.get_cleaned_data_for_step(currentstep)  #
-        if (self.condition_dict.get(currentstep)):
-            qn_val = self.condition_dict.get(currentstep)['val']
-            qn_goto = self.condition_dict.get(currentstep)['goto']
-            print("Process step: value=", qn_val)
-            print("Process step: form value=", fdata['0-question'])
-            if (qn_val == fdata['0-question']):
-                next = int(self.steps.next)
-                while(qn_goto and qn_goto > next+1): #TODO check this value and not more than total questions
-                    self.form_list.pop(str(next))
-                    next = next + 1
+        qn = "%s-question" % currentstep
+        if (fdata[qn]):
+            print("Process step: ", qn," form value=", fdata[qn])
+            if (self.condition_dict.get(currentstep)):
+                qn_val = self.condition_dict.get(currentstep)['val']
+                qn_goto = self.condition_dict.get(currentstep)['goto']
+                print("Process step: value=", qn_val)
+
+                if (qn_val == fdata[qn]):
+                    next = int(self.steps.next)
+                    while(qn_goto and qn_goto > next+1):
+                        self.form_list.pop(str(next))
+
+                        next = next + 1
         return self.get_form_step_data(form)
 
-    # def get_context_data(self, form, **kwargs):
-    #     previous_data = {}
-    #     currentstep = str(self.steps.current)  # 0 for first form, 1 for the second form..
-    #     fdata = self.get_form_step_data(form)
-    #     if (self.condition_dict.get(currentstep)):
-    #         qn_val = self.condition_dict.get(currentstep)['val']
-    #         qn_goto = self.condition_dict.get(currentstep)['goto']
-    #         if (qn_val != fdata['0-question']):
-    #             self.steps.next = str(qn_goto)
-    #
-    #     context = super(QuestionnaireWizard, self).get_context_data(form=form, **kwargs)
-    #     #context.update({'previous_cleaned_data': previous_data})
-    #     return context
 
     def get_form_initial(self, step):
         initial = self.initial_dict.get(step)

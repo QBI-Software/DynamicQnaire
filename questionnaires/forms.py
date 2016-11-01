@@ -25,6 +25,7 @@ class AnswerForm(Form):
     qimage = None
     qbgcolor = "white"
     textcolor = "gray"
+    usegrid = False
     """Loads a question and multiple choice answer """
     def __init__(self, *args, **kwargs):
         qid = kwargs.get('initial')
@@ -40,6 +41,7 @@ class AnswerForm(Form):
                 self.qimage = question.question_image
             self.qbgcolor= question.bgcolor
             self.textcolor = question.textcolor
+            self.usegrid = question.usegrid
             choices = []
             #Filter for user groups - ignore for superuser
             usergrouplist = user.groups.values_list('name')

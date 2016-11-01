@@ -32,7 +32,6 @@ class SubjectQuestionnaireTable(tables.Table):
     subject = tables.Column(verbose_name="Subject")
 
     def render_download(self,value):
-        print("DEBUG: download value=", value)
         return format_html('<a href="/{}/download"><span class="glyphicon glyphicon-download"></span></a>', value)
 
     def render_total(self,value):
