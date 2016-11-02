@@ -50,7 +50,7 @@ class Questionnaire(models.Model):
 
 class Question(models.Model):
     INPUTS = ((1, 'Radio'), (2, 'Checkbox'), (3, 'Textfield'), (4, 'Dropdown'))
-    CSSCLASSES = ((1, 'default'), (2, 'greenbox'), (3, 'redbox'), (4, 'bluebox'))
+    CSSCLASSES = ((1, 'default'), (2, 'radiobox'))
     qid = models.ForeignKey(Questionnaire, verbose_name="Questionnaire", null=False)
     question_text = models.CharField(_("Question Text"), max_length=200)
     question_image = models.ImageField(verbose_name="Question Image", null=True, blank=True)

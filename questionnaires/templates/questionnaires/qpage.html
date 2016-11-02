@@ -13,6 +13,9 @@
          aria-valuemax="100" style="width:{% widthratio wizard.steps.step1 wizard.steps.count 100 %}%">
         {% widthratio wizard.steps.step1 wizard.steps.count 100 %}&#37;
     </div>
+    {% if wizard.steps.next %}
+    <img class="progressicon" src="/static/qtab/img/caterpie.png" height="40px" width="40px" />
+    {% endif %}
 </div>
 <div style="background-color:{{wizard.form.qbgcolor}}; color:{{wizard.form.textcolor}};">
     <p>Question {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</p>
@@ -40,7 +43,7 @@
                     {% if wizard.form.question.errors %}
                     <p>{{ wizard.form.question.errors.as_ul }}</p>
                     {% endif %}
-                    <div class="table-responsive">
+
 
           {% if wizard.form.question.help_text == 'select' %}
                             <select class="form-control" id="{{ wizard.form.question.id_for_label}}"
@@ -51,31 +54,36 @@
                             </select>
 
           {% else %}
-{% if wizard.form.usegrid %}<table class="table"> <tbody> <tr>{% else %} <div class="radio-inline">{% endif %}
-         {% for choice in wizard.form.question.field.choices %}
-{% if wizard.form.usegrid %}<td></td><td> {%else %} <div class="radio-inline">{% endif %}
-                                <label><input type="{{wizard.form.question.help_text}}"
-                                              id="{{ wizard.form.question.id_for_label}}"
-                                              name="{{wizard.form.prefix}}-{{ wizard.form.question.name }}"
-                                              value="{{ choice.0 }}"
-                                  {% if choice.1.choice_image %}
-                                              class="imageradio"> <img src="/static/media/{{choice.1.choice_image }}"
-                                                                       title="{{choice.1.choice_text}}"/>
-                                    {% else %}
-                                    />
-                                    {% endif %}
+            {% if wizard.form.usegrid %}
+                    <table id="qtable" class="table"> <tbody> <tr>
+                        {% else %}
+                        <div class="radio-list">
+            {% endif %}
+            {% for choice in wizard.form.question.field.choices %}
+            {% if wizard.form.usegrid %}<td></td><td class="{{wizard.form.tdcss}} color{{forloop.counter}}">
+            {%else %} <div class="radio-default">{% endif %}
+                <label><input type="{{wizard.form.question.help_text}}"
+                              id="{{ wizard.form.question.id_for_label}}"
+                              name="{{wizard.form.prefix}}-{{ wizard.form.question.name }}"
+                              value="{{ choice.0 }}"
+                  {% if choice.1.choice_image %}
+                              class="imageradio"> <img src="/static/media/{{choice.1.choice_image }}"
+                                                       title="{{choice.1.choice_text}}"/>
+                    {% else %}
+                    />
+                    {% endif %}
 
-                                    {% if choice.1.show_label %}{{ choice.1.choice_text }}{% endif %}
-                                </label>
-{% if wizard.form.usegrid %}</td>
-      {% if forloop.counter|divisibleby:"3"%}</tr><tr>{% endif %}
-                        {%else %} </div>
-{% endif %}
+                    {% if choice.1.show_label %}{{ choice.1.choice_text }}{% endif %}
+                </label>
+            {% if wizard.form.usegrid %}</td>
+                {% if forloop.counter|divisibleby:"3"%}</tr><tr>{% endif %}
+            {%else %}</div>
+            {% endif %}
 
            {% endfor %}
 
 
-{% if wizard.form.usegrid %}</tr></tbody></table> {% else %} </div>{%endif%}
+            {% if wizard.form.usegrid %}</tr></tbody></table> {% else %} </div>{%endif%}
 {% endif %}
 
     {% else %}
@@ -93,6 +101,7 @@
             <div class="row">
                 <div class="col-xs-2">&nbsp;</div>
                 <div class="col-xs-8" align="center">
+                    <span id="msg"></span>
                     <ul class="pager">
                         {% if wizard.steps.prev %}
                         <li class="previous">
@@ -121,4 +130,37 @@
         </div>
     </form>
 </div>
+<script type="text/javascript">
+
+$( "td.radiobox :input:radio" ).click(function() {
+        var choice = $(this).val();
+        var color = $( this ).parent().parent().css( "opacity" );
+        $( "#msg" ).text( "You selected: " + choice );
+        $("td.radiobox").css("opacity",0.6);
+        $( this ).parent().parent().css( "opacity",1.0 );
+        /*.show().fadeOut( 1000 );*/
+
+});
+var selected = [];
+
+$( "td.radiobox :input:checkbox" ).click(function() {
+        var choice = $(this).val();
+        var color = $( this ).parent().parent().css( "opacity" );
+        var data = $("#msg" ).text();
+        var arr = data.split(':');
+        if ($(this).prop('checked')){
+            selected.push(choice);
+            $( this ).parent().parent().css( "opacity",1.0 );
+        }else{
+            selected.splice( $.inArray(choice, selected), 1 );
+            $( this ).parent().parent().css( "opacity",0.6);
+        }
+        $( "#msg" ).text( "You selected: " + selected.toString()  );
+
+        /*.show().fadeOut( 1000 );*/
+
+});
+
+
+</script>
 {% endblock content %}

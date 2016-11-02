@@ -26,7 +26,8 @@ class QuestionAdmin(admin.ModelAdmin):
                'create_never_always',
                'create_never_often',
                'create_5number',
-               'create_7number']
+               'create_7number',
+               'create_9number']
 
 
     def create_radiobuttons(self,request,queryset,labels):
@@ -65,12 +66,17 @@ class QuestionAdmin(admin.ModelAdmin):
         labels = ["1", "2", "3", "4", "5","6","7"]
         self.create_radiobuttons(request, queryset, labels)
 
+    def create_9number(self, request, queryset):
+        labels = ["1", "2", "3", "4", "5", "6", "7","8","9"]
+        self.create_radiobuttons(request, queryset, labels)
+
     create_true.short_description = "Create 'True' Options"
     create_yesnosometimes.short_description = "Create 'Yes/No/Sometimes/Don\'t know' Options"
     create_never_always.short_description = "Create 'Never - Always' Options"
     create_never_often.short_description = "Create 'Never - Often' Options"
-    create_5number.short_description ="Create range '1 to 5' options"
+    create_5number.short_description ="Create range '1 to 5' with NA options"
     create_7number.short_description = "Create range '1 to 7' options"
+    create_9number.short_description = "Create range '1 to 9' options"
 
 class QuestionInline(admin.TabularInline):
     model = Question
@@ -92,7 +98,7 @@ class QuestionnaireAdmin(admin.ModelAdmin):
     def sequence_questions(self,request,queryset):
         """ Generate order sequences for questions in set of questionnaires - will reset existing """
         for obj in queryset:
-            qnlist = obj.question_set.order_by('pk').order_by('order')
+            qnlist = obj.question_set.order_by('pk')
             #total = qnlist.count()
             num = 1
             for q in qnlist:
@@ -101,7 +107,7 @@ class QuestionnaireAdmin(admin.ModelAdmin):
                 num += 1
             print('AdminBulkMethod:Updated ',num, 'questions in ',obj)
 
-    sequence_questions.short_description = 'Generate order sequences for questions'
+    sequence_questions.short_description = 'Number all questions'
 
 class SubjectVisitAdmin(admin.ModelAdmin):
     fieldsets = [
