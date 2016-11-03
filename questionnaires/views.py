@@ -47,8 +47,8 @@ logger = logging.getLogger(__name__)
 ###Local classes
 from .models import Questionnaire, Question, Choice, TestResult, SubjectQuestionnaire,Category,SubjectVisit
 from .forms import SinglepageQuestionForm, BaseQuestionFormSet, AxesCaptchaForm, AnswerForm, TestResultBulkDeleteForm
-from .tables import FilteredSingleTableView, TestResultTable,SubjectQuestionnaireTable,SubjectResult
-from .filters import TestResultFilter,SubjectQuestionnaireFilter
+from .tables import FilteredSingleTableView, TestResultTable,SubjectQuestionnaireTable,SubjectVisitTable
+from .filters import TestResultFilter,SubjectQuestionnaireFilter,SubjectVisitFilter
 
 
 ## Login
@@ -192,11 +192,13 @@ class IndexView(generic.ListView):
             rlist = user.subjectquestionnaire_set.all()
 
             if (not user.is_superuser):
-                visit = user.subjectvisit #SubjectVisit.objects.get(subject=user)
+                visit = SubjectVisit.objects.filter(subject=user)
                 #If missing, create visit and set to first category
-                if (not visit):
+                if (len(visit)==0):
                     visit = SubjectVisit(subject=user, category=cat1, date_visit=datetime.now())
                     visit.save()
+                else:
+                    visit = visit[0]
                 cat1 = visit.category
                 catlist.append(cat1)
                 usergrouplist = user.groups.values_list('name')
@@ -239,22 +241,47 @@ class DetailView(LoginRequiredMixin, generic.DetailView):
         return context
 
 ################REPORT TABLES ##########################################
+##Reports
+class SubjectReportView(LoginRequiredMixin, FilteredSingleTableView):
+    template_name = 'questionnaires/results_summary.html'
+    model = SubjectQuestionnaire
+    table_class = SubjectQuestionnaireTable
+    filter_class = SubjectQuestionnaireFilter
+    raise_exception = True
 
-class TestResultFilterView(LoginRequiredMixin, FilteredSingleTableView):
+    def get_context_data(self, **kwargs):
+        context = super(SubjectReportView, self).get_context_data(**kwargs)
+        context['title'] = "Subject Reports"
+        return context
+
+
+##Results
+class ResultFilterView(LoginRequiredMixin, FilteredSingleTableView):
     template_name = 'questionnaires/results_summary.html'
     model = TestResult
-    #context_object_name = 'results_table'
     table_class = TestResultTable
     filter_class = TestResultFilter
     raise_exception = True
 
-class SubjectFilterView(LoginRequiredMixin, FilteredSingleTableView):
+    def get_context_data(self, **kwargs):
+        context = super(ResultFilterView, self).get_context_data(**kwargs)
+        context['title'] = "Questionnaire Results"
+        return context
+
+##Results
+class VisitView(LoginRequiredMixin, FilteredSingleTableView):
     template_name = 'questionnaires/results_summary.html'
-    model = SubjectQuestionnaire
-    #context_object_name = 'results_table'
-    table_class = SubjectQuestionnaireTable
-    filter_class = SubjectQuestionnaireFilter
+    model = SubjectVisit
+    table_class = SubjectVisitTable
+    filter_class = SubjectVisitFilter
     raise_exception = True
+
+    def get_context_data(self, **kwargs):
+        context = super(VisitView, self).get_context_data(**kwargs)
+        context['title'] = "Subject Visits"
+        return context
+
+## ACTIONS ##
 
 def download_report(request, *args, **kwargs):
     filename="qtab_report.csv"
@@ -335,23 +362,24 @@ def download_report(request, *args, **kwargs):
     return response
 
 
-class SubjectReportView(ReportTableView):
-    model = SubjectQuestionnaire
-    table_class = SubjectResult
-    template_name = 'questionnaires/report.html'
-    context_object_name = 'table'
-    table_pagination = True
 
-    def get_queryset(self):
-        #print('DEBUG:kwargs', self.kwargs)
-        qs = SubjectQuestionnaire.objects.all().order_by('subject')
-        if (self.kwargs.get('subjectid')):
-            sid = self.kwargs.get('subjectid')
-            qs = qs.filter(subject__pk=sid)
-            print('DEBUG:subject results=', qs.count())
-        #table = SubjectResult(qs)
-        #RequestConfig(self.request, paginate={"per_page": 20}).configure(table)
-        return qs
+# class SubjectReportView(ReportTableView):
+#     model = SubjectQuestionnaire
+#     table_class = SubjectResult
+#     template_name = 'questionnaires/report.html'
+#     context_object_name = 'table'
+#     table_pagination = True
+#
+#     def get_queryset(self):
+#         #print('DEBUG:kwargs', self.kwargs)
+#         qs = SubjectQuestionnaire.objects.all().order_by('subject')
+#         if (self.kwargs.get('subjectid')):
+#             sid = self.kwargs.get('subjectid')
+#             qs = qs.filter(subject__pk=sid)
+#             print('DEBUG:subject results=', qs.count())
+#         #table = SubjectResult(qs)
+#         #RequestConfig(self.request, paginate={"per_page": 20}).configure(table)
+#         return qs
 
 
 class ResultsView(LoginRequiredMixin, PermissionRequiredMixin, generic.TemplateView):
@@ -371,6 +399,25 @@ class ResultsView(LoginRequiredMixin, PermissionRequiredMixin, generic.TemplateV
         context['results_table'] = table
 
         return context
+
+
+# class SubjectVisitListView(LoginRequiredMixin, PermissionRequiredMixin, generic.TemplateView):
+#     template_name = 'questionnaires/results.html'
+#     raise_exception = True
+#     permission_required = 'questionnaires.choice.can_add_choice'
+#
+#     def get_queryset(self, **kwargs):
+#         qchoices = Choice.objects.annotate(choice_count=Count('testresult'))
+#
+#         return qchoices.order_by('question')
+#
+#     def get_context_data(self, **kwargs):
+#         context = super(SubjectVisitListView, self).get_context_data(**kwargs)
+#         table = self.get_queryset() #ResultsReportTable(self.get_queryset())
+#         #RequestConfig(self.request).configure(table)
+#         context['results_table'] = table
+#
+#         return context
 
 
 class TestResultBulkDelete(LoginRequiredMixin, PermissionRequiredMixin, generic.FormView):

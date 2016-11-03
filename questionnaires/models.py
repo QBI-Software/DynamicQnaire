@@ -54,16 +54,15 @@ class Question(models.Model):
     qid = models.ForeignKey(Questionnaire, verbose_name="Questionnaire", null=False)
     question_text = models.CharField(_("Question Text"), max_length=200)
     question_image = models.ImageField(verbose_name="Question Image", null=True, blank=True)
-    order = models.IntegerField(_("Sequence Order"), default=0)
+    order = models.PositiveSmallIntegerField(_("Sequence Order"), default=0)
     group = models.ManyToManyField(Group, verbose_name="Group", blank=True)
-    question_type = models.IntegerField(_("Type"), default=1, choices=INPUTS)
+    question_type = models.PositiveSmallIntegerField(_("Type"), default=1, choices=INPUTS)
     question_required = models.BooleanField(_("Required"), default=True)
-    question_help = models.CharField(_("Additional"), max_length=200, blank=True, null=True)
-    skip_value = models.CharField(_("If value"), max_length=200, blank=True, null=True)
-    skip_goto = models.IntegerField(_("Skip to question"), blank=True, null=True)
+    skip_value = models.CharField(_("If value"), max_length=20, blank=True, null=True)
+    skip_goto = models.PositiveSmallIntegerField(_("Skip to question"), blank=True, null=True)
     bgcolor = ColorField(_("Background Color"),default='#FFFFFF')
     textcolor = ColorField(_("Text Color"),default='#666666')
-    css = models.IntegerField(_("CSS class"), choices=CSSCLASSES, default=1)
+    css = models.PositiveSmallIntegerField(_("CSS class"), choices=CSSCLASSES, default=1)
     usegrid = models.BooleanField(_("Use Grid Layout"), default=False)
 
     def num_choices(self):
@@ -77,7 +76,7 @@ class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     choice_image = models.ImageField(verbose_name="Choice Image", null=True, blank=True)
     choice_text = models.CharField(_("Choice Text"), max_length=200, default="")
-    choice_value = models.CharField(_("Value"),default='0', max_length=200)
+    choice_value = models.CharField(_("Value"),default='0', max_length=20)
     show_label = models.BooleanField(_("Show label"), default=True)
     group = models.ManyToManyField(Group, verbose_name="Group", blank=True)
 
@@ -86,6 +85,7 @@ class Choice(models.Model):
 
     def __str__(self):
        return self.choice_text
+
 
 class TestResult(models.Model):
     """Stores result of each question or multiple entries for multi-select"""
@@ -100,6 +100,7 @@ class TestResult(models.Model):
     def __str__(self):
         return self.test_questionnaire.title
 
+
 class SubjectQuestionnaire(models.Model):
     """Manage questionnaires done per user - entered once per questionnaire - synch manually with TestResult"""
     subject = models.ForeignKey(User)
@@ -110,13 +111,15 @@ class SubjectQuestionnaire(models.Model):
     def __str__(self):
         return self.subject.username + ": " + self.questionnaire.title
 
+
 class SubjectVisit(models.Model):
     """One Visit for user - managed by Admin per visit"""
-    subject = models.OneToOneField(User)
-    twin = models.OneToOneField(User, null=True, blank=True, related_name="twin", verbose_name="Twin")
-    parent = models.ForeignKey(User, null=True, blank=True, related_name="parent", verbose_name="Parent")
+    subject = models.OneToOneField(User, verbose_name="Subject")
+    twin = models.OneToOneField(User, verbose_name="Twin", null=True, blank=True, related_name="twin")
+    parent1 = models.ForeignKey(User, verbose_name="Parent 1", null=True, blank=True, related_name="parent1")
+    parent2 = models.ForeignKey(User, verbose_name="Parent 2", null=True, blank=True, related_name="parent2")
     xnatid = models.CharField(_("XNAT ID"), null=True, blank=True,max_length=20, unique=True)
-    category = models.ForeignKey(Category) #ie Wave number
+    category = models.ForeignKey(Category,verbose_name="Wave",) #ie Wave number
     date_visit = models.DateTimeField(verbose_name="Date of Visit", null=False)  # only one entry per visit
     icon = models.ImageField(verbose_name="Subject icon", null=True, blank=True)
 

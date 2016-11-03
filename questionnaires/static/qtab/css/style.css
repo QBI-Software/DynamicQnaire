@@ -131,6 +131,7 @@ input[type=radio], input[type=checkbox] {
   height:28px;
   vertical-align:middle;
   margin-right:10px; /*assumes label is following */
+  background-color:green;
 }
 div.radio-list{
     text-align:left;

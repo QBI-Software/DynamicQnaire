@@ -74,11 +74,11 @@ class AnswerForm(Form):
                 )
             elif question.question_type == 2:
                 self.fields['question'] = forms.MultipleChoiceField(
-                label=question.question_text,
-                help_text='checkbox',
-                widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-control'}),
-                required=question.question_required,
-                choices=choices,
+                    label=question.question_text,
+                    help_text='checkbox',
+                    widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-control'}),
+                    required=question.question_required,
+                    choices=choices,
             )
             elif question.question_type == 3:
                 self.fields['question'] = forms.CharField(
