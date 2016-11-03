@@ -161,7 +161,7 @@ input.imageradio:checked + img{ /* (RADIO CHECKED) IMAGE STYLES */
 }
 
 /* RADIO buttons as boxes */
-#qtable tr td {
+#qtable tr th, #qtable tr td {
     border-top:0;
 }
 td.radiobox{

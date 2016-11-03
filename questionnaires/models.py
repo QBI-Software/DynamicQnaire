@@ -21,8 +21,6 @@ class Category(models.Model):
 
 
 ##### CLASSES ############
-
-
 class Questionnaire(models.Model):
     TYPES=(('single','Single Page' ),('multi','Multi Page' ))
     title = models.CharField(_("Title"), max_length=200)
@@ -48,6 +46,7 @@ class Questionnaire(models.Model):
     def __str__(self):
         return self.code + ": " + self.title
 
+
 class Question(models.Model):
     INPUTS = ((1, 'Radio'), (2, 'Checkbox'), (3, 'Textfield'), (4, 'Dropdown'))
     CSSCLASSES = ((1, 'default'), (2, 'radiobox'))
@@ -58,8 +57,8 @@ class Question(models.Model):
     group = models.ManyToManyField(Group, verbose_name="Group", blank=True)
     question_type = models.PositiveSmallIntegerField(_("Type"), default=1, choices=INPUTS)
     question_required = models.BooleanField(_("Required"), default=True)
-    skip_value = models.CharField(_("If value"), max_length=20, blank=True, null=True)
-    skip_goto = models.PositiveSmallIntegerField(_("Skip to question"), blank=True, null=True)
+    skip_value = models.CharField(_("If value then next"), max_length=20, blank=True, null=True)
+    #skip_goto = models.PositiveSmallIntegerField(_("Skip to question"), blank=True, null=True)
     bgcolor = ColorField(_("Background Color"),default='#FFFFFF')
     textcolor = ColorField(_("Text Color"),default='#666666')
     css = models.PositiveSmallIntegerField(_("CSS class"), choices=CSSCLASSES, default=1)

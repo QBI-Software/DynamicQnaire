@@ -9,7 +9,7 @@
                 <form method="POST" action="">
                     {% csrf_token %}
                     {{ formset.non_form_errors.as_ul }}
-                    <table class="table table-hover">
+                    <table id="qtable" class="table table-condensed">
                         <tbody>
                         {% for form in formset.forms %}
                         {% if form.question %}
@@ -17,7 +17,7 @@
                             <th><h3>Q. {{ forloop.counter }}: {{ form.question.label }}</h3> </th>
                         </tr><tr>
                                 {% if form.question.help_text == 'select' %}
-                              <td>   <select class="form-control" id="{{ form.question.id_for_label}}"
+                              <td></td><td>   <select class="form-control" id="{{ form.question.id_for_label}}"
                                         name="{{form.prefix}}-{{ form.question.name }}">
                                     {% for choice in form.question.field.choices %}
                                     <option value="{{ choice.0 }}">{{choice.1}}</option>

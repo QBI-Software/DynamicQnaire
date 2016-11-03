@@ -175,7 +175,7 @@ class IndexView(generic.ListView):
     raise_exception = True
 
     def get_queryset(self):
-        return Questionnaire.objects.order_by('pk')
+        return Questionnaire.objects.order_by('code')
 
     def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
@@ -183,7 +183,7 @@ class IndexView(generic.ListView):
         rlist = []
         qlist = {}
         cat1 = None
-        if (user is not None and user.is_active):
+        if user is not None and user.is_active:
             # set defaults
             cat1 = Category.objects.get(name='Wave 1')  # Wave 1
             catlist = [c for c in Category.objects.filter(name__icontains='all')]  # include ALL
@@ -191,10 +191,10 @@ class IndexView(generic.ListView):
             #user_results = user.subjectquestionnaire_set.all() #SubjectQuestionnaire.objects.filter(subject=user)
             rlist = user.subjectquestionnaire_set.all()
 
-            if (not user.is_superuser):
+            if not user.is_superuser:
                 visit = SubjectVisit.objects.filter(subject=user)
                 #If missing, create visit and set to first category
-                if (len(visit)==0):
+                if len(visit)==0:
                     visit = SubjectVisit(subject=user, category=cat1, date_visit=datetime.now())
                     visit.save()
                 else:
@@ -215,20 +215,6 @@ class IndexView(generic.ListView):
 
         return context
 
-    # def getCurrentSubjectQuestionnaire(self, usergrouplist):
-    #     catlist = SubjectQuestionnaire.objects.filter(subject=self.request.user).distinct('questionnaire','date_stored')
-    #     cat = Category.objects.filter(code='W1')  # Wave 1 default
-    #     if (catlist):
-    #         #For each category, check number of entries matches number in questionnaires
-    #         checklist = Category.objects.all().order_by('code')
-    #         for c in checklist:
-    #             cat = c
-    #             num = catlist.filter(questionnaire__category=c).count()
-    #             print("DEBUG: CAT=", c,' has done', num, ' tests')
-    #             qnum = Questionnaire.objects.filter(category=c).filter(group__name__in=usergrouplist).count()
-    #             if (c.code != 'W0' and num < qnum):
-    #                 break
-    #     return cat
 
 # Questionnaire Intro page
 class DetailView(LoginRequiredMixin, generic.DetailView):
@@ -268,7 +254,7 @@ class ResultFilterView(LoginRequiredMixin, FilteredSingleTableView):
         context['title'] = "Questionnaire Results"
         return context
 
-##Results
+##Visits
 class VisitView(LoginRequiredMixin, FilteredSingleTableView):
     template_name = 'questionnaires/results_summary.html'
     model = SubjectVisit
@@ -290,7 +276,6 @@ def download_report(request, *args, **kwargs):
     #if (sid):
     qs = SubjectQuestionnaire.objects.get(pk=sid)
     filename = "qtab_report_%s.csv" % sid
-    print('DEBUG:subject results=', qs)
     # Create the HttpResponse object with the appropriate CSV header.
     import csv
     from django.utils.encoding import smart_str
@@ -308,7 +293,7 @@ def download_report(request, *args, **kwargs):
         smart_str(u"Total Qns"),
     ])
 
-    if (hasattr(qs.subject, 'subjectvisit')):
+    if hasattr(qs.subject, 'subjectvisit'):
         id = qs.subject.subjectvisit.xnatid
         visit = qs.subject.subjectvisit.category.name
     else:
@@ -339,17 +324,18 @@ def download_report(request, *args, **kwargs):
         choicetext = ""
         choicevalue = ""
         freetext = ""
-        if (qresult.testee == qs.subject):
-            #TODO: Check type if single,multi,text
-            choices = qresult.test_result_question.choice_set.all()
-            choicetexts = [choice.choice_text for choice in choices]
-            choicevalues = [choice.choice_value for choice in choices]
-            if (qresult.test_result_choice):
+        if qresult.testee == qs.subject:
+            choices = ""
+            choicetexts = ""
+            choicevalues = ""
+            if qresult.test_result_choice:
+                choices = qresult.test_result_question.choice_set.all()
+                choicetexts = [choice.choice_text for choice in choices]
+                choicevalues = [choice.choice_value for choice in choices]
                 choicetext = qresult.test_result_choice.choice_text
                 choicevalue = qresult.test_result_choice.choice_value
-            elif (qresult.test_result_text):
+            elif qresult.test_result_text:
                 freetext = qresult.test_result_text
-
 
             writer.writerow([
                 smart_str(qresult.test_result_question.question_text),
@@ -361,25 +347,6 @@ def download_report(request, *args, **kwargs):
             ])
     return response
 
-
-
-# class SubjectReportView(ReportTableView):
-#     model = SubjectQuestionnaire
-#     table_class = SubjectResult
-#     template_name = 'questionnaires/report.html'
-#     context_object_name = 'table'
-#     table_pagination = True
-#
-#     def get_queryset(self):
-#         #print('DEBUG:kwargs', self.kwargs)
-#         qs = SubjectQuestionnaire.objects.all().order_by('subject')
-#         if (self.kwargs.get('subjectid')):
-#             sid = self.kwargs.get('subjectid')
-#             qs = qs.filter(subject__pk=sid)
-#             print('DEBUG:subject results=', qs.count())
-#         #table = SubjectResult(qs)
-#         #RequestConfig(self.request, paginate={"per_page": 20}).configure(table)
-#         return qs
 
 
 class ResultsView(LoginRequiredMixin, PermissionRequiredMixin, generic.TemplateView):
@@ -399,25 +366,6 @@ class ResultsView(LoginRequiredMixin, PermissionRequiredMixin, generic.TemplateV
         context['results_table'] = table
 
         return context
-
-
-# class SubjectVisitListView(LoginRequiredMixin, PermissionRequiredMixin, generic.TemplateView):
-#     template_name = 'questionnaires/results.html'
-#     raise_exception = True
-#     permission_required = 'questionnaires.choice.can_add_choice'
-#
-#     def get_queryset(self, **kwargs):
-#         qchoices = Choice.objects.annotate(choice_count=Count('testresult'))
-#
-#         return qchoices.order_by('question')
-#
-#     def get_context_data(self, **kwargs):
-#         context = super(SubjectVisitListView, self).get_context_data(**kwargs)
-#         table = self.get_queryset() #ResultsReportTable(self.get_queryset())
-#         #RequestConfig(self.request).configure(table)
-#         context['results_table'] = table
-#
-#         return context
 
 
 class TestResultBulkDelete(LoginRequiredMixin, PermissionRequiredMixin, generic.FormView):
@@ -445,7 +393,7 @@ class TestResultBulkDelete(LoginRequiredMixin, PermissionRequiredMixin, generic.
     def get_context_data(self, **kwargs):
         context = super(TestResultBulkDelete, self).get_context_data(**kwargs)
         resultlist = self.get_queryset()
-        if (resultlist.count() > 0):
+        if resultlist.count() > 0:
             context.update({
                 'qnaire': resultlist[0].test_questionnaire,
                 'subject' : resultlist[0].testee,
@@ -457,7 +405,6 @@ class TestResultBulkDelete(LoginRequiredMixin, PermissionRequiredMixin, generic.
 
     def get_queryset(self):
         fid = self.kwargs.get('token')
-        print('DEBUG: token=', fid)
         sc = SubjectQuestionnaire.objects.get(pk=fid)
         return TestResult.objects.filter(test_token=sc.session_token)
 
@@ -467,26 +414,12 @@ class TestResultBulkDelete(LoginRequiredMixin, PermissionRequiredMixin, generic.
 
 
 
-################QUESTIONNAIRE FORMS ####################################
-def skip_form_condition(wizard):
-    # try to get the cleaned data of step 1
-    print('wizard form=',wizard.form)
-    if (wizard.condition_dict):
-        currentstep = wizard.steps.current
-        qn_val = wizard.condition_dict.get(currentstep)['val']
-        print("Process step: value=", qn_val)
-    cleaned_data = wizard.get_cleaned_data_for_step(currentstep) or {}
-    # check if the field value same as conditional
-    qn = "%s-question" % currentstep
-    return cleaned_data.get(qn, qn_val)
-
-def return_true(wizard): #  callable function called in _condition_dict
-    return True
-
+################QUESTIONNAIRE FORMS ###################################
 @login_required
 def load_questionnaire(request, *args, **kwargs):
-    raise_exception = True
     """ Prepare questionnaire wizard with required questions """
+    raise_exception = True
+    print("DEBUG: load_q request=", request)
     qid = kwargs.get('pk')
     if qid is not None:
         qnaire = Questionnaire.objects.get(pk=qid)
@@ -499,9 +432,8 @@ def load_questionnaire(request, *args, **kwargs):
         condata = {}
         for q in questions:
             linkdata[str(q.order-1)] = {'qid': q}
-            if (q.skip_value and q.skip_goto):
-                condata[str(q.order-1)] = {'val': q.skip_value, 'goto': q.skip_goto}
-                #condata[str(q.order - 1)] = {skip_form_condition}
+            if q.skip_value:
+                condata[str(q.order-1)] = {'val': q.skip_value}
 
         initdata = OrderedDict(linkdata)
         cond_data = OrderedDict(condata)
@@ -518,28 +450,23 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
     #     self.sheet_id_initial = kwargs.get('sheet_id_initial', None)
         return super(QuestionnaireWizard, self).dispatch(request, *args, **kwargs)
 
-    def process_step(self, form):
-        rtn = True
-        print("Process step: list=", self.form_list)
-        currentstep = str(self.get_step_index())
-        fdata = self.get_form_step_data(form)
-        print("Process step: fdata=",fdata)
-        qn = "%s-question" % currentstep
-        if (fdata[qn]):
-            print("Process step: ", qn," form value=", fdata[qn])
-            if (self.condition_dict.get(currentstep)):
-                qn_val = self.condition_dict.get(currentstep)['val']
-                qn_goto = self.condition_dict.get(currentstep)['goto']
-                print("Process step: value=", qn_val)
-
-                if (qn_val == fdata[qn]):
-                    next = int(self.steps.next)
-                    while(qn_goto and qn_goto > next+1):
-                        self.form_list.pop(str(next))
-
-                        next = next + 1
-        return self.get_form_step_data(form)
-
+    # def process_step(self, form):
+    #     rtn = True
+    #     print("Process step: list=", self.form_list)
+    #     currentstep = str(self.get_step_index())
+    #     fdata = self.get_form_step_data(form)
+    #     print("Process step: fdata=",fdata)
+    #     qn = "%s-question" % currentstep
+    #     if (fdata[qn]):
+    #         print("Process step: ", qn," form value=", fdata[qn])
+    #         if (self.condition_dict.get(currentstep)):
+    #             qn_val = self.condition_dict.get(currentstep)['val']
+    #             print("Process step: value=", qn_val)
+    #             if fdata[qn] != qn_val:
+    #                 print("DEBUG: conditional val: ", qn_val, " form value=", fdata[qn])
+    #                 next = int(self.steps.next)
+    #                 self.form_list.pop(next)
+    #     return self.get_form_step_data(form)
 
     def get_form_initial(self, step):
         initial = self.initial_dict.get(step)
@@ -580,7 +507,7 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
                 tresult.test_token = self.request.POST['csrfmiddlewaretoken']
                 tresult.save()
 
-                print('TESTRESULT:', " Qnaire:", tresult.test_questionnaire.title,
+                print('DEBUG: TESTRESULT:', " Qnaire:", tresult.test_questionnaire.title,
                       " Qn:", tresult.test_result_question.question_text)
                 if qntype == 3:
                     print(" ValText:", tresult.test_result_text)
@@ -617,7 +544,6 @@ def singlepage_questionnaire(request,*args,**kwargs):
     link_data = [{'qid': q.id} for q in questions]
 
     if request.method == 'POST':
-
         link_formset = LinkFormSet(request.POST) #cannot reload as dynamic
 
         if link_formset.is_valid():

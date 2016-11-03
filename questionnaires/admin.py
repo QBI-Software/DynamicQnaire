@@ -41,6 +41,8 @@ class QuestionAdmin(admin.ModelAdmin):
                 ch = Choice(question=obj, choice_text=label, choice_value=num)
                 ch.save()
                 num += 1
+        msg = 'Questions have been CREATED for selected questionnaires'
+        self.message_user(request, msg)
 
     def create_true(self, request, queryset):
         labels = ["Not True", "Somewhat True", "True"]
@@ -93,10 +95,11 @@ class QuestionnaireAdmin(admin.ModelAdmin):
     list_display = ('title','description','code','type','active','categorylist','num_questions')
     list_filter = ['type','active']
     search_fields = ['title']
-    actions=['sequence_questions']
+    actions=['sequence_questions','remove_questionnaire_results']
 
     def sequence_questions(self,request,queryset):
         """ Generate order sequences for questions in set of questionnaires - will reset existing """
+
         for obj in queryset:
             qnlist = obj.question_set.order_by('pk')
             #total = qnlist.count()
@@ -105,9 +108,23 @@ class QuestionnaireAdmin(admin.ModelAdmin):
                 q.order=num
                 q.save()
                 num += 1
-            print('AdminBulkMethod:Updated ',num, 'questions in ',obj)
+        msg = 'Questions have been ordered for selected questionnaires'
+        self.message_user(request, msg)
+
+    def remove_questionnaire_results(self, request,queryset):
+        """ Delete all result sets for selected questionnaires """
+        n = 0
+        for obj in queryset:
+            print("DEBUG: Questionnaire ", obj, " results to delete=", obj.testresult_set.count())
+            n0 = obj.testresult_set.delete()
+            obj.subjectquestionnaire_set.delete()
+            n = n+ n0
+        msg = "%d result sets successfully REMOVED from selected questionnaires." % n
+        self.message_user(request, msg)
+
 
     sequence_questions.short_description = 'Number all questions'
+    remove_questionnaire_results.short_description = 'Remove questionnaire results'
 
 class SubjectVisitAdmin(admin.ModelAdmin):
     fieldsets = [
