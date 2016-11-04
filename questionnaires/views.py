@@ -45,8 +45,8 @@ import logging
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 ###Local classes
-from .models import Questionnaire, Question, Choice, TestResult, SubjectQuestionnaire,Category,SubjectVisit
-from .forms import SinglepageQuestionForm, BaseQuestionFormSet, AxesCaptchaForm, AnswerForm, TestResultBulkDeleteForm
+from .models import Questionnaire, Question, Choice, TestResult, SubjectQuestionnaire,Category,SubjectVisit,Demographic
+from .forms import AxesCaptchaForm, AnswerForm,DemographicForm, TestResultDeleteForm
 from .tables import FilteredSingleTableView, TestResultTable,SubjectQuestionnaireTable,SubjectVisitTable
 from .filters import TestResultFilter,SubjectQuestionnaireFilter,SubjectVisitFilter
 
@@ -219,7 +219,7 @@ class IndexView(generic.ListView):
 # Questionnaire Intro page
 class DetailView(LoginRequiredMixin, generic.DetailView):
     model = Questionnaire
-    template_name = 'questionnaires/detail.html'
+    template_name = 'questionnaires/intro.html'
 
     def get_context_data(self, **kwargs):
         context = super(DetailView, self).get_context_data(**kwargs)
@@ -368,9 +368,10 @@ class ResultsView(LoginRequiredMixin, PermissionRequiredMixin, generic.TemplateV
         return context
 
 
-class TestResultBulkDelete(LoginRequiredMixin, PermissionRequiredMixin, generic.FormView):
+class TestResultDelete(LoginRequiredMixin, PermissionRequiredMixin, generic.FormView):
+    """Delete a result set"""
     template_name = 'questionnaires/confirm_delete.html'
-    form_class=TestResultBulkDeleteForm
+    form_class=TestResultDeleteForm
     raise_exception = True
     permission_required = 'questionnaires.delete_testresult'
 
@@ -391,7 +392,7 @@ class TestResultBulkDelete(LoginRequiredMixin, PermissionRequiredMixin, generic.
         return render(request, self.template_name, {'msg': message})
 
     def get_context_data(self, **kwargs):
-        context = super(TestResultBulkDelete, self).get_context_data(**kwargs)
+        context = super(TestResultDelete, self).get_context_data(**kwargs)
         resultlist = self.get_queryset()
         if resultlist.count() > 0:
             context.update({
@@ -409,7 +410,7 @@ class TestResultBulkDelete(LoginRequiredMixin, PermissionRequiredMixin, generic.
         return TestResult.objects.filter(test_token=sc.session_token)
 
     def get_success_url(self):
-        return reverse('questionnaires:subjects')
+        return reverse('questionnaires:reports')
 
 
 
@@ -424,9 +425,11 @@ def load_questionnaire(request, *args, **kwargs):
     if qid is not None:
         qnaire = Questionnaire.objects.get(pk=qid)
         if qnaire.type =='single':
-            return singlepage_questionnaire(request, *args, **kwargs)
+            print('DEBUG: single PAGE questionnaire')
+            #return singlepage_questionnaire(request, *args, **kwargs)
         elif qnaire.type =='custom':
-            return HttpResponseRedirect(reverse('questionnaires:contact'))
+            customurl = 'questionnaires:%s' % qnaire.code
+            return HttpResponseRedirect(reverse(customurl))
 
         formlist=[AnswerForm] * qnaire.question_set.count()
         questions = qnaire.question_set.order_by('order')
@@ -528,66 +531,66 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
 ###################################
 # ############# SINGLE PAGE ##################
 
-def singlepage_questionnaire(request,*args,**kwargs):
-    template = 'questionnaires/single.html'
-    """
-    Detect user
-    """
-    user = request.user
-    messages = ''
-    #Questionnaire ID
-    qid = kwargs.get('pk')
-    qnaire = Questionnaire.objects.get(pk=qid)
-
-    # Create the formset, specifying the form and formset we want to use.
-    LinkFormSet = formset_factory(SinglepageQuestionForm, formset=BaseQuestionFormSet, validate_max=True)
-    # Get our existing link data for this user.  This is used as initial data.
-    questions = qnaire.question_set.order_by('order') #Question.objects.order_by('order')
-    link_data = [{'qid': q.id} for q in questions]
-
-    if request.method == 'POST':
-        link_formset = LinkFormSet(request.POST) #cannot reload as dynamic
-
-        if link_formset.is_valid():
-            # Now save the data for each form in the formset
-            new_data = []
-            for i in range(0, len(link_data)):
-                formid = 'form-%d-question' % i
-                val = request.POST[formid]  # TODO Validate data input
-                tresult = TestResult()
-                tresult.testee = user
-                tresult.test_questionnaire = qnaire
-                qn = Question.objects.get(pk=link_data[i]['qid'])
-                tresult.test_result_question = qn
-                q1 = qn.choice_set.filter(choice_value=val)[0]
-                # print(q1)
-                tresult.test_result_choice = q1
-                tresult.test_token = request.POST['csrfmiddlewaretoken']
-                tresult.save()
-                print('SINGLEPAGE: TESTRESULT:', " Qnaire:", tresult.test_questionnaire.title,
-                      " Qn:", tresult.test_result_question.question_text,
-                      " Val:", tresult.test_result_choice.choice_text)
-
-            # Save user info with category
-            template='questionnaires/done.html'
-            try:
-                subjectcat = SubjectQuestionnaire(subject=user, questionnaire=qnaire, session_token=request.POST['csrfmiddlewaretoken'])
-                subjectcat.save()
-                messages='Congratulations, %s!  You have completed the questionnaire.' % user
-            except IntegrityError:
-                messages.error(request, 'There was an error saving your result.')
-
-
-    else:
-        link_formset = LinkFormSet(initial=link_data)
-
-    context = {
-        'formset': link_formset,
-        'qtitle' : qnaire.title,
-        'messages': messages,
-    }
-
-    return render(request, template, context)
+# def singlepage_questionnaire(request,*args,**kwargs):
+#     template = 'questionnaires/single.html'
+#     """
+#     Detect user
+#     """
+#     user = request.user
+#     messages = ''
+#     #Questionnaire ID
+#     qid = kwargs.get('pk')
+#     qnaire = Questionnaire.objects.get(pk=qid)
+#
+#     # Create the formset, specifying the form and formset we want to use.
+#     LinkFormSet = formset_factory(AnswerForm, formset=BaseQuestionFormSet, validate_max=True)
+#     # Get our existing link data for this user.  This is used as initial data.
+#     questions = qnaire.question_set.order_by('order') #Question.objects.order_by('order')
+#     link_data = [{'qid': q.id} for q in questions]
+#
+#     if request.method == 'POST':
+#         link_formset = LinkFormSet(request.POST) #cannot reload as dynamic
+#
+#         if link_formset.is_valid():
+#             # Now save the data for each form in the formset
+#             new_data = []
+#             for i in range(0, len(link_data)):
+#                 formid = 'form-%d-question' % i
+#                 val = request.POST[formid]  # TODO Validate data input
+#                 tresult = TestResult()
+#                 tresult.testee = user
+#                 tresult.test_questionnaire = qnaire
+#                 qn = Question.objects.get(pk=link_data[i]['qid'])
+#                 tresult.test_result_question = qn
+#                 q1 = qn.choice_set.filter(choice_value=val)[0]
+#                 # print(q1)
+#                 tresult.test_result_choice = q1
+#                 tresult.test_token = request.POST['csrfmiddlewaretoken']
+#                 tresult.save()
+#                 print('SINGLEPAGE: TESTRESULT:', " Qnaire:", tresult.test_questionnaire.title,
+#                       " Qn:", tresult.test_result_question.question_text,
+#                       " Val:", tresult.test_result_choice.choice_text)
+#
+#             # Save user info with category
+#             template='questionnaires/done.html'
+#             try:
+#                 subjectcat = SubjectQuestionnaire(subject=user, questionnaire=qnaire, session_token=request.POST['csrfmiddlewaretoken'])
+#                 subjectcat.save()
+#                 messages='Congratulations, %s!  You have completed the questionnaire.' % user
+#             except IntegrityError:
+#                 messages.error(request, 'There was an error saving your result.')
+#
+#
+#     else:
+#         link_formset = LinkFormSet(initial=link_data)
+#
+#     context = {
+#         'formset': link_formset,
+#         'qtitle' : qnaire.title,
+#         'messages': messages,
+#     }
+#
+#     return render(request, template, context)
 
 #################CUSTOM QUESTIONNAIRES - HARD-CODED ###############
 def show_message_form_condition(wizard):
@@ -603,3 +606,56 @@ class ContactWizard(SessionWizardView):
         return render(self.request, 'questionnaires/done.html', {
             'form_data': [form.cleaned_data for form in form_list],
         })
+
+class DemographicDetail(LoginRequiredMixin, generic.DetailView):
+    model = Demographic
+    context_object_name = 'obj'
+    template_name = 'questionnaires/detail.html'
+    raise_exception = True
+
+class DemographicCreate(LoginRequiredMixin, PermissionRequiredMixin, generic.CreateView):
+    model = Demographic
+    template_name = 'questionnaires/create.html'
+    form_class = DemographicForm
+    raise_exception = True
+    permission_required = 'questionnaires.add_demographic'
+
+    def get_initial(self):
+        # Get the initial dictionary from the superclass method
+        initial = super(DemographicCreate, self).get_initial()
+        # Copy the dictionary so we don't accidentally change a mutable dict
+        initial = initial.copy()
+        initial['subject'] = self.request.user.pk
+        if self.request.user.groups.filter(name='Parent').exists():
+            initial['subjecttype'] = 1
+        elif self.request.user.groups.filter(name='Teenager').exists():
+            initial['subjecttype'] = 2
+        if self.request.user.groups.filter(name='Female').exists():
+            initial['gender'] = 2
+        elif self.request.user.groups.filter(name='Male').exists():
+            initial['gender'] = 1
+        print("DEBUG: initial form=", initial)
+        return initial
+
+    def form_valid(self, form):
+        try:
+            return super(DemographicCreate, self).form_valid(form)
+        except IntegrityError as e:
+            msg = 'Database Error: Unable to create Demographic data - see Administrator'
+            form.add_error(msg)
+            logger.warning(msg)
+            return self.form_invalid(form)
+
+    def get_success_url(self):
+        return reverse('questionnaires:demographic_detail', args=[self.object.id])
+
+class DemographicUpdate(LoginRequiredMixin, PermissionRequiredMixin, generic.UpdateView):
+    model = Demographic
+    form_class = DemographicForm
+    template_name = 'questionnaires/create.html'
+    raise_exception = True
+    permission_required = 'questionnaires.change_demographic'
+
+    def get_success_url(self):
+        return reverse('questionnaires:demographic_detail', args=[self.object.id])
+

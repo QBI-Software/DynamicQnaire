@@ -98,85 +98,86 @@ class AnswerForm(Form):
         fields =('question')
 
 ############### SINGLE PAGE #################
-class SinglepageQuestionForm(Form):
+# class SinglepageQuestionForm(Form):
+#
+#     def __init__(self, *args, **kwargs):
+#         #print('DEBUG: Qform: kwargs=', kwargs)
+#         initvals = kwargs.get('initial')
+#         #print("DEBUG: initvals=", initvals)
+#         super().__init__(*args, **kwargs)
+#         if (initvals):
+#             qid = initvals.get('qid')
+#             #print("DEBUG: Qid=", qid)
+#
+#             question = Question.objects.get(pk=qid)
+#             #print("DEBUG: Qn=", question.id)
+#             choices = [(c.choice_value, c) for c in question.choice_set.all()]
+#             if question.question_type == 1:
+#                 self.fields['question'] = forms.ChoiceField(
+#                     label=question.question_text,
+#                     help_text='radio',  # use this to detect type
+#                     widget=forms.RadioSelect(attrs={'class': 'form-control'}),
+#                     required=question.question_required,
+#                     choices=choices,
+#                 )
+#             elif question.question_type == 2:
+#                 self.fields['question'] = forms.MultipleChoiceField(
+#                 label=question.question_text,
+#                 help_text='checkbox',
+#                 widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-control'}),
+#                 required=question.question_required,
+#                 choices=choices,
+#             )
+#             elif question.question_type == 3:
+#                 self.fields['question'] = forms.CharField(
+#                     label=question.question_text,
+#                     help_text='text',
+#                     widget=forms.TextInput(attrs={'class': 'form-control'}),
+#                     required=question.question_required,
+#
+#                 )
+#             elif question.question_type == 4:
+#                 self.fields['question'] = forms.ChoiceField(
+#                     label=question.question_text,
+#                     #widget=forms.Select(attrs={'class': 'form-control'}),
+#                     help_text='select',
+#                     required=question.question_required,
+#                     choices=choices,
+#                 )
+#
+#             # self.fields['question'] = forms.ChoiceField(label=question.question_text,
+#             #                                             widget=forms.RadioSelect, required=True,
+#             #                                             choices=[(c.choice_value, c.choice_text) for c in question.choice_set.all()])
+#             # for field in iter(self.fields):
+#             #     self.fields[field].widget.attrs.update({
+#             #         'class': 'form-control'
+#             #     })
 
-    def __init__(self, *args, **kwargs):
-        #print('DEBUG: Qform: kwargs=', kwargs)
-        initvals = kwargs.get('initial')
-        #print("DEBUG: initvals=", initvals)
-        super().__init__(*args, **kwargs)
-        if (initvals):
-            qid = initvals.get('qid')
-            #print("DEBUG: Qid=", qid)
 
-            question = Question.objects.get(pk=qid)
-            #print("DEBUG: Qn=", question.id)
-            choices = [(c.choice_value, c) for c in question.choice_set.all()]
-            if question.question_type == 1:
-                self.fields['question'] = forms.ChoiceField(
-                    label=question.question_text,
-                    help_text='radio',  # use this to detect type
-                    widget=forms.RadioSelect(attrs={'class': 'form-control'}),
-                    required=question.question_required,
-                    choices=choices,
-                )
-            elif question.question_type == 2:
-                self.fields['question'] = forms.MultipleChoiceField(
-                label=question.question_text,
-                help_text='checkbox',
-                widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-control'}),
-                required=question.question_required,
-                choices=choices,
-            )
-            elif question.question_type == 3:
-                self.fields['question'] = forms.CharField(
-                    label=question.question_text,
-                    help_text='text',
-                    widget=forms.TextInput(attrs={'class': 'form-control'}),
-                    required=question.question_required,
-
-                )
-            elif question.question_type == 4:
-                self.fields['question'] = forms.ChoiceField(
-                    label=question.question_text,
-                    #widget=forms.Select(attrs={'class': 'form-control'}),
-                    help_text='select',
-                    required=question.question_required,
-                    choices=choices,
-                )
-
-            # self.fields['question'] = forms.ChoiceField(label=question.question_text,
-            #                                             widget=forms.RadioSelect, required=True,
-            #                                             choices=[(c.choice_value, c.choice_text) for c in question.choice_set.all()])
-            # for field in iter(self.fields):
-            #     self.fields[field].widget.attrs.update({
-            #         'class': 'form-control'
-            #     })
+# class BaseQuestionFormSet(BaseFormSet):
+#     """ Use for multiple questions per page as formset """
+#     def get_form_kwargs(self, index):
+#         kwargs = super(BaseQuestionFormSet, self).get_form_kwargs(index)
+#         print('BASEFORM kwargs:', kwargs)
+#         return kwargs
+#
+#     def clean(self):
+#         """
+#         Adds validation to check that no two links have the same anchor or URL
+#         and that all links have both an anchor and URL.
+#         """
+#         if any(self.errors):
+#             return
+#         results = []
+#         for form in self.forms:
+#             #print("FORM:", self)
+#             title = form.cleaned_data #['question']
+#
+#         results.append(title)
+#         return results
 
 
-class BaseQuestionFormSet(BaseFormSet):
-    """ Use for multiple questions per page as formset """
-    def get_form_kwargs(self, index):
-        kwargs = super(BaseQuestionFormSet, self).get_form_kwargs(index)
-        print('BASEFORM kwargs:', kwargs)
-        return kwargs
-
-    def clean(self):
-        """
-        Adds validation to check that no two links have the same anchor or URL
-        and that all links have both an anchor and URL.
-        """
-        if any(self.errors):
-            return
-        results = []
-        for form in self.forms:
-            #print("FORM:", self)
-            title = form.cleaned_data #['question']
-
-        results.append(title)
-        return results
-
-class TestResultBulkDeleteForm(ModelForm):
+class TestResultDeleteForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in iter(self.fields):
@@ -190,6 +191,24 @@ class TestResultBulkDeleteForm(ModelForm):
 
 ##############################################
 ########## Custom Forms ######################
+class DemographicForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in iter(self.fields):
+            self.fields[field].widget.attrs.update({
+                'class': 'form-control'
+            })
+
+    class Meta:
+        model = Demographic
+        fields = '__all__'
+        widgets = {
+            'dob': DateInput(format=('%d-%m-%Y'),
+                                      attrs={'class': 'myDateClass',
+                                             'type': 'date',
+                                             'placeholder': 'Select a date'}
+                                      ),}
+
 class ContactForm1(forms.Form):
     subject = forms.CharField(max_length=100)
     sender = forms.EmailField()
