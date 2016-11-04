@@ -7,36 +7,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>QTAB {% block title %}{% endblock %}</title>
     {% load staticfiles %}
-    <link rel="icon" href="{% static "qtab/img/favicon.ico" %}" type="image/png"/>
+    <link rel="icon" href="{% static "qtab/img/Panda.ico" %}" type="image/png"/>
     <link rel="stylesheet" href="{% static "bootstrap/css/bootstrap.min.css" %}"/>
     <link rel="stylesheet" href="{% static "qtab/css/style.css" %}"/>
-    <!-- Add fancyBox -->
-    <link rel="stylesheet" href="{% static "fancybox/source/jquery.fancybox.css" %}" type="text/css" media="screen" />
+
     <script type="text/javascript" src="{% static "qtab/js/jquery-1.12.3.min.js" %}"></script>
     <script type="text/javascript" src="{% static "bootstrap/js/bootstrap.min.js" %}"></script>
     <script type="text/javascript" src="{% static "ckeditor/ckeditor/ckeditor.js" %}"></script>
     <script type="text/javascript" src="{% static "ckeditor/ckeditor-init.js" %}"></script>
-    <script type="text/javascript" src="{% static "fancybox/source/jquery.fancybox.pack.js" %}"></script>
-    <script type="text/javascript">
-        $(document).ready(function() {
-          $(".fancybox").fancybox({
-              helpers:{
-                title:{
-                  type: 'outside'
-                },
-                overlay:{
-                  speedOut: 0
-                }
-              },
 
-              openEffect	: 'none',
-              closeEffect	: 'none'
-          });
-
-      });
-
-
-    </script>
  {% block head %}{% endblock %}
   </head>
   <body>
@@ -44,7 +23,7 @@
 	  <div class="container-fluid">
 		<div class="navbar-header">
 		  <a  class="navbar-brand" href="/questionnaires/">
-		  <img src="{% static 'qtab/img/kermit.png' %}" alt="QTAB"/></a>
+		  <img src="{% static 'qtab/img/Panda.ico' %}" width="100px" alt="QTAB"/></a>
 		</div>
         {% if user.is_authenticated %}
           {% if user.is_superuser %}

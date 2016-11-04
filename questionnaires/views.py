@@ -425,6 +425,8 @@ def load_questionnaire(request, *args, **kwargs):
         qnaire = Questionnaire.objects.get(pk=qid)
         if qnaire.type =='single':
             return singlepage_questionnaire(request, *args, **kwargs)
+        elif qnaire.type =='custom':
+            return HttpResponseRedirect(reverse('questionnaires:contact'))
 
         formlist=[AnswerForm] * qnaire.question_set.count()
         questions = qnaire.question_set.order_by('order')
@@ -587,3 +589,17 @@ def singlepage_questionnaire(request,*args,**kwargs):
 
     return render(request, template, context)
 
+#################CUSTOM QUESTIONNAIRES - HARD-CODED ###############
+def show_message_form_condition(wizard):
+    # try to get the cleaned data of step 1
+    cleaned_data = wizard.get_cleaned_data_for_step('0') or {}
+    # check if the field ``leave_message`` was checked.
+    return cleaned_data.get('leave_message', True)
+
+class ContactWizard(SessionWizardView):
+    template = 'questionnaires/test.html'
+
+    def done(self, form_list, **kwargs):
+        return render(self.request, 'questionnaires/done.html', {
+            'form_data': [form.cleaned_data for form in form_list],
+        })

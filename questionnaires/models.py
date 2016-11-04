@@ -22,13 +22,13 @@ class Category(models.Model):
 
 ##### CLASSES ############
 class Questionnaire(models.Model):
-    TYPES=(('single','Single Page' ),('multi','Multi Page' ))
+    TYPES=(('multi','Multi Page' ),('single','Single Page' ),('custom','Custom'))
     title = models.CharField(_("Title"), max_length=200)
     description = models.TextField(_("Description"), null=True, blank=True)
     intropage = RichTextUploadingField(_("Introduction"),null=True, blank=True)
     code = models.CharField(_("Code"), max_length=10, unique=True)
     category = models.ManyToManyField(Category, verbose_name="Visit Category")
-    type = models.CharField(_("Type"), max_length=20, choices=TYPES, default='single')
+    type = models.CharField(_("Type"), max_length=20, choices=TYPES, default='multi')
     group = models.ManyToManyField(Group)
     active = models.BooleanField(_("Active"), default=True)
 

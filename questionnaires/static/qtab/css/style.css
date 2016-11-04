@@ -241,4 +241,6 @@ td.default{
   min-width:25%;
 }
 /* Special styled checkboxes with CSS3: http://code.stephenmorley.org/html-and-css/styling-checkboxes-and-radio-buttons/*/
-
+.btn-header{
+    width:100%;
+}

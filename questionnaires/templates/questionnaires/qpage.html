@@ -1,5 +1,9 @@
 {% extends "questionnaires/base.html" %}
-{% block title %}{% endblock %}
+{% block title %}Questionnaire{% endblock %}
+{% block header %}
+<link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css">
+<script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+{% endblock %}
 {% block content %}
 {% load i18n %}
 {% block head %}
@@ -7,20 +11,21 @@
 {% endblock %}
 
 
-<div class="progress">
+<div data-role="page" class="progress">
     <div class="progress-bar" role="progressbar"
          aria-valuenow="{% widthratio wizard.steps.step1 wizard.steps.count 100 %}" aria-valuemin="0"
          aria-valuemax="100" style="width:{% widthratio wizard.steps.step1 wizard.steps.count 100 %}%">
         {% widthratio wizard.steps.step1 wizard.steps.count 100 %}&#37;
     </div>
     {% if wizard.steps.next %}
-    <img class="progressicon" src="/static/qtab/img/caterpie.png" height="40px" width="40px" />
+    <img class="progressicon" src="/static/qtab/img/Squirrel.ico" height="60px" width="60px" />
     {% endif %}
 </div>
 <div style="background-color:{{wizard.form.qbgcolor}}; color:{{wizard.form.textcolor}};">
     <p>Question {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</p>
     <form action="" method="post">{% csrf_token %}
-        <div class="container-responsive" align="center">
+
+        <div class="container-responsive ui-content" align="center">
             {{ wizard.management_form }}
             {% if wizard.form.forms %}
                 {{ wizard.form.management_form }}
@@ -46,7 +51,7 @@
 
 
           {% if wizard.form.question.help_text == 'select' %}
-                            <select class="form-control" id="{{ wizard.form.question.id_for_label}}"
+                <select class="form-control" id="{{ wizard.form.question.id_for_label}}"
                                         name="{{wizard.form.prefix}}-{{ wizard.form.question.name }}">
                                 {% for choice in wizard.form.question.field.choices %}
                                 <option value="{{ choice.0 }}">{{choice.1.choice_text}}</option>
@@ -128,7 +133,7 @@
             </div>
             {% endif %}
         </div>
-    </form>
+   </form>
 </div>
 <script type="text/javascript">
 
