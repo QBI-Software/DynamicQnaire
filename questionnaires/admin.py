@@ -36,7 +36,8 @@ class QuestionAdmin(admin.ModelAdmin):
                'create_yesno',
                'create_days',
                'create_languages',
-               'create_education']
+               'create_education',
+               'create_aboriginal']
 
 
     def create_radiobuttons(self,request,queryset,labels):
@@ -216,8 +217,12 @@ class QuestionnaireAdmin(admin.ModelAdmin):
         n = 0
         for obj in queryset:
             print("DEBUG: Questionnaire ", obj, " results to delete=", obj.testresult_set.count())
-            n0 = obj.testresult_set.delete()
-            obj.subjectquestionnaire_set.delete()
+            n0 = 0
+            for t in obj.testresult_set.all():
+                t.delete()
+                n0 += 1
+            for s in obj.subjectquestionnaire_set.all():
+                s.delete()
             n = n+ n0
         msg = "%d result sets successfully REMOVED from selected questionnaires." % n
         self.message_user(request, msg)

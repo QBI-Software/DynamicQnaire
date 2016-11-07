@@ -29,6 +29,7 @@
             {{ wizard.management_form }}
             {% if wizard.form.forms %}
                 {{ wizard.form.management_form }}
+
                 {% for form in wizard.form.forms %}
                 {{ form }}
                 {% endfor %}
@@ -137,18 +138,18 @@
 </div>
 <script type="text/javascript">
 
-$( "td.radiobox :input:radio" ).click(function() {
+$( "td.coloredbox :input:radio" ).click(function() {
         var choice = $(this).val();
         var color = $( this ).parent().parent().css( "opacity" );
         $( "#msg" ).text( "You selected: " + choice );
-        $("td.radiobox").css("opacity",0.6);
+        $("td.coloredbox").css("opacity",0.6);
         $( this ).parent().parent().css( "opacity",1.0 );
         /*.show().fadeOut( 1000 );*/
 
 });
 var selected = [];
 
-$( "td.radiobox :input:checkbox" ).click(function() {
+$( "td.coloredbox :input:checkbox" ).click(function() {
         var choice = $(this).val();
         var color = $( this ).parent().parent().css( "opacity" );
         var data = $("#msg" ).text();

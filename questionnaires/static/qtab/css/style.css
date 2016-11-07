@@ -37,17 +37,7 @@ footer p{
     background-color: #5CB85C;
     }
 
-/* Form layout */
-/*label, input, select {
-    min-width:200px;
-    min-height:25px;
-}
-*/
-form ul{
-    display-list-style:none;
-}
-.form-control input {
-}
+
 a.glyphicon:hover{
     text-decoration:none;
 }
@@ -164,7 +154,7 @@ input.imageradio:checked + img{ /* (RADIO CHECKED) IMAGE STYLES */
 #qtable tr th, #qtable tr td {
     border-top:0;
 }
-td.radiobox{
+td.coloredbox{
     display:block;
     background-color:antiquewhite;
     text-align:center;
@@ -216,7 +206,7 @@ td.color12{
   background-color:blanchedalmond;
 }
 
-td.radiobox input{
+td.coloredbox input{
     width: 46px;
     height: 44px;
     padding: 2px;
@@ -226,10 +216,10 @@ td.radiobox input{
 
 }
 
-td.radiobox input:hover{
+td.coloredbox input:hover{
     height: 80px;
 }
-td.radiobox  input:checked{
+td.coloredbox input:checked{
     height: 80px;
 
 }
@@ -243,4 +233,36 @@ td.default{
 /* Special styled checkboxes with CSS3: http://code.stephenmorley.org/html-and-css/styling-checkboxes-and-radio-buttons/*/
 .btn-header{
     width:100%;
+}
+
+/* Single page questionnaire */
+/* Form layout */
+/*label, input, select {
+    min-width:200px;
+    min-height:25px;
+}
+*/
+
+#single_page label{
+    min-width:200px;
+    min-height:25px;
+    font-size: 1.2em;
+}
+#single_page ul{
+
+
+}
+#single_page li{
+    display:inline-block;
+
+}
+#single_page li label{
+    font-size: 1em;
+    margin:10px 2px;
+    font-weight:normal;
+
+}
+#single_page li input{
+    display: inherit;
+    box-shadow: none;
 }

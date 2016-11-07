@@ -34,7 +34,6 @@ class Questionnaire(models.Model):
 
     def categorylist(self):
         catlist = [c.get_name_display() for c in self.category.all()]
-        print('DEBUG: Catlist=', catlist)
         return ", ".join(catlist)
 
     def num_questions(self):
@@ -48,8 +47,8 @@ class Questionnaire(models.Model):
 
 
 class Question(models.Model):
-    INPUTS = ((1, 'Radio'), (2, 'Checkbox'), (3, 'Textfield'), (4, 'Dropdown'))
-    CSSCLASSES = ((1, 'default'), (2, 'radiobox'))
+    INPUTS = ((1, 'Radio'), (2, 'Checkbox'), (3, 'Textfield'), (4, 'Dropdown'), (5,'Date'))
+    CSSCLASSES = ((1, 'default'), (2, 'coloredbox'))
     qid = models.ForeignKey(Questionnaire, verbose_name="Questionnaire", null=False)
     order = models.PositiveSmallIntegerField(_("Number"), default=0)
     question_required = models.BooleanField(_("Required"), default=True)
@@ -94,6 +93,7 @@ class TestResult(models.Model):
     test_result_question = models.ForeignKey(Question,verbose_name="Question", null=False)
     test_result_choice = models.ForeignKey(Choice, verbose_name="Choice", null=True)
     test_result_text = models.CharField(verbose_name="FreeText", max_length=200, null=True)
+    test_result_date = models.DateField(_("Date"), null=True)
     test_token = models.CharField(_("Hiddentoken"), max_length=100)
 
     def __str__(self):
@@ -125,37 +125,3 @@ class SubjectVisit(models.Model):
     def __str__(self):
         return self.subject.username + ": " + self.category.name
 
-############## Custom Classes ##############
-class Demographic(models.Model):
-    """ Capture demographic information for Parents and Twins """
-    SUBJECTTYPES = ((1,'Parent'), (2,'Child'))
-    MARITAL = ((1, 'Single (and have never been married)'),
-               (2, 'Married or living with partner'),
-               (3, 'In a relationship but not living with partner'),
-               (4, 'Separated (but still legally married)'),
-               (5, 'Divorced'),
-               (6, 'Widowed'))
-    PARENTAL = ((1, 'Biological parent'), (2, 'Non-biological parent'),
-                (3, 'Other biological relative'), (4, 'Other'))
-    GENDER = ((1, 'Male'), (2, 'Female'))
-    AGERANGES = ((0,'Don’t know'),(1,'<20'),(2,'20-24'),(3,'25-29'),(4,'30-34'),(5,'35-39'),(6,'40-44'),(7,'45-49'),
-                 (8,'50-54'),(9,'55-59'),(10,'≥60'))
-    ABORIGINAL = ((1,"No"), (2,"Yes, Aboriginal"),(3,"Yes, Torres Strait Islander"),
-                  (4,"Yes, both Aboriginal and Torres Strait Islander"),
-                  (5,"Don't know"))
-    LANGUAGES = ((0,"English"),(1,"Afrikaans"),(2,"Arabic"),(3,"Cantonese"),(4,"Croatian"),(5,"French"),(6,"German"),(7,"Greek"),
-                 (8,"Hindi"),(9,"Italian"),(10,"Japanese"),(11,"Malaysian"),(12,"Mandarin"),(13,"Macedonian"),(14,"Polish"),
-                 (15,"Serbian"),(16,"Spanish"),(17,"Tagalog/ Filipino"),(18,"Turkish"),(19,"Vietnamese"),(20,"Other (specify)"),(21,"Don’t know"))
-    subject = models.OneToOneField(User, verbose_name="Subject")
-    subjecttype = models.PositiveSmallIntegerField(_("Type"), choices=SUBJECTTYPES)
-    dob = models.DateField(_("Date of Birth"), null=True)
-    maiden = models.CharField(_("Maiden Name"), max_length=200, null=True)
-    gender = models.PositiveSmallIntegerField(_("Gender"), choices=GENDER)
-    marital_status  = models.PositiveSmallIntegerField(_("Marital status"), choices=MARITAL)
-    parental_status = models.PositiveSmallIntegerField(_("Parental status"), choices=PARENTAL)
-    parental_status_other = models.CharField(_("Parent status - Other"), max_length=200, null=True)
-    agerange_twinborn = models.CharField(_("Age when twins born"), max_length=200, null=True, choices=AGERANGES)
-    country_birth = models.CharField(_("Country of birth"), max_length=200, null=True)
-    aboriginal = models.PositiveSmallIntegerField(_("Aboriginal or Torres Strait Islander"), null=True, choices=ABORIGINAL)
-    language = models.PositiveSmallIntegerField(_("Language"), choices=LANGUAGES, default=0)
-    language_other = models.CharField(_("Other Language"), max_length=200, null=True)

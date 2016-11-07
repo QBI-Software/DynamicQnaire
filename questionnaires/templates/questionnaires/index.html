@@ -20,18 +20,7 @@
     {% if user.is_staff %}
     {% include "admin/dashboard.html" %}
     {% endif %}
-    <div class="row">
-        <div class="col-sm-6">
-            <div class="well">
-                <h3>Profile questions</h3>
-            {% if not user.demographic %}
-            <a href="{% url 'questionnaires:demographic_create' %}" class="btn btn-info">Create Demographic information</a>
-                {% else %}
-                <a href="{% url 'questionnaires:demographic_update' %}" class="btn btn-info">Update Demographic information</a>
-            {% endif %}
-            </div>
-        </div>
-    </div>
+
     <div class="row">
 
         <div class="col-sm-6">

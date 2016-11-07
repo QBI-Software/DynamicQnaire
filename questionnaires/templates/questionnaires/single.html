@@ -1,68 +1,27 @@
 {% extends "questionnaires/base.html" %}
 {% block content %}
-<div class="container">
+{{ wizard.form.media }}
+<div class="container-ui">
     <h1>{{qtitle}}</h1>
     <div class="row">
         <div class="col-sm-12">
-            <div class="well">
+            <div class="well" id="single_page">
                 {{messages}}
                 <form method="POST" action="">
                     {% csrf_token %}
-                    {{ formset.non_form_errors.as_ul }}
-                    <table id="qtable" class="table table-condensed">
-                        <tbody>
-                        {% for form in formset.forms %}
-                        {% if form.question %}
-                        <tr>
-                            <th><h3>Q. {{ forloop.counter }}: {{ form.question.label }}</h3> </th>
-                        </tr><tr>
-                                {% if form.question.help_text == 'select' %}
-                              <td></td><td>   <select class="form-control" id="{{ form.question.id_for_label}}"
-                                        name="{{form.prefix}}-{{ form.question.name }}">
-                                    {% for choice in form.question.field.choices %}
-                                    <option value="{{ choice.0 }}">{{choice.1}}</option>
-                                    {% endfor %}
-                                    </select></td>
+                    {{ formset.management_form }}
+                    {{ formset.non_form_errors }}
 
-
-                                    {% else %}
-
-                                    {% for choice in form.question.field.choices %}
-                                    <td></td><td>
-                                        <label><input type="{{form.question.help_text}}"
-                                                      id="{{ form.question.id_for_label}}"
-                                                      name="{{form.prefix}}-{{ form.question.name }}"
-                                                      value="{{ choice.0 }}"
-                                            {% if choice.1.choice_image %}
-                                                      class="imageradio"> <img
-                                                src="/static/media/{{choice.1.choice_image }}"
-                                                title="{{choice.1.choice_text}}">
-                                            {% else %}
-                                            >
-                                            {% endif %}
-                                            </input>
-                                            {% if choice.1.show_label %}
-                                            {{ choice.1.choice_text }}
-                                            {% endif %}
-                                        </label>
-
-                                    </td>
-
-                                {% if forloop.counter|divisibleby:"3"%}</tr><tr>{% endif %}
-
-
-
-                                    {% endfor %}
-                                    {% endif %}
-
-
-                        </tr>
-                        {% endif %}
+                        {% for form in formset %}
+                     <table class="table table-condensed">
+                        {{form.non_field_errors }}
+                         {{form.as_table}}
+                     </table>
                         {% endfor %}
-                        </tbody>
-                    </table>
+
 
                     <button class="btn btn-primary" type="submit">Submit</button>
+
                 </form>
             </div>
         </div>

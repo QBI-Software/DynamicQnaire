@@ -95,7 +95,7 @@ class TestResultTable(tables.Table):
     class Meta:
         model = TestResult
         attrs = {"class": "ui-responsive table table-condensed"}
-        fields =['test_datetime','testee','test_questionnaire','test_result_question','test_result_choice','test_result_text',
+        fields =['test_datetime','testee','test_questionnaire','test_result_question','test_result_choice','test_result_text', 'test_result_date',
                  'twin_choice','parent1_choice','parent2_choice']
         sortable = True
 
