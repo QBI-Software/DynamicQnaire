@@ -1,14 +1,14 @@
 from ckeditor_uploader.fields import RichTextUploadingField
+from colorfield.fields import ColorField
 from django.contrib.auth.models import User, Group
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from colorfield.fields import ColorField
+
 
 ##### LISTS #############
 class Category(models.Model):
     CATEGORIES = (('W1', 'Wave 1'), ('W2', 'Wave 2'), ('W3', 'Wave 3'))
     name = models.CharField(_("Name"), max_length=10,choices=CATEGORIES, default='W1')
-    #code = models.CharField(_("Code"), max_length=5, unique=True)
 
     def code(self):
         return self.name[1]
@@ -56,7 +56,7 @@ class Question(models.Model):
     question_image = models.ImageField(verbose_name="Question Image", null=True, blank=True)
     question_type = models.PositiveSmallIntegerField(_("Type"), default=1, choices=INPUTS)
     group = models.ManyToManyField(Group, verbose_name="Group", blank=True)
-    skip_value = models.CharField(_("Conditional value"), max_length=20, blank=True, null=True)
+    #skip_value = models.CharField(_("Conditional value"), max_length=20, blank=True, null=True)
     #skip_goto = models.PositiveSmallIntegerField(_("Skip to question"), blank=True, null=True)
     bgcolor = ColorField(_("Background Color"),default='#FFFFFF')
     textcolor = ColorField(_("Text Color"),default='#666666')

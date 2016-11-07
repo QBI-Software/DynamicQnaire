@@ -1,12 +1,12 @@
 from axes.decorators import watch_login
 from django.conf.urls import url
 from django.contrib.auth.views import password_change, password_reset,password_reset_complete, password_reset_confirm, password_reset_done
-from .forms import ContactForm1, ContactForm2
-from .views import ContactWizard, show_message_form_condition, CustomWizard
+#from .forms import ContactForm1, ContactForm2
+#from .views import ContactWizard, show_message_form_condition, CustomWizard
 from . import views
 
 
-contact_forms = [ContactForm1, ContactForm2]
+#contact_forms = [ContactForm1, ContactForm2]
 
 app_name = 'questionnaires'
 urlpatterns = [
@@ -20,14 +20,13 @@ urlpatterns = [
     url('^reset/(?P<uidb64>[0-9A-Za-z\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', password_reset_confirm, {'template_name':'admin/password_reset_email.html'}, name='password_reset_confirm'),
     url('^reset/done/$', password_reset_complete, {'template_name':'admin/password_reset_complete.html'}, name='password_reset_complete'),
     url(r'^results/$', views.ResultFilterView.as_view(), name='results'),
-    #url(r'^tests/$', views.TestResultFilterView.as_view(), name='tests'),
     url(r'^reports/$', views.SubjectReportView.as_view(), name='reports'),
     url(r'^visits/$', views.VisitView.as_view(), name='visits'),
     url(r'^(?P<subjectid>[0-9]+)/download/$', views.download_report, name='download'),
     url(r'^(?P<pk>[0-9]+)/qintro/$', views.DetailView.as_view(), name='qintro'),
     url(r'^(?P<pk>[0-9]+)/q/$', views.load_questionnaire, name='q'),
     url(r'^(?P<token>[0-9]+)/deleteresults/$', views.TestResultDelete.as_view(), name='deleteresults'),
-    url(r'^custom/(?P<code>\w+)/$', CustomWizard.as_view(),name='custom'),
-    url(r'^contact/$', ContactWizard.as_view(contact_forms,  condition_dict={'1': show_message_form_condition} ),name='contact'),
+    #url(r'^custom/(?P<code>\w+)/$', CustomWizard.as_view(),name='custom'),
+    #url(r'^contact/$', ContactWizard.as_view(contact_forms,  condition_dict={'1': show_message_form_condition} ),name='contact'),
 
 ]

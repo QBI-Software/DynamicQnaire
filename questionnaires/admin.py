@@ -1,11 +1,10 @@
 from django.contrib import admin
-#from suit.widgets import HTML5Input
-from .models import Questionnaire, Question, Choice, SubjectVisit, Category
+from .models import Questionnaire, Question, Choice, SubjectVisit
 
 
 class ChoiceAdmin(admin.ModelAdmin):
     list_display = ('questionnaire','question','choice_text','choice_image','choice_value')
-    #list_filter =['choice_type']
+    list_filter =['questionnaire']
 
 class ChoiceInline(admin.TabularInline):
     model = Choice

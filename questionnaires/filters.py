@@ -1,6 +1,7 @@
 import django_filters
-from django.contrib.auth.models import User
+
 from .models import TestResult,SubjectQuestionnaire,SubjectVisit
+
 
 class TestResultFilter(django_filters.FilterSet):
     test_datetime = django_filters.DateFromToRangeFilter(label="Test Date (from-to)",
@@ -10,8 +11,8 @@ class TestResultFilter(django_filters.FilterSet):
 
     class Meta:
         model = TestResult
-        fields = ['testee', 'test_questionnaire','test_datetime']
-        #order_by =['test_questionnaire']
+        fields = ['testee', 'test_questionnaire','test_result_question','test_datetime']
+        order_by =['test_questionnaire__title']
 
     def __init__(self, *args, **kwargs):
         super(TestResultFilter, self).__init__(*args, **kwargs)

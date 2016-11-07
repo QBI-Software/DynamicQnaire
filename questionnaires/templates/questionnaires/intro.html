@@ -1,6 +1,6 @@
 {% extends "questionnaires/base.html" %}
 {% block content %}
-<h1>{{ object.title }}</h1>
+<h1>{{ object.title|safe }}</h1>
 <small>Date: {{ now|date:"d M Y" }}</small>
 <div class="container">
     <div class="row">

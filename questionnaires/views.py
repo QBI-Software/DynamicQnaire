@@ -43,7 +43,7 @@ import logging
 logger = logging.getLogger(__name__)
 ###Local classes
 from .models import Questionnaire, Choice, TestResult, SubjectQuestionnaire,Category,SubjectVisit,Question
-from .forms import AxesCaptchaForm, AnswerForm, TestResultDeleteForm, BaseQuestionFormSet, CustomForm1,ContactForm1,ContactForm2
+from .forms import AxesCaptchaForm, AnswerForm, TestResultDeleteForm, BaseQuestionFormSet
 from .tables import FilteredSingleTableView, TestResultTable,SubjectQuestionnaireTable,SubjectVisitTable
 from .filters import TestResultFilter,SubjectQuestionnaireFilter,SubjectVisitFilter
 
@@ -153,7 +153,6 @@ def locked_out(request):
         form = AxesCaptchaForm()
 
     return render(request,'questionnaires/locked.html', dict(form=form))
-    #deprecated return render_to_response('questionnaires/locked.html', dict(form=form), context=RequestContext(request))
 
 def change_password(request):
     template_response = password_change(request)
@@ -426,7 +425,6 @@ def load_questionnaire(request, *args, **kwargs):
         usergrouplist = request.user.groups.all()
         questions = qnaire.question_set.filter(
             Q(group__isnull=True)|Q(group__in=usergrouplist)).order_by('order')
-        print("DEBUG: questions=", questions)
 
         #Set initial data
         linkdata = {}
@@ -435,21 +433,6 @@ def load_questionnaire(request, *args, **kwargs):
         #Setup empty forms
         if qnaire.type == 'single':
             return singlepage_questionnaire(request, qnaire, questions)
-
-        elif qnaire.type == 'custom':
-            customurl = 'questionnaires:custom'
-            # formlist = {
-            #     '0': CustomForm1(code=qnaire.code)
-            # }
-            # formlist = {
-            #     '0': ContactForm1,
-            #     '1': ContactForm2,
-            # }
-            formlist = [CustomForm1]
-            #form = ContactWizard.as_view(form_list=formlist)
-            initdata = OrderedDict({'code':qnaire.code})
-            form = CustomWizard.as_view(form_list=formlist, initial_dict=initdata)
-            #return HttpResponseRedirect(reverse(customurl, kwargs={'code': qnaire.code}))
         else:
             num = 0
             for q in questions:
@@ -465,26 +448,8 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
     file_storage = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'photos'))
 
     def dispatch(self, request, *args, **kwargs):
-    #     self.sheet_id_initial = kwargs.get('sheet_id_initial', None)
         return super(QuestionnaireWizard, self).dispatch(request, *args, **kwargs)
 
-    # def process_step(self, form):
-    #     rtn = True
-    #     print("Process step: list=", self.form_list)
-    #     currentstep = str(self.get_step_index())
-    #     fdata = self.get_form_step_data(form)
-    #     print("Process step: fdata=",fdata)
-    #     qn = "%s-question" % currentstep
-    #     if (fdata[qn]):
-    #         print("Process step: ", qn," form value=", fdata[qn])
-    #         if (self.condition_dict.get(currentstep)):
-    #             qn_val = self.condition_dict.get(currentstep)['val']
-    #             print("Process step: value=", qn_val)
-    #             if fdata[qn] != qn_val:
-    #                 print("DEBUG: conditional val: ", qn_val, " form value=", fdata[qn])
-    #                 next = int(self.steps.next)
-    #                 self.form_list.pop(next)
-    #     return self.get_form_step_data(form)
 
     def get_form_initial(self, step):
         initial = self.initial_dict.get(step)
@@ -548,8 +513,6 @@ def singlepage_questionnaire(request,qnaire, questions):
     messages = ''
 
     # Create the formset, specifying the form and formset we want to use.
-    #QuestionFormSet = formset_factory(AnswerForm, extra=questions.count())
-    #formset = QuestionFormSet(initial=initdata)
     LinkFormSet = formset_factory(AnswerForm, formset=BaseQuestionFormSet, validate_max=False)
     link_data = [{'qid': q, 'myuser': request.user} for q in questions]
 
@@ -600,7 +563,6 @@ def singlepage_questionnaire(request,qnaire, questions):
 
     else:
         link_formset = LinkFormSet(initial=link_data)
-        print("DEBUG: linkformset=", link_formset)
 
     context = {
         'formset': link_formset,
@@ -610,36 +572,3 @@ def singlepage_questionnaire(request,qnaire, questions):
 
     return render(request, template, context)
 
-#################CUSTOM QUESTIONNAIRES - HARD-CODED ###############
-def show_message_form_condition(wizard):
-    # try to get the cleaned data of step 1
-    cleaned_data = wizard.get_cleaned_data_for_step('0') or {}
-    # check if the field ``leave_message`` was checked.
-    return cleaned_data.get('leave_message', True)
-
-class ContactWizard(SessionWizardView):
-    template = 'questionnaires/test.html'
-
-    def done(self, form_list, **kwargs):
-        return render(self.request, 'questionnaires/done.html', {
-            'form_data': [form.cleaned_data for form in form_list],
-        })
-
-
-class CustomWizard(SessionWizardView):
-    template = 'questionnaires/custom.html'
-    form_list = [CustomForm1]
-    file_storage = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'photos'))
-
-    def dispatch(self, request, *args, **kwargs):
-        print("DEBUG: dispatch kwargs=", kwargs)
-        code = kwargs.pop('code', None)
-        # self.instance_dict = {
-        #     '0': CustomForm1(code=code)
-        # }
-        return super(CustomWizard, self).dispatch(request, *args, **kwargs)
-
-    def done(self, form_list, **kwargs):
-        return render(self.request, 'questionnaires/done.html', {
-            'form_data': [form.cleaned_data for form in form_list],
-        })

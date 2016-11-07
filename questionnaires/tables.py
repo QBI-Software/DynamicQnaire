@@ -1,7 +1,7 @@
 import django_tables2 as tables
-from django_tables2.utils import A
 from django.utils.html import format_html
-from django_tables2_reports.tables import TableReport
+from django_tables2.utils import A
+
 from .models import *
 
 
@@ -35,7 +35,6 @@ class SubjectQuestionnaireTable(tables.Table):
         return format_html('<a href="/{}/download"><span class="glyphicon glyphicon-download"></span></a>', value)
 
     def render_total(self,value):
-        #print('DEBUG: render_total=',value)
         sc = SubjectQuestionnaire.objects.get(session_token=value)
         return format_html('<a href="/{}/deleteresults"><span class="glyphicon glyphicon-remove"></span></a>', sc.pk)
 
@@ -99,19 +98,33 @@ class TestResultTable(tables.Table):
                  'twin_choice','parent1_choice','parent2_choice']
         sortable = True
 
-# class SubjectResult(TableReport):
-#
-#     class Meta:
-#         model = SubjectQuestionnaire
-#         exclude_from_report = ('session_token')
-
 
 class SubjectVisitTable(tables.Table):
     date_visit = tables.DateColumn(verbose_name='Visit date', format='d-M-Y')
+    total = tables.Column(verbose_name="Total Q's", accessor=A('pk'))
+    done = tables.Column(verbose_name="Completed", accessor=A('pk'))
+
+    def render_total(self,value):
+        total = 0
+        visit = SubjectVisit.objects.get(pk=value)
+        cat = visit.category
+        usergrouplist = visit.subject.groups.all()
+        qlist = Questionnaire.objects.filter(active=True).filter(category=cat).filter(group__in=usergrouplist)
+        total = qlist.count()
+        return total
+
+    def render_done(self, value):
+        total = 0
+        visit = SubjectVisit.objects.get(pk=value)
+        cat = visit.category
+        if (hasattr(visit.subject, 'subjectquestionnaire')):
+            total = visit.subject.subjectquestionnaire_set.filter(category=cat).count()
+        return total
+
 
     class Meta:
         model = SubjectVisit
-        fields=['subject','date_visit','category','xnatid']
+        fields=['subject','date_visit','category','xnatid', 'total','done']
         attrs = {"class": "ui-responsive table table-condensed"}
         sortable = True
         order_by_field = '-date_visit'
