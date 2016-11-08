@@ -4,7 +4,7 @@ from .models import Questionnaire, Question, Choice, SubjectVisit
 
 class ChoiceAdmin(admin.ModelAdmin):
     list_display = ('questionnaire','question','choice_text','choice_image','choice_value')
-    list_filter =['questionnaire']
+
 
 class ChoiceInline(admin.TabularInline):
     model = Choice

@@ -12,7 +12,7 @@ class TestResultFilter(django_filters.FilterSet):
     class Meta:
         model = TestResult
         fields = ['testee', 'test_questionnaire','test_result_question','test_datetime']
-        order_by =['test_questionnaire__title']
+        order_by =['test_questionnaire']
 
     def __init__(self, *args, **kwargs):
         super(TestResultFilter, self).__init__(*args, **kwargs)
