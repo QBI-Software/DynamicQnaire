@@ -105,21 +105,16 @@ class SubjectVisitTable(tables.Table):
     done = tables.Column(verbose_name="Completed", accessor=A('pk'))
 
     def render_total(self,value):
-        total = 0
         visit = SubjectVisit.objects.get(pk=value)
         cat = visit.category
         usergrouplist = visit.subject.groups.all()
         qlist = Questionnaire.objects.filter(active=True).filter(category=cat).filter(group__in=usergrouplist)
-        total = qlist.count()
-        return total
+        return qlist.count()
 
     def render_done(self, value):
-        total = 0
         visit = SubjectVisit.objects.get(pk=value)
         cat = visit.category
-        if (hasattr(visit.subject, 'subjectquestionnaire')):
-            total = visit.subject.subjectquestionnaire_set.filter(category=cat).count()
-        return total
+        return visit.subject.subjectquestionnaire_set.filter(questionnaire__category=cat).count()
 
 
     class Meta:

@@ -1,4 +1,4 @@
-Django==1.10.2
+Django==1.10.3
 django-axes==2.2.0
 django-ckeditor==5.1.1
 django-cleanup==0.4.2
@@ -7,11 +7,19 @@ django-filter==0.15.2
 django-formtools==1.0
 django-formtools-addons==0.1.34
 django-ipware==1.1.6
+django-libs==1.67.7
 django-simple-captcha==0.5.2
 django-tables2==1.2.6
 django-tables2-reports==0.0.10
 django-uploader==0.2.1
-django-widget-tweaks==1.4.1
-Pillow==3.3.1
+fanstatic==0.16
+icalendar==3.10
+js.fullcalendar==2.9.1
+js.jquery==1.9.1
+js.momentjs==2.13.1
+Pillow==3.4.2
 psycopg2==2.6.2
+python-dateutil==2.5.3
+pytz==2016.7
 six==1.10.0
+WebOb==1.6.2
