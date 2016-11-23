@@ -49,3 +49,5 @@ Temporary Items
 questionnaires/migrations/
 quicktap.css
 questionnaires/static/media/
+qtab/settings_prod.py
+qtab/secret.txt
