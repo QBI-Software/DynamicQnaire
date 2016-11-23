@@ -52,44 +52,47 @@ class TestResultTable(tables.Table):
     parent1_choice = tables.Column(verbose_name="Parent 1 Response", accessor=A('pk'))
     parent2_choice = tables.Column(verbose_name="Parent 2 Response", accessor=A('pk'))
 
+    def getchoices(self, twinresults):
+        choice = []
+        for t in twinresults:
+            if t.test_result_choice:
+                choice.append(t.test_result_choice.choice_text)
+            elif t.test_result_text:
+                choice.append(t.test_result_text)
+        return choice
+
     def render_twin_choice(self,value):
-        choice="NA"
+        choice = "-"
         result = TestResult.objects.get(pk=value)
         subject = result.testee
         if (hasattr(subject,'subjectvisit') and subject.subjectvisit.twin):
             twin = subject.subjectvisit.twin
             twinresults = TestResult.objects.filter(test_result_question=result.test_result_question).filter(testee=twin)
-            if (twinresults.count() > 0):
-                choice = [t.test_result_choice.choice_text for t in twinresults]
-                if len(choice)==0:
-                    choice = [t.test_result_text for t in twinresults]
+            choice = self.getchoices(twinresults)
         return choice
 
     def render_parent1_choice(self,value):
-        choice="NA"
+        choice = "-"
         result = TestResult.objects.get(pk=value)
         subject = result.testee
         if (hasattr(subject,'subjectvisit') and subject.subjectvisit.parent1):
             parent = subject.subjectvisit.parent1
             twinresults = TestResult.objects.filter(test_result_question=result.test_result_question).filter(testee=parent)
-            if (twinresults.count() > 0):
-                choice = [t.test_result_choice.choice_text for t in twinresults]
-                if len(choice)==0:
-                    choice = [t.test_result_text for t in twinresults]
+            choice = self.getchoices(twinresults)
+
         return choice
 
     def render_parent2_choice(self,value):
-        choice="NA"
+        choice = "-"
         result = TestResult.objects.get(pk=value)
         subject = result.testee
         if (hasattr(subject,'subjectvisit') and subject.subjectvisit.parent2):
             parent = subject.subjectvisit.parent2
             twinresults = TestResult.objects.filter(test_result_question=result.test_result_question).filter(testee=parent)
-            if (twinresults.count() > 0):
-                choice = [t.test_result_choice.choice_text for t in twinresults]
-                if len(choice)==0:
-                    choice = [t.test_result_text for t in twinresults]
+            choice = self.getchoices(twinresults)
         return choice
+
+
 
     class Meta:
         model = TestResult
