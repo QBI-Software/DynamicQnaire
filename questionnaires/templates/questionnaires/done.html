@@ -5,7 +5,7 @@
     <h1><span class="glyphicon glyphicon-check"></span>Questionnaire Complete</h1>
     {% if user.subjectvisit.icon %}
     <div class="row text-center slideanim">
-    <img align="center" width="300px" src="/static/media/{{user.subjectvisit.icon}}" alt="{{user.firstname}}"/>
+    <img align="center" width="300px" src="/media/{{user.subjectvisit.icon}}" alt="{{user.firstname}}"/>
         </div>
     {% endif %}
     <p>Thanks for completing the {{qnaire_title}} questionnaire</p>
