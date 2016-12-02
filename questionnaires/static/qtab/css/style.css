@@ -46,7 +46,18 @@ a.glyphicon:active{
 }
 .list-group-item{
     min-width:200px;
+    padding:20px 15px;
     }
+
+.list-group-item>a.btn{
+    white-space:pre-wrap;
+}
+
+.list-group-item>.badge{
+    float:none;
+    margin:5px;
+    padding:7px;
+}
 .helptext{
     display:none;
 }
@@ -120,8 +131,8 @@ input[type=radio], input[type=checkbox] {
   width:28px;
   height:28px;
   vertical-align:middle;
-  margin-right:10px; /*assumes label is following */
-  background-color:green;
+  margin-right:20px; /*assumes label is following */
+  background-color:lightsteelblue;
 }
 div.radio-list{
     text-align:left;
@@ -129,8 +140,9 @@ div.radio-list{
 }
 /* input with image */
 input.imageradio + img{
-    width: 46px;
+    /*width: 46px;
     height: 44px;
+    */
     border: 1px solid #ccc;
     border-radius: 5px;
     padding: 2px;
@@ -157,9 +169,9 @@ input.imageradio:checked + img{ /* (RADIO CHECKED) IMAGE STYLES */
 td.coloredbox{
     display:block;
     background-color:antiquewhite;
-    text-align:center;
+    /*text-align:center;*/
     margin:20px 0;
-    opacity: 0.6;
+    opacity: 0.8;
     -moz-border-radius: 5px; /* or 50% */
     border-radius: 5px; /* or 50% */
     border: 1px solid #ccc;
@@ -167,20 +179,20 @@ td.coloredbox{
 
 /* reds */
 td.color1{
-  background-color:mistyrose;
+  background-color:mediumseagreen;
 }
 td.color2{
-  background-color:coral;
+  background-color:lightblue;
 }
 td.color3{
-  background-color:indianred;
+  background-color:darksalmon;
 }
 /* greens */
 td.color4{
-  background-color:darkkhaki;
+  background-color:darkturquoise;
 }
 td.color5{
-  background-color:chartreuse;
+  background-color:lightsteelblue;
 }
 td.color6{
   background-color:darkseagreen;
@@ -193,22 +205,27 @@ td.color8{
   background-color:powderblue;
 }
 td.color9{
-  background-color:slateblue;
+  background-color:thistle;
 }
 /* yellows */
 td.color10{
-  background-color:palegoldenrod;
+  background-color:lavender;
 }
 td.color11{
-  background-color:moccasin;
+  background-color:rosybrown;
 }
 td.color12{
-  background-color:blanchedalmond;
+  background-color:darkkhaki;
 }
-
+td.coloredbox label{
+    margin-left: -30px;
+    width: 100%;
+    display: block;
+    text-align: center;
+}
 td.coloredbox input{
-    width: 46px;
     height: 44px;
+    left:-50px;
     padding: 2px;
     -webkit-transition: height 2s; /* For Safari 3.1 to 6.0 */
     transition: height 2s;

@@ -59,7 +59,7 @@ class Question(models.Model):
     #skip_value = models.CharField(_("Conditional value"), max_length=20, blank=True, null=True)
     #skip_goto = models.PositiveSmallIntegerField(_("Skip to question"), blank=True, null=True)
     bgcolor = ColorField(_("Background Color"),default='#FFFFFF')
-    textcolor = ColorField(_("Text Color"),default='#666666')
+    textcolor = ColorField(_("Text Color"),default='#212121')
     css = models.PositiveSmallIntegerField(_("CSS class"), choices=CSSCLASSES, default=1)
     usegrid = models.BooleanField(_("Use Grid Layout"), default=False)
 
