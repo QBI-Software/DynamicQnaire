@@ -1,8 +1,6 @@
 {% extends "questionnaires/base.html" %}
 {% block title %}Questionnaire{% endblock %}
 {% block header %}
-<link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css">
-<script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
 {% endblock %}
 {% block content %}
 {% load i18n %}
@@ -25,7 +23,7 @@
     <p>Question {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</p>
     <form action="" method="post">{% csrf_token %}
 
-        <div class="container-responsive ui-content" align="center">
+        <div class="container-fluid ui-content" align="center">
             {{ wizard.management_form }}
             {% if wizard.form.forms %}
                 {{ wizard.form.management_form }}
@@ -36,8 +34,8 @@
             {% else %}
 
             <div class="row">
-                <div class="col-xs-2">&nbsp;</div>
-                <div class="col-xs-8 form-group" align="center">
+                <div class="col-sm-2">&nbsp;</div>
+                <div class="col-sm-8 form-group table-responsive" align="center">
                     {{ wizard.form.non_field_errors }}
                     {% if wizard.form.qimage %}
                     <img src="/media/{{ wizard.form.qimage }}" width="400px"
@@ -99,14 +97,14 @@
 
 
                 </div>
-                <div class="col-xs-2">&nbsp;</div>
+                <div class="col-sm-2">&nbsp;</div>
             </div>
 
 
 
             <div class="row">
-                <div class="col-xs-2">&nbsp;</div>
-                <div class="col-xs-8" align="center">
+                <div class="col-sm-2">&nbsp;</div>
+                <div class="col-sm-8" align="center">
                     <span id="msg"></span>
                     <ul class="pager">
                         {% if wizard.steps.prev %}
@@ -130,7 +128,7 @@
                         </li>
                     </ul>
                 </div>
-                <div class="col-xs-2">&nbsp;</div>
+                <div class="col-sm-2">&nbsp;</div>
             </div>
             {% endif %}
         </div>
