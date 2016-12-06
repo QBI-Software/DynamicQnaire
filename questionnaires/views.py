@@ -200,7 +200,7 @@ class IndexView(generic.ListView):
                 usergrouplist = user.groups.values_list('name')
 
                 rlist = rlist.filter(questionnaire__category__in=catlist).distinct('questionnaire')
-                qlist = qlist.filter(active=True).filter(category__in=catlist).filter(group__name__in=usergrouplist)
+                qlist = qlist.filter(active=True).filter(category__in=catlist).filter(group__name__in=usergrouplist).distinct('code')
             #exclude completed
             for r in rlist:
                 qlist = qlist.exclude(pk=r.questionnaire.id)
