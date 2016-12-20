@@ -271,7 +271,8 @@ td.default{
 }
 .allowwrap{
     white-space:pre-wrap;
-    }
+    text-align:left;
+ }
 #single_page li{
     display:inline-block;
 
