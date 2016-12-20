@@ -24,27 +24,29 @@
     <div class="row">
 
         <div class="col-sm-6">
-            <div class="well">
+            <div class="well table-responsive">
                 {% if user.is_staff %}
                 <h3>Questionnaires to do</h3>
                 {% else %}
                 <h3>My Questionnaires for {{visit.name|force_escape}}</h3>
                 {% endif %}
                 {% if questionnaire_list %}
-                <table class="table table-condensed table-responsive">
+                <table class="table table-condensed">
                     <thead>
                     <tr>
-                        <th>Visit</th>
+
                         <th>Questionnaire</th>
                         <th>Questions</th>
+                        <th>Visit</th>
                     </tr>
                     </thead>
                     <tbody>
                     {% for q in questionnaire_list %}
                     <tr>
-                        <td><span class="badge">{{ q.categorylist}}</span></td>
-                        <td><a href="{% url 'questionnaires:qintro' q.id %}" class="btn btn-success">{{q}} <span class="glyphicon glyphicon-circle-arrow-right"></span></a></td>
+
+                        <td><a href="{% url 'questionnaires:qintro' q.id %}" class="btn btn-success allowwrap">{{q}} <span class="glyphicon glyphicon-circle-arrow-right"></span></a></td>
                         <td>{{q.question_set.count}}</td>
+                        <td><span class="badge allowwrap">{{ q.categorylist}}</span></td>
                     </tr>
                     {% endfor %}
 

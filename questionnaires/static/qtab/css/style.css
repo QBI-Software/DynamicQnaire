@@ -269,6 +269,9 @@ td.default{
  vertical-align:middle !important;
 
 }
+.allowwrap{
+    white-space:pre-wrap;
+    }
 #single_page li{
     display:inline-block;
 
