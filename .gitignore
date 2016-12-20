@@ -51,3 +51,5 @@ quicktap.css
 questionnaires/static/media/
 qtab/settings_prod.py
 qtab/secret.txt
+qtab/settings.py
+qtab/settings.py
