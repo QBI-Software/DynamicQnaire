@@ -34,7 +34,7 @@ class Questionnaire(models.Model):
 
     def categorylist(self):
         catlist = [c.get_name_display() for c in self.category.all()]
-        return ", ".join(catlist)
+        return " ".join(catlist)
 
     def num_questions(self):
         return self.question_set.count()

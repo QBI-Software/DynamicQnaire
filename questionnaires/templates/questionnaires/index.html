@@ -79,7 +79,7 @@
                             <span class="glyphicon glyphicon-check"></span></td>
                         <td>{{q.date_stored|date:"d-M-Y"}}</td>
                         <td>{{q.questionnaire.title|force_escape}}</td>
-                        <td>{{q.questionnaire.category.name}}</td>
+                        <td>{{q.questionnaire.categorylist}}</td>
                         <td><a href="{% url 'questionnaires:qintro' q.questionnaire.id %}" class="btn btn-primary btn-small" title="Repeat Questionnaire"><span class="glyphicon glyphicon-refresh"></span></a></td>
                     </tr>
                     {% endfor %}
