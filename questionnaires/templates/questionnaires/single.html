@@ -1,26 +1,86 @@
 {% extends "questionnaires/base.html" %}
 {% block content %}
-{{ wizard.form.media }}
+{{ form.media }}
 <div class="container-ui">
     <h1>{{qtitle}}</h1>
     <div class="row">
         <div class="col-sm-12">
-            <div class="well" id="single_page">
+            <div class="well" style="background-color:white;">
                 {{messages}}
                 <form method="POST" action="">
                     {% csrf_token %}
                     {{ formset.management_form }}
                     {{ formset.non_form_errors }}
-
+<table id="single_page" class="table table-condensed">
                         {% for form in formset %}
-                     <table class="table table-condensed">
+
+
                         {{form.non_field_errors }}
-                         {{form.as_table}}
-                     </table>
+                       <tr><th><h3>{{form.question.label}}</h3>
+                           {% if form.question.errors %}
+                            <p>{{ form.question.errors.as_ul }}</p>
+                            {% endif %}
+
+                           {% if form.qimage %}
+                            <img src="/media/{{ form.qimage }}" width="400px"
+                         alt="{{form.question.label}}"/><br/>
+                         {% endif %}
+
+                            </th>
+                           <td>
+
+                        {% if form.question.field.choices %}
+                            {% if form.question.help_text == 'select' %}
+                                <select class="form-control" id="{{ form.question.id_for_label}}"
+                                                        name="{{form.prefix}}-{{ form.question.name }}">
+                                                {% for choice in form.question.field.choices %}
+                                                <option value="{{ choice.0 }}">{{choice.1.choice_text}}</option>
+                                                {% endfor %}
+                                </select>
+                            {% else %}
+                                {% if form.usegrid %}
+                                <table id="qtable" class="table"> <tbody> <tr>
+                                {% else %}
+                                <div class="radio-list">
+                                {% endif %}
+                                {% for choice in form.question.field.choices %}
+                                    {% if form.usegrid %}<td></td>
+                                    <td class="{{form.tdcss}} color{{forloop.counter}}">
+                                    {%else %} <div class="radio-default">{% endif %}
+                                    <label><input type="{{form.question.help_text}}"
+                                            id="{{ form.question.id_for_label}}"
+                                            name="{{form.prefix}}-{{ form.question.name }}"
+                                            value="{{ choice.0 }}"
+                                    {% if choice.1.choice_image %}
+                                            class="imageradio"> <img src="/media/{{choice.1.choice_image }}"
+                                                       title="{{choice.1.choice_text}}"/>
+                                    {% else %}
+                                    />
+                                    {% endif %}
+
+                                {% if choice.1.show_label %}{{ choice.1.choice_text }}{% endif %}
+                                </label>
+                                {% if form.usegrid %}</td>
+                                    {% if forloop.counter|divisibleby:"3"%}</tr><tr>{% endif %}
+                                {%else %}</div>
+                                {% endif %}
+
+                                {% endfor %}
+                                {% if form.usegrid %}</tr></tbody></table> {% else %} </div>{%endif%}
+                            {% endif %}
+
+                        {% else %}
+                                {{form.question}}
+                        {% endif %}
+                           </td>
+</tr>
+
+
                         {% endfor %}
+        <tr><td></td><td><div align="right"><button class="btn btn-success" type="submit">Submit</button></div></td></tr>
+</table>
 
 
-                    <button class="btn btn-primary" type="submit">Submit</button>
 
                 </form>
             </div>

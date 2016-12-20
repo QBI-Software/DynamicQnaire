@@ -3,6 +3,7 @@ from django.utils.html import format_html
 from django_tables2.utils import A
 
 from .models import *
+from .forms import replaceTwinNames
 
 
 #Generic filtered table
@@ -51,6 +52,7 @@ class TestResultTable(tables.Table):
     twin_choice = tables.Column(verbose_name="Twin Response", accessor=A('pk'))
     parent1_choice = tables.Column(verbose_name="Parent 1 Response", accessor=A('pk'))
     parent2_choice = tables.Column(verbose_name="Parent 2 Response", accessor=A('pk'))
+    test_result_question = tables.Column(verbose_name="Question", accessor=A('pk'))
 
     def getchoices(self, twinresults):
         choice = []
@@ -91,6 +93,12 @@ class TestResultTable(tables.Table):
             twinresults = TestResult.objects.filter(test_result_question=result.test_result_question).filter(testee=parent)
             choice = self.getchoices(twinresults)
         return choice
+
+    def render_test_result_question(self,value):
+        result = TestResult.objects.get(pk=value)
+        qtext = replaceTwinNames(result.testee, result.test_result_question.question_text)
+
+        return qtext
 
 
 

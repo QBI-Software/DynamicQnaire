@@ -265,8 +265,8 @@ td.default{
     min-height:25px;
     font-size: 1.2em;
 }
-#single_page ul{
-
+#single_page td{
+ vertical-align:middle !important;
 
 }
 #single_page li{

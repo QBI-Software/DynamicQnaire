@@ -31,14 +31,25 @@
                 <h3>My Questionnaires for {{visit.name|force_escape}}</h3>
                 {% endif %}
                 {% if questionnaire_list %}
-                <ol class="list-group">
+                <table class="table table-condensed table-responsive">
+                    <thead>
+                    <tr>
+                        <th>Visit</th>
+                        <th>Questionnaire</th>
+                        <th>Questions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
                     {% for q in questionnaire_list %}
-                    <li class="list-group-item">
-                        <a href="{% url 'questionnaires:qintro' q.id %}" class="btn btn-success">{{q}} <span class="label"> [ {{q.question_set.count}} questions ]</span> <span class="glyphicon glyphicon-circle-arrow-right"></span></a>
-                        <span class="badge">{{ q.categorylist}}</span></li>
+                    <tr>
+                        <td><span class="badge">{{ q.categorylist}}</span></td>
+                        <td><a href="{% url 'questionnaires:qintro' q.id %}" class="btn btn-success">{{q}} <span class="glyphicon glyphicon-circle-arrow-right"></span></a></td>
+                        <td>{{q.question_set.count}}</td>
+                    </tr>
                     {% endfor %}
 
-                </ol>
+                    </tbody>
+                </table>
                 {% else %}
                 <p>No questionnaires to do</p>
                 {% endif %}

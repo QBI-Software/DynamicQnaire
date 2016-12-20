@@ -3,7 +3,8 @@ from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.forms import Form, ModelForm
 from django.forms.formsets import BaseFormSet
-
+import re
+from itertools import chain
 from .models import *
 
 
@@ -18,7 +19,24 @@ class LoginForm(AuthenticationForm):
 class AxesCaptchaForm(Form):
     captcha = CaptchaField()
 
-
+def replaceTwinNames(user,question_text):
+    # Replace Twin1 and Twin2 with appropriate names
+    # question.question_text
+    pattern1 = 'Twin\s?1'
+    pattern2 = 'Twin\s?2'
+    twins = SubjectVisit.objects.filter(parent1=user)
+    if not twins:
+        twins = SubjectVisit.objects.filter(parent2=user)
+    elif len(twins) == 1:
+        twins = list(chain(twins, SubjectVisit.objects.filter(parent2=user)))
+    if len(twins) == 2:
+        print('DEBUG: QTEXT1=', question_text)
+        question_text = re.sub(pattern1, twins[0].subject.first_name, question_text,
+                                        flags=re.IGNORECASE)
+        question_text = re.sub(pattern2, twins[1].subject.first_name, question_text,
+                                        flags=re.IGNORECASE)
+        print('DEBUG: QTEXT2=', question_text)
+    return question_text
 
 class AnswerForm(Form):
     qimage = None
@@ -46,6 +64,9 @@ class AnswerForm(Form):
             choices = []
             #Filter for user groups - ignore for superuser
             usergrouplist = user.groups.values_list('name')
+            #Replace Twin1 and Twin2 with appropriate names
+            question.question_text = replaceTwinNames(user, question.question_text)
+
 
             for c in question.choice_set.order_by('pk'):
                 includeflag = 1

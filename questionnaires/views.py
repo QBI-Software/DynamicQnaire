@@ -43,7 +43,7 @@ import logging
 logger = logging.getLogger(__name__)
 ###Local classes
 from .models import Questionnaire, Choice, TestResult, SubjectQuestionnaire,Category,SubjectVisit,Question
-from .forms import AxesCaptchaForm, AnswerForm, TestResultDeleteForm, BaseQuestionFormSet
+from .forms import AxesCaptchaForm, AnswerForm, TestResultDeleteForm, BaseQuestionFormSet, replaceTwinNames
 from .tables import FilteredSingleTableView, TestResultTable,SubjectQuestionnaireTable,SubjectVisitTable
 from .filters import TestResultFilter,SubjectQuestionnaireFilter,SubjectVisitFilter
 
@@ -334,9 +334,9 @@ def download_report(request, *args, **kwargs):
                 freetext = qresult.test_result_text
             elif qresult.test_result_date:
                 freetext = qresult.test_result_date
-
+            qtext = replaceTwinNames(qresult.testee,qresult.test_result_question.question_text)
             writer.writerow([
-                smart_str(qresult.test_result_question.question_text),
+                smart_str(qtext),
                 smart_str(choicetexts),
                 smart_str(choicevalues),
                 smart_str(choicetext),
@@ -475,6 +475,7 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
                 answers = qn.choice_set.filter(choice_value__in=choiceidx)
             else:
                 answers = qn.choice_set.filter(choice_value=choiceidx)
+
             # Load save for each choice
             for answer in answers:
                 tresult = TestResult()
