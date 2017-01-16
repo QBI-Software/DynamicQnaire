@@ -56,8 +56,13 @@ class AnswerForm(Form):
             #Check type
             if question.question_image is not None:
                 self.qimage = question.question_image
-            self.qbgcolor= question.bgcolor
-            self.textcolor = question.textcolor
+            #Set bgcolor and text color - questions override questionnaire settings
+            self.qbgcolor= question.qid.bgcolor
+            if self.qbgcolor != question.bgcolor and question.bgcolor != BGDEFAULT:
+                self.qbgcolor = question.bgcolor
+            self.textcolor = question.qid.textcolor
+            if self.textcolor != question.textcolor and question.textcolor != TCDEFAULT:
+                self.textcolor = question.textcolor
             self.usegrid = question.usegrid
             csslist = dict(question.CSSCLASSES)
             self.tdcss = csslist[question.css]

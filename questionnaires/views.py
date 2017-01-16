@@ -564,11 +564,14 @@ def singlepage_questionnaire(request,qnaire, questions):
 
     else:
         link_formset = LinkFormSet(initial=link_data)
-
+        qbgcolor = qnaire.bgcolor
+        qtextcolor = qnaire.textcolor
     context = {
         'formset': link_formset,
         'qtitle' : qnaire.title,
         'messages': messages,
+        'qbgcolor' : qbgcolor,
+        'qtextcolor': qtextcolor,
     }
 
     return render(request, template, context)

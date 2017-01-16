@@ -5,7 +5,7 @@
     <h1>{{qtitle}}</h1>
     <div class="row">
         <div class="col-sm-12">
-            <div class="well" style="background-color:white;">
+            <div class="well" style="background-color:{{qbgcolor}}; color:{{qtextcolor}};">
                 {{messages}}
                 <form method="POST" action="">
                     {% csrf_token %}

@@ -4,7 +4,9 @@ from django.contrib.auth.models import User, Group
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-
+##### DEFAULT COLORS ############################
+BGDEFAULT='#FFFFFF'
+TCDEFAULT='#212121'
 ##### LISTS #############
 class Category(models.Model):
     CATEGORIES = (('W1', 'Wave 1'), ('W2', 'Wave 2'), ('W3', 'Wave 3'))
@@ -22,6 +24,7 @@ class Category(models.Model):
 
 ##### CLASSES ############
 class Questionnaire(models.Model):
+
     TYPES=(('multi','Multi Page' ),('single','Single Page' ),('custom','Custom'))
     title = models.CharField(_("Title"), max_length=200)
     description = models.TextField(_("Description"), null=True, blank=True)
@@ -31,6 +34,8 @@ class Questionnaire(models.Model):
     type = models.CharField(_("Type"), max_length=20, choices=TYPES, default='multi')
     group = models.ManyToManyField(Group)
     active = models.BooleanField(_("Active"), default=True)
+    bgcolor = ColorField(_("Background Color"), default=BGDEFAULT)
+    textcolor = ColorField(_("Text Color"), default=TCDEFAULT)
 
     def categorylist(self):
         catlist = [c.get_name_display() for c in self.category.all()]
@@ -58,8 +63,8 @@ class Question(models.Model):
     group = models.ManyToManyField(Group, verbose_name="Group", blank=True)
     #skip_value = models.CharField(_("Conditional value"), max_length=20, blank=True, null=True)
     #skip_goto = models.PositiveSmallIntegerField(_("Skip to question"), blank=True, null=True)
-    bgcolor = ColorField(_("Background Color"),default='#FFFFFF')
-    textcolor = ColorField(_("Text Color"),default='#212121')
+    bgcolor = ColorField(_("Background Color"),default=BGDEFAULT)
+    textcolor = ColorField(_("Text Color"),default=TCDEFAULT)
     css = models.PositiveSmallIntegerField(_("CSS class"), choices=CSSCLASSES, default=1)
     usegrid = models.BooleanField(_("Use Grid Layout"), default=False)
 
