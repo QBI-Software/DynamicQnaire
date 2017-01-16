@@ -107,18 +107,7 @@
                 <div class="col-sm-8" align="center">
                     <span id="msg"></span>
                     <ul class="pager">
-                        {% if wizard.steps.prev %}
-                        <li class="previous">
-                            <button name="wizard_goto_step" class="btn btn-default" type="submit"
-                                    value="{{ wizard.steps.first }}">{% trans "Restart" %}
-                            </button>
-                        </li>
-                        <li class="previous">
-                            <button name="wizard_goto_step" class="btn btn-default" type="submit"
-                                    value="{{ wizard.steps.prev }}">{% trans "Previous" %}
-                            </button>
-                        </li>
-                        {% endif %}
+
                         <li class="next">
                             {% if wizard.steps.next %}
                                 <input type="submit" class="btn btn-info" value="Next"/>
@@ -126,6 +115,19 @@
                                 <input type="submit" class="btn btn-info" value="Finish"/>
                             {% endif %}
                         </li>
+                        {% if wizard.steps.prev %}
+
+                        <li class="previous">
+                            <button name="wizard_goto_step" id="prevbutton" class="btn btn-default"
+                                    value="{{ wizard.steps.prev }}">{% trans "Previous" %}
+                            </button>
+                        </li>
+                        <li class="previous">
+                            <button name="wizard_goto_step" id="restartbutton" class="btn btn-default"
+                                    value="{{ wizard.steps.first }}">{% trans "Restart" %}
+                            </button>
+                        </li>
+                        {% endif %}
                     </ul>
                 </div>
                 <div class="col-sm-2">&nbsp;</div>
@@ -135,6 +137,7 @@
    </form>
 </div>
 <script type="text/javascript">
+
 
 $( "td.coloredbox :input:radio" ).click(function() {
         var choice = $(this).parent().text();
