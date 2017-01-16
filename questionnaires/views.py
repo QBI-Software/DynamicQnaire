@@ -183,9 +183,9 @@ class IndexView(generic.ListView):
             # set defaults
             cat1 = Category.objects.get(name='Wave 1')  # Wave 1
             catlist = [c for c in Category.objects.filter(name__icontains='all')]  # include ALL
-            qlist = self.get_queryset()
+            qlist = self.get_queryset().distinct('code')
             #user_results = user.subjectquestionnaire_set.all() #SubjectQuestionnaire.objects.filter(subject=user)
-            rlist = user.subjectquestionnaire_set.all()
+            rlist = user.subjectquestionnaire_set.distinct('questionnaire')
 
             if not user.is_superuser:
                 visit = SubjectVisit.objects.filter(subject=user)
@@ -199,14 +199,14 @@ class IndexView(generic.ListView):
                 catlist.append(cat1)
                 usergrouplist = user.groups.values_list('name')
 
-                rlist = rlist.filter(questionnaire__category__in=catlist).distinct('questionnaire')
+                rlist = rlist.filter(questionnaire__category__in=catlist)
                 qlist = qlist.filter(active=True).filter(category__in=catlist).filter(group__name__in=usergrouplist)
             #exclude completed
             for r in rlist:
                 qlist = qlist.exclude(pk=r.questionnaire.id)
 
-        context['questionnaire_list'] = qlist.distinct('code')
-        context['result_list']= rlist.distinct('questionnaire')
+        context['questionnaire_list'] = qlist
+        context['result_list']= rlist
         context['visit'] = cat1
 
         return context
