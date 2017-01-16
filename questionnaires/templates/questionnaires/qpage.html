@@ -118,12 +118,12 @@
                         {% if wizard.steps.prev %}
 
                         <li class="previous">
-                            <button name="wizard_goto_step" id="prevbutton" class="btn btn-default"
+                            <button name="wizard_goto_step" class="btn btn-default"
                                     value="{{ wizard.steps.prev }}">{% trans "Previous" %}
                             </button>
                         </li>
                         <li class="previous">
-                            <button name="wizard_goto_step" id="restartbutton" class="btn btn-default"
+                            <button name="wizard_goto_step" class="btn btn-default"
                                     value="{{ wizard.steps.first }}">{% trans "Restart" %}
                             </button>
                         </li>

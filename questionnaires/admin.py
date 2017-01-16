@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.forms import TextInput, Textarea
+from django.db import models
 from .models import Questionnaire, Question, Choice, SubjectVisit
 
 
@@ -16,6 +18,9 @@ class QuestionAdmin(admin.ModelAdmin):
     fieldsets = [
         (None, {'fields': ['question_text']}),
     ]
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size': '100'})}
+    }
     inlines = [ChoiceInline]
     list_display = ('qid','question_text', 'question_image','order','num_choices','question_type')
     list_filter = ['group','question_type']
@@ -195,6 +200,9 @@ class QuestionnaireAdmin(admin.ModelAdmin):
     list_display = ('title','description','code','type','active','categorylist','num_questions')
     list_filter = ['type','active']
     search_fields = ['title']
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size': '100'})}
+    }
     actions=['sequence_questions','remove_questionnaire_results']
 
     def sequence_questions(self,request,queryset):
