@@ -1,4 +1,5 @@
 import os
+import operator
 from collections import OrderedDict
 from datetime import datetime
 
@@ -171,7 +172,7 @@ class IndexView(generic.ListView):
     raise_exception = True
 
     def get_queryset(self):
-        return Questionnaire.objects.order_by('code')
+        return Questionnaire.objects.order_by('order').order_by('code')
 
     def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
@@ -204,6 +205,9 @@ class IndexView(generic.ListView):
             #exclude completed
             for r in rlist:
                 qlist = qlist.exclude(pk=r.questionnaire.id)
+        #Reorder list by 'order' to allow manual override
+        qlist = sorted(qlist, key=operator.attrgetter('order'))
+        rlist = sorted(rlist, key=operator.attrgetter('date_stored'), reverse=True)
 
         context['questionnaire_list'] = qlist
         context['result_list']= rlist

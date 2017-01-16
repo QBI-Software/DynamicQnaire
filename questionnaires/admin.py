@@ -194,7 +194,7 @@ class QuestionInline(admin.TabularInline):
 class QuestionnaireAdmin(admin.ModelAdmin):
 
     fieldsets = [
-        (None, {'fields': ['title','active','description', 'intropage','code','type','bgcolor','textcolor','category','group']}),
+        (None, {'fields': ['title','active','description', 'intropage','code','order','type','bgcolor','textcolor','category','group']}),
     ]
     inlines = [QuestionInline]
     list_display = ('title','description','code','type','active','categorylist','num_questions')

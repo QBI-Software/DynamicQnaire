@@ -36,6 +36,7 @@ class Questionnaire(models.Model):
     active = models.BooleanField(_("Active"), default=True)
     bgcolor = ColorField(_("Background Color"), default=BGDEFAULT)
     textcolor = ColorField(_("Text Color"), default=TCDEFAULT)
+    order = models.IntegerField(_("Order"), default=1, null=True, blank=False)
 
     def categorylist(self):
         catlist = [c.get_name_display() for c in self.category.all()]
