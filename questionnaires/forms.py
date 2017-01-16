@@ -128,6 +128,14 @@ class AnswerForm(Form):
                     help_text='date',
                     required=question.question_required,
                 )
+            elif question.question_type == 6:
+                self.fields['question'] = forms.ChoiceField(
+                    label=question.question_text,
+                    widget=forms.Select(attrs={'class': 'form-control'}),
+                    help_text='slider',
+                    required=question.question_required,
+                    choices=choices,
+                )
 
 
     class Meta:

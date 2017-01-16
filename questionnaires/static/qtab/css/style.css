@@ -175,6 +175,7 @@ td.coloredbox{
     -moz-border-radius: 5px; /* or 50% */
     border-radius: 5px; /* or 50% */
     border: 1px solid #ccc;
+    width:200px;
 }
 
 /* reds */
@@ -218,14 +219,17 @@ td.color12{
   background-color:darkkhaki;
 }
 td.coloredbox label{
-    margin-left: -30px;
+    /*margin-left: -30px;*/
     width: 100%;
     display: block;
     text-align: center;
+    margin-bottom: 20px;
 }
 td.coloredbox input{
     height: 44px;
-    left:-50px;
+    width:190px;
+    margin-bottom: -40px;
+    /*left:-50px;*/
     padding: 2px;
     -webkit-transition: height 2s; /* For Safari 3.1 to 6.0 */
     transition: height 2s;
@@ -286,4 +290,13 @@ td.default{
 #single_page li input{
     display: inherit;
     box-shadow: none;
+}
+
+/* Slider */
+#slider{
+    margin:10px 0;
+    width:50%;
+}
+select.slider{
+width:auto;
 }

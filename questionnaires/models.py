@@ -53,7 +53,7 @@ class Questionnaire(models.Model):
 
 
 class Question(models.Model):
-    INPUTS = ((1, 'Radio'), (2, 'Checkbox'), (3, 'Textfield'), (4, 'Dropdown'), (5,'Date'))
+    INPUTS = ((1, 'Radio'), (2, 'Checkbox'), (3, 'Textfield'), (4, 'Dropdown'), (5,'Date'), (6,'Slider'))
     CSSCLASSES = ((1, 'default'), (2, 'coloredbox'))
     qid = models.ForeignKey(Questionnaire, verbose_name="Questionnaire", null=False)
     order = models.PositiveSmallIntegerField(_("Number"), default=0)

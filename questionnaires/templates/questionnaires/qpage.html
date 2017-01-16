@@ -1,13 +1,10 @@
 {% extends "questionnaires/base.html" %}
 {% block title %}Questionnaire{% endblock %}
-{% block header %}
-{% endblock %}
-{% block content %}
 {% load i18n %}
 {% block head %}
 {{ wizard.form.media }}
 {% endblock %}
-
+{% block content %}
 
 <div data-role="page" class="progress">
     <div class="progress-bar" role="progressbar"
@@ -49,23 +46,32 @@
                     {% endif %}
 
 
-          {% if wizard.form.question.help_text == 'select' %}
-                <select class="form-control" id="{{ wizard.form.question.id_for_label}}"
+          {% if wizard.form.question.help_text == 'select' or wizard.form.question.help_text == 'slider'%}
+                <select class="form-control {{wizard.form.question.help_text}}" id="{{ wizard.form.question.id_for_label}}"
                                         name="{{wizard.form.prefix}}-{{ wizard.form.question.name }}">
                                 {% for choice in wizard.form.question.field.choices %}
                                 <option value="{{ choice.0 }}">{{choice.1.choice_text}}</option>
                                 {% endfor %}
-                            </select>
-
+               </select>
+                {% if  wizard.form.question.help_text == 'slider' %}
+                    <span id="sliderparams" selectid="{{ wizard.form.question.id_for_label}}" rmin="{{wizard.form.question.field.choices.0.0}}" numoptions="{{wizard.form.question.field.choices|length}}"></span>
+                    <div id="slider"></div>
+                    {% endif%}
           {% else %}
+
             {% if wizard.form.usegrid %}
                     <table id="qtable" class="table"> <tbody> <tr>
-                        {% else %}
-                        <div class="radio-list">
+            {% else %}
+                    <div class="radio-list">
             {% endif %}
             {% for choice in wizard.form.question.field.choices %}
-            {% if wizard.form.usegrid %}<td></td><td class="{{wizard.form.tdcss}} color{{forloop.counter}}">
-            {%else %} <div class="radio-default">{% endif %}
+            {% if wizard.form.usegrid %}
+                 <td></td><td class="{{wizard.form.tdcss}} color{{forloop.counter}}">
+
+            {%else %}
+                <div class="radio-default">
+            {% endif %}
+
                 <label><input type="{{wizard.form.question.help_text}}"
                               id="{{ wizard.form.question.id_for_label}}"
                               name="{{wizard.form.prefix}}-{{ wizard.form.question.name }}"
@@ -79,6 +85,7 @@
 
                     {% if choice.1.show_label %}{{ choice.1.choice_text }}{% endif %}
                 </label>
+
             {% if wizard.form.usegrid %}</td>
                 {% if forloop.counter|divisibleby:"3"%}</tr><tr>{% endif %}
             {%else %}</div>
@@ -137,7 +144,27 @@
    </form>
 </div>
 <script type="text/javascript">
+$( function() {
+    var minrange = parseInt($("#sliderparams").attr("rmin"));
+    var num = parseInt($("#sliderparams").attr("numoptions"));
+    var selectid = $("#sliderparams").attr("selectid");
 
+    var select = $('select');
+
+
+
+    $( "#msg" ).text( "Max: " + num);
+    $( "#slider" ).slider({
+        range:"min",
+        min: minrange,
+        max: num,
+        value: select[ 0 ].selectedIndex + 1,
+        slide: function( event, ui ) {
+          select[ 0 ].selectedIndex = ui.value - 1;
+        }
+    });
+
+	} );
 
 $( "td.coloredbox :input:radio" ).click(function() {
         var choice = $(this).parent().text();
