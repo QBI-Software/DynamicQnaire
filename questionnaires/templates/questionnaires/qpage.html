@@ -147,13 +147,8 @@
 $( function() {
     var minrange = parseInt($("#sliderparams").attr("rmin"));
     var num = parseInt($("#sliderparams").attr("numoptions"));
-    var selectid = $("#sliderparams").attr("selectid");
-
     var select = $('select');
 
-
-
-    $( "#msg" ).text( "Max: " + num);
     $( "#slider" ).slider({
         range:"min",
         min: minrange,
@@ -163,8 +158,11 @@ $( function() {
           select[ 0 ].selectedIndex = ui.value - 1;
         }
     });
-
+    select.on( "change", function() {
+          $( "#slider" ).slider( "value", this.selectedIndex + 1 );
+        });
 	} );
+
 
 $( "td.coloredbox :input:radio" ).click(function() {
         var choice = $(this).parent().text();
