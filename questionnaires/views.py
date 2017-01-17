@@ -605,21 +605,22 @@ class ContactWizard(SessionWizardView):
         })
 
 ### BABY MEASUREMENTS ####
-class BABYWizard(SessionWizardView):
-    template_name = 'custom/baby.html'
-    form_list = [BABYForm1]
-    file_storage = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'files'))
-    #initial_data = [{'measurement_date': '', 'measurement_head': 1, 'measurement_length': 1, 'measurement_weight': 1, 'count': 1}]
+def baby_measurements(request):
+    #TODO: List one for each twin, use JS to hide and add extra rows
+    Twin1FormSet = formset_factory(BABYForm1, extra=5)
+    Twin2FormSet = formset_factory(BABYForm1, extra=5)
+    if request.method == 'POST':
+        t1_formset = Twin1FormSet(request.POST, request.FILES, prefix='twin1')
+        t2_formset = Twin2FormSet(request.POST, request.FILES, prefix='twin2')
+        if t1_formset.is_valid() and t2_formset.is_valid():
+            # do something with the cleaned_data on the formsets.
+            pass
+    else:
+        t1_formset = Twin1FormSet(prefix='twin1')
+        t2_formset = Twin2FormSet(prefix='twin2')
+    return render(request, 'custom/baby.html', {
+        't1_formset': t1_formset,
+        't2_formset': t2_formset,
+    })
 
 
-    def dispatch(self, request, *args, **kwargs):
-        print("DEBUG: form_list=", self.form_list)
-        # self.instance_dict = {
-        #     '0': CustomForm1(code=code)
-        # }
-        return super(BABYWizard, self).dispatch(request, *args, **kwargs)
-
-    def done(self, form_list, **kwargs):
-        return render(self.request, 'questionnaires/done.html', {
-            'form_data': [form.cleaned_data for form in form_list],
-        })

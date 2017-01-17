@@ -21,19 +21,7 @@ class CustomForm1(forms.Form):
     subquestion2 = forms.ChoiceField(label="How upset were you?", choices=[{1, 'Not at all'}, {2, 'A bit'}],
                                      widget=forms.RadioSelect(attrs={'class': 'form-control'}))
 
-    def __init__(self, *args, **kwargs):
-        code = kwargs.pop('code', None)
-        print("debug: form code=", code)
-        super().__init__(*args, **kwargs)
-        qs = Questionnaire.objects.get(code=code)
-        questions = qs.question_set.filter(order=1)
-        print("Debug: questions=",questions)
-        # self.fields['mainquestion'].label= questions[0]
-        # self.fields['mainquestion'].qs = questions[0].choice_set.all()
-        # self.fields['subquestion1'].label = questions[1]
-        # self.fields['subquestion1'].qs = questions[1].choice_set.all()
-        # self.fields['subquestion2'].label = questions[2]
-        # self.fields['subquestion2'].qs = questions[2].choice_set.all()
+
 
     class Meta:
         fields=['mainquestion', 'subquestion1', 'subquestion2']

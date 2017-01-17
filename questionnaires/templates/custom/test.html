@@ -1,0 +1,50 @@
+{% extends "questionnaires/base.html" %}
+{% block title %}Questionnaire{% endblock %}
+{% load i18n %}
+{% block head %}
+{{ wizard.form.media }}
+{% endblock %}
+{% block content %}
+<div data-role="page" class="progress">
+    <div class="progress-bar" role="progressbar"
+         aria-valuenow="{% widthratio wizard.steps.step1 wizard.steps.count 100 %}" aria-valuemin="0"
+         aria-valuemax="100" style="width:{% widthratio wizard.steps.step1 wizard.steps.count 100 %}%">
+        {% widthratio wizard.steps.step1 wizard.steps.count 100 %}&#37;
+    </div>
+    {% if wizard.steps.next %}
+    <img class="progressicon" src="/static/qtab/img/Squirrel.ico" height="60px" width="60px" />
+    {% endif %}
+</div>
+<div style="background-color:{{wizard.form.qbgcolor}}; color:{{wizard.form.textcolor}};">
+    <p>Question {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</p>
+
+    <form action="" method="post">{% csrf_token %}
+
+        <div class="container-fluid ui-content" align="center">
+            {{ wizard.management_form }}
+            <h2>{{wizard.form.qtitle}}</h2>
+            {{ article_formset.management_form }}
+            <table><thead><tr>
+                <th>Date</th>
+                <th>Head</th>
+                <th>Length</th>
+                <th>Weight</th>
+            </tr></thead>
+            <tbody>{% for form in article_formset %}
+            <tr>
+                <td>{{ form.measurement_date }}</td>
+                <td>{{ form.measurement_head }}</td>
+                <td>{{ form.measurement_length }}</td>
+                <td>{{ form.measurement_weight }}</td>
+            </tr>
+            {% endfor %}
+                </table>
+
+
+
+
+        </div>
+
+</div>
+
+{% endblock content %}
