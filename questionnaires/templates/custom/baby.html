@@ -1,0 +1,58 @@
+{% extends "questionnaires/base.html" %}
+{% block title %}Questionnaire{% endblock %}
+{% load i18n %}
+{% block head %}
+{{ wizard.form.media }}
+{% endblock %}
+{% block content %}
+<div data-role="page" class="progress">
+    <div class="progress-bar" role="progressbar"
+         aria-valuenow="{% widthratio wizard.steps.step1 wizard.steps.count 100 %}" aria-valuemin="0"
+         aria-valuemax="100" style="width:{% widthratio wizard.steps.step1 wizard.steps.count 100 %}%">
+        {% widthratio wizard.steps.step1 wizard.steps.count 100 %}&#37;
+    </div>
+    {% if wizard.steps.next %}
+    <img class="progressicon" src="/static/qtab/img/Squirrel.ico" height="60px" width="60px" />
+    {% endif %}
+</div>
+<div style="background-color:{{wizard.form.qbgcolor}}; color:{{wizard.form.textcolor}};">
+    <p>Question {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</p>
+
+    <form action="" method="post">{% csrf_token %}
+
+        <div class="container-fluid ui-content" align="center">
+            {{ wizard.management_form }}
+            <h2>{{wizard.form.qtitle}}</h2>
+            {% if wizard.form.forms %}
+                {{ wizard.form.management_form }}
+
+                {% for form in wizard.form.forms %}
+                {{ form }}
+                {% endfor %}
+            {% else %}
+            <div class="row">
+                <div class="col-sm-2">&nbsp;</div>
+                <div class="col-sm-8 form-group table-responsive" align="center">
+                    {{ wizard.form.non_field_errors }}
+                    <table id="qtable" class="table"> <tbody>
+
+            {{ wizard.form.as_table }}
+                    </tbody></table>
+
+            <a href="javascript:void(0)" id="add_form">Add</a>
+            {% endif%}
+
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var form_count = {{wizard.form.field.count}};
+$('#add_form').click(function() {
+    form_count++;
+    var form = '{{formset.empty_form|escapejs}}'.replace(/__prefix__/g, form_count);
+    $('#forms').append(form)
+    $('#id_form-TOTAL_FORMS').val(form_count);
+});
+</script>
+{% endblock content %}

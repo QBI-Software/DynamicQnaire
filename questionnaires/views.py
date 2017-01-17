@@ -47,6 +47,7 @@ from .models import Questionnaire, Choice, TestResult, SubjectQuestionnaire,Cate
 from .forms import AxesCaptchaForm, AnswerForm, TestResultDeleteForm, BaseQuestionFormSet, replaceTwinNames
 from .tables import FilteredSingleTableView, TestResultTable,SubjectQuestionnaireTable,SubjectVisitTable
 from .filters import TestResultFilter,SubjectQuestionnaireFilter,SubjectVisitFilter
+from .customforms import BABYForm1, CustomForm1
 
 
 ## Login
@@ -273,8 +274,10 @@ def download_report(request, *args, **kwargs):
     filename="qtab_report.csv"
     # Get subject id
     sid = kwargs.get('subjectid')
-    #if (sid):
-    qs = SubjectQuestionnaire.objects.get(pk=sid)
+    if (sid):
+        qs = SubjectQuestionnaire.objects.get(pk=sid)
+    else:
+        raise Exception('E100: Download report cannot find id')
     filename = "qtab_report_%s.csv" % sid
     # Create the HttpResponse object with the appropriate CSV header.
     import csv
@@ -408,7 +411,10 @@ class TestResultDelete(LoginRequiredMixin, PermissionRequiredMixin, generic.Form
 
     def get_queryset(self):
         fid = self.kwargs.get('token')
-        sc = SubjectQuestionnaire.objects.get(pk=fid)
+        try:
+            sc = SubjectQuestionnaire.objects.get(pk=fid)
+        except Exception as error:
+            logger.error('Unable to delete test result: ' + repr(error))
         return TestResult.objects.filter(test_token=sc.session_token)
 
     def get_success_url(self):
@@ -437,6 +443,9 @@ def load_questionnaire(request, *args, **kwargs):
         #Setup empty forms
         if qnaire.type == 'single':
             return singlepage_questionnaire(request, qnaire, questions)
+        elif qnaire.type =='custom':
+            customurl = 'questionnaires:%s' % qnaire.code
+            return HttpResponseRedirect(reverse(customurl))
         else:
             num = 0
             for q in questions:
@@ -466,7 +475,7 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
         # Find question and questionnaire
         qn = self.initial_dict.get('0')['qid']
         qnaire = qn.qid
-
+        store_token = self.request.POST['csrfmiddlewaretoken']
         for key in form_dict:
             qn = self.initial_dict.get(key)['qid']
             #Get response
@@ -493,12 +502,12 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
                 else:
                     tresult.test_result_choice = answer
 
-                tresult.test_token = self.request.POST['csrfmiddlewaretoken']
+                tresult.test_token = store_token
                 tresult.save()
 
         # Store category for user
         subjectcat = SubjectQuestionnaire(subject=self.request.user, questionnaire=qnaire,
-                                     session_token=self.request.POST['csrfmiddlewaretoken'])
+                                     session_token=store_token)
         subjectcat.save()
         return render(self.request, 'questionnaires/done.html', {
             'form_data': [form.cleaned_data for form in form_list],
@@ -580,3 +589,37 @@ def singlepage_questionnaire(request,qnaire, questions):
 
     return render(request, template, context)
 
+#################CUSTOM QUESTIONNAIRES - HARD-CODED ###############
+def show_message_form_condition(wizard):
+    # try to get the cleaned data of step 1
+    cleaned_data = wizard.get_cleaned_data_for_step('0') or {}
+    # check if the field ``leave_message`` was checked.
+    return cleaned_data.get('leave_message', True)
+
+class ContactWizard(SessionWizardView):
+    template = 'questionnaires/test.html'
+
+    def done(self, form_list, **kwargs):
+        return render(self.request, 'questionnaires/done.html', {
+            'form_data': [form.cleaned_data for form in form_list],
+        })
+
+### BABY MEASUREMENTS ####
+class BABYWizard(SessionWizardView):
+    template_name = 'custom/baby.html'
+    form_list = [BABYForm1]
+    file_storage = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'files'))
+    #initial_data = [{'measurement_date': '', 'measurement_head': 1, 'measurement_length': 1, 'measurement_weight': 1, 'count': 1}]
+
+
+    def dispatch(self, request, *args, **kwargs):
+        print("DEBUG: form_list=", self.form_list)
+        # self.instance_dict = {
+        #     '0': CustomForm1(code=code)
+        # }
+        return super(BABYWizard, self).dispatch(request, *args, **kwargs)
+
+    def done(self, form_list, **kwargs):
+        return render(self.request, 'questionnaires/done.html', {
+            'form_data': [form.cleaned_data for form in form_list],
+        })
