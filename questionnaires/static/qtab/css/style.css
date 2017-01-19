@@ -152,7 +152,8 @@ input.imageradio + img:hover{
 }
 label > input.imageradio{ /* HIDE RADIO */
   visibility: hidden; /* Makes input not-clickable */
-  position: absolute; /* Remove input from document flow */
+  /*position: absolute;  Remove input from document flow */
+  float:left;
 }
 input.imageradio + img{ /* IMAGE STYLES */
   cursor:pointer;
@@ -175,7 +176,7 @@ td.coloredbox{
     -moz-border-radius: 5px; /* or 50% */
     border-radius: 5px; /* or 50% */
     border: 1px solid #ccc;
-    width:200px;
+    width:190px;
 }
 
 /* reds */
@@ -245,7 +246,44 @@ td.coloredbox input:checked{
 
 }
 
+@media
+only screen and (max-width: 760px),
+(min-device-width: 768px) and (max-device-width: 1024px)  {
 
+	/* Force table to not be like tables anymore *
+	table, thead, tbody, th, td, tr {
+		display: block;
+	}
+
+	/* Hide table headers (but not display: none;, for accessibility) *
+	thead tr {
+		position: absolute;
+		top: -9999px;
+		left: -9999px;
+	}
+
+	tr { border: 1px solid #ccc; }
+
+	td {
+		/* Behave  like a "row" *
+		border: none;
+		border-bottom: 1px solid #eee;
+		position: relative;
+		padding-left: 50%;
+		white-space: normal;
+	}
+
+	td:before {
+		/* Now like a table header *
+		position: absolute;
+		/* Top/left values mimic padding *
+		top: 6px;
+		left: 6px;
+		width: 45%;
+		padding-right: 10px;
+		white-space: normal;
+	}
+}
 /* Grid radio buttons without styling */
 td.default{
   background:0;
@@ -299,4 +337,30 @@ td.default{
 }
 select.slider{
 width:auto;
+}
+
+/*Resize images */
+
+@media screen and (max-width: 480px) {
+    .navbar-brand img{
+        left:300px;
+        position:relative;
+    }
+    .radio-default img {
+         max-width: 350px;
+    }
+    body{
+    width:480px;
+    }
+}
+
+/*Custom forms */
+#customtable{
+width:400px;}
+}
+#customtable > tbody > tr > td > input[type=number]{
+    width:90px;
+}
+#customtable > tbody > tr > td > input[type=date]{
+    width:160px;
 }

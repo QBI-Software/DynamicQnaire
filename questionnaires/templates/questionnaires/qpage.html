@@ -32,10 +32,10 @@
 
             <div class="row">
                 <div class="col-sm-2">&nbsp;</div>
-                <div class="col-sm-8 form-group table-responsive" align="center">
+                <div class="col-xs-12 col-sm-8 col-lg-8 form-group table-responsive" align="center">
                     {{ wizard.form.non_field_errors }}
                     {% if wizard.form.qimage %}
-                    <img src="/media/{{ wizard.form.qimage }}" width="400px"
+                    <img src="/static/media/{{ wizard.form.qimage }}" width="400px"
                          alt="{{wizard.form.question.label}}"/><br/>
                     {% endif %}
     {% if wizard.form.question.field.choices %}
@@ -77,7 +77,7 @@
                               name="{{wizard.form.prefix}}-{{ wizard.form.question.name }}"
                               value="{{ choice.0 }}"
                   {% if choice.1.choice_image %}
-                              class="imageradio"> <img src="/media/{{choice.1.choice_image }}"
+                              class="imageradio"> <img src="/static/media/{{choice.1.choice_image }}"
                                                        title="{{choice.1.choice_text}}"/>
                     {% else %}
                     />

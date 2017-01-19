@@ -12,45 +12,115 @@
         <div class="container-fluid ui-content" align="center">
 
             <h2>{{qtitle}}</h2>
+            <p>{{messages}}</p>
+
+            <ul class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#t1">{{twin1}}</a></li>
+                <li><a data-toggle="tab" href="#t2">{{twin2}}</a></li>
+              </ul>
+            <div class="tab-content">
+                <div id="t1" class="tab-pane fade in active">
+
+            <h3>Please enter measurements for {{twin1}}</h3>
             {{ t1_formset.management_form }}
 
             <div class="row">
                 <div class="col-sm-2">&nbsp;</div>
                 <div class="col-sm-8 form-group table-responsive" align="center">
 
-                    <table id="qtable" class="table">
+                    <table id="customtable1" class="customtable table">
 
             <thead><tr>
                 <th>Date</th>
-                <th>Head</th>
-                <th>Length</th>
-                <th>Weight</th>
+                <th>Age(mths)</th>
+                <th>Head(cm)</th>
+                <th>Length(cm)</th>
+                <th>Weight(kg)</th>
             </tr></thead>
-            <tbody>{% for form in t1_formset %}
-            <tr id="forms">
+            <tbody id="forms1">
+            {% for form in t1_formset %}
+             {% if form.errors %}
+                    <p>{{ form.errors.as_ul }}</p>
+                    {% endif %}
+            <tr >
                 <td>{{ form.measurement_date }}</td>
+                <td>{{ form.measurement_age }}</td>
                 <td>{{ form.measurement_head }}</td>
                 <td>{{ form.measurement_length }}</td>
                 <td>{{ form.measurement_weight }}</td>
             </tr>
             {% endfor %}
-                </table>
+            </tbody></table>
 
+            <a href="javascript:void(0)" id="add_form1" class="btn btn-info">Add another row</a>
 
-            <a href="javascript:void(0)" id="add_form">Add</a>
-
-            </div>
+            </div><div id="empty_form1" style="display:none"> {{ t1_formset.empty_form.as_table }}</div>
 
         </div>
+                </div>
+
+    <div id="t2" class="tab-pane fade">
+      <h3>Please enter measurements for {{twin2}}</h3>
+            {{ t2_formset.management_form }}
+
+            <div class="row">
+                <div class="col-sm-2">&nbsp;</div>
+                <div class="col-sm-8 form-group table-responsive" align="center">
+
+                    <table id="customtable2" class="customtable table">
+
+            <thead><tr>
+                <th>Date</th>
+                <th>Age(mths)</th>
+                <th>Head(cm)</th>
+                <th>Length(cm)</th>
+                <th>Weight(kg)</th>
+            </tr></thead>
+            <tbody id="forms2">
+            {% for form in t2_formset %}
+             {% if form.errors %}
+                    <p>{{ form.errors.as_ul }}</p>
+                {% endif %}
+            <tr >
+                <td>{{ form.measurement_date }}</td>
+                <td>{{ form.measurement_age }}</td>
+                <td>{{ form.measurement_head }}</td>
+                <td>{{ form.measurement_length }}</td>
+                <td>{{ form.measurement_weight }}</td>
+            </tr>
+            {% endfor %}
+            </tbody></table>
+
+            <a href="javascript:void(0)" id="add_form2" class="btn btn-info">Add another row</a>
+
+            </div><div id="empty_form2" style="display:none"> {{ t2_formset.empty_form.as_table }}</div>
+
+        </div>
+                </div>
+
+            </div>
+            <input type="submit" value="Save" class="btn btn-success"/>
     </div>
+    </form>
 </div>
 <script>
-    var form_count = 6;
-$('#add_form').click(function() {
-    form_count++;
-    var form = '{{t1_formset.empty_form|escapejs}}'.replace(/__prefix__/g, form_count);
-    $('#forms').append(form)
-    $('#id_form-TOTAL_FORMS').val(form_count);
+
+$('#add_form1').click(function() {
+    var form_idx = $('#id_twin1-TOTAL_FORMS').val();
+    var newrow = "<tr><td>"+$('#empty_form1').html().replace(/__prefix__/g, form_idx) + "</td></tr>";
+    newrow = newrow.replace(/\<label/g,"</td><td><label style=\"display:none\"");
+    newrow = newrow.replace(/\<td\>\s+\<\/td\>/,"");
+    $('#forms1').append(newrow);
+    $('#id_twin1-TOTAL_FORMS').val(parseInt(form_idx) + 1);
+});
+
+$('#add_form2').click(function() {
+    var form_idx = $('#id_twin2-TOTAL_FORMS').val();
+    var newrow = "<tr><td>"+$('#empty_form2').html().replace(/__prefix__/g, form_idx) + "</td></tr>";
+    newrow = newrow.replace(/\<label/g,"</td><td><label style=\"display:none\"");
+    newrow = newrow.replace(/\<td\>\s+\<\/td\>/,"");
+    $('#forms2').append(newrow);
+    $('#id_twin2-TOTAL_FORMS').val(parseInt(form_idx) + 1);
 });
 </script>
 {% endblock content %}

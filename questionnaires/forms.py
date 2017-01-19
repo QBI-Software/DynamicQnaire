@@ -30,12 +30,11 @@ def replaceTwinNames(user,question_text):
     elif len(twins) == 1:
         twins = list(chain(twins, SubjectVisit.objects.filter(parent2=user)))
     if len(twins) == 2:
-        print('DEBUG: QTEXT1=', question_text)
         question_text = re.sub(pattern1, twins[0].subject.first_name, question_text,
                                         flags=re.IGNORECASE)
         question_text = re.sub(pattern2, twins[1].subject.first_name, question_text,
                                         flags=re.IGNORECASE)
-        print('DEBUG: QTEXT2=', question_text)
+
     return question_text
 
 class AnswerForm(Form):

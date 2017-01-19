@@ -2,6 +2,7 @@ import os
 import operator
 from collections import OrderedDict
 from datetime import datetime
+import time
 
 from axes.utils import reset
 from django.conf import settings
@@ -271,14 +272,14 @@ class VisitView(LoginRequiredMixin, FilteredSingleTableView):
 ## ACTIONS ##
 
 def download_report(request, *args, **kwargs):
-    filename="qtab_report.csv"
+
     # Get subject id
     sid = kwargs.get('subjectid')
     if (sid):
         qs = SubjectQuestionnaire.objects.get(pk=sid)
     else:
         raise Exception('E100: Download report cannot find id')
-    filename = "qtab_report_%s.csv" % sid
+    filename = "QTAB_report_%s.csv" % sid
     # Create the HttpResponse object with the appropriate CSV header.
     import csv
     from django.utils.encoding import smart_str
@@ -295,13 +296,13 @@ def download_report(request, *args, **kwargs):
         smart_str(u"Visit"),
         smart_str(u"Total Qns"),
     ])
-
+    id = qs.subject.pk
+    visit = "NA"
     if hasattr(qs.subject, 'subjectvisit'):
-        id = qs.subject.subjectvisit.xnatid
+        if qs.subject.subjectvisit.xnatid:
+            id = qs.subject.subjectvisit.xnatid
         visit = qs.subject.subjectvisit.category.name
-    else:
-        id = qs.subject
-        visit = "Unknown"
+
     writer.writerow([
         smart_str(id),
         smart_str(qs.date_stored),
@@ -327,29 +328,27 @@ def download_report(request, *args, **kwargs):
         choicetext = ""
         choicevalue = ""
         freetext = ""
-        if qresult.testee == qs.subject:
-            choices = ""
-            choicetexts = ""
-            choicevalues = ""
-            if qresult.test_result_choice:
-                choices = qresult.test_result_question.choice_set.all()
-                choicetexts = [choice.choice_text for choice in choices]
-                choicevalues = [choice.choice_value for choice in choices]
-                choicetext = qresult.test_result_choice.choice_text
-                choicevalue = qresult.test_result_choice.choice_value
-            elif qresult.test_result_text:
-                freetext = qresult.test_result_text
-            elif qresult.test_result_date:
-                freetext = qresult.test_result_date
-            qtext = replaceTwinNames(qresult.testee,qresult.test_result_question.question_text)
-            writer.writerow([
-                smart_str(qtext),
-                smart_str(choicetexts),
-                smart_str(choicevalues),
-                smart_str(choicetext),
-                smart_str(choicevalue),
-                smart_str(freetext),
-            ])
+        choicetexts = ""
+        choicevalues = ""
+        if qresult.test_result_choice:
+            choices = qresult.test_result_question.choice_set.all()
+            choicetexts = [choice.choice_text for choice in choices]
+            choicevalues = [choice.choice_value for choice in choices]
+            choicetext = qresult.test_result_choice.choice_text
+            choicevalue = qresult.test_result_choice.choice_value
+        elif qresult.test_result_text:
+            freetext = qresult.test_result_text
+        elif qresult.test_result_date:
+            freetext = qresult.test_result_date
+        qtext = replaceTwinNames(qresult.testee,qresult.test_result_question.question_text)
+        writer.writerow([
+            smart_str(qtext),
+            smart_str(choicetexts),
+            smart_str(choicevalues),
+            smart_str(choicetext),
+            smart_str(choicevalue),
+            smart_str(freetext),
+        ])
     return response
 
 
@@ -475,7 +474,7 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
         # Find question and questionnaire
         qn = self.initial_dict.get('0')['qid']
         qnaire = qn.qid
-        store_token = self.request.POST['csrfmiddlewaretoken']
+        store_token = self.request.POST['csrfmiddlewaretoken'] + str(time.time())
         for key in form_dict:
             qn = self.initial_dict.get(key)['qid']
             #Get response
@@ -525,7 +524,7 @@ def singlepage_questionnaire(request,qnaire, questions):
     """
     user = request.user
     messages = ''
-
+    token = request.POST['csrfmiddlewaretoken'] + str(time.time())
     # Create the formset, specifying the form and formset we want to use.
     LinkFormSet = formset_factory(AnswerForm, formset=BaseQuestionFormSet, validate_max=False)
     link_data = [{'qid': q, 'myuser': request.user} for q in questions]
@@ -560,13 +559,13 @@ def singlepage_questionnaire(request,qnaire, questions):
                     else:
                         tresult.test_result_choice = answer
 
-                    tresult.test_token = request.POST['csrfmiddlewaretoken']
+                    tresult.test_token = token
                     tresult.save()
 
             # Save user info with category
             template='questionnaires/done.html'
             try:
-                subjectcat = SubjectQuestionnaire(subject=user, questionnaire=qnaire, session_token=request.POST['csrfmiddlewaretoken'])
+                subjectcat = SubjectQuestionnaire(subject=user, questionnaire=qnaire, session_token=token)
                 subjectcat.save()
                 messages='Congratulations, %s!  You have completed the questionnaire.' % user
             except IntegrityError:
@@ -605,22 +604,112 @@ class ContactWizard(SessionWizardView):
         })
 
 ### BABY MEASUREMENTS ####
-def baby_measurements(request):
-    #TODO: List one for each twin, use JS to hide and add extra rows
+def baby_measurements(request, code):
+    """
+    Baby measurements questionnaire to be filled out by a parent (only)
+    :param request: HTTP request URL
+    :param code: Questionnaire code from URL
+    :return: custom questionnaire form
+    """
+    print("DEBUG: request=", request)
+    print("DEBUG: code1=", code)
+    user = request.user
+    visit = SubjectVisit.objects.filter(parent1=user) | SubjectVisit.objects.filter(parent2=user)
+    messages = ''
+    template = 'custom/baby.html'
+    if visit:
+        t1 = visit[0].subject.username
+        if visit[0].subject.first_name:
+            t1 = visit[0].subject.first_name
+        t2 = visit[1].subject.username
+        if visit[1].subject.first_name:
+            t2 = visit[1].subject.first_name
+
+    else:
+        t1 = 'Twin1'
+        t2 = 'Twin2'
+        messages ='No twins found for this user'
+
+    qnaire = Questionnaire.objects.get(code=code)
+    #Both twins on one page
     Twin1FormSet = formset_factory(BABYForm1, extra=5)
     Twin2FormSet = formset_factory(BABYForm1, extra=5)
     if request.method == 'POST':
         t1_formset = Twin1FormSet(request.POST, request.FILES, prefix='twin1')
         t2_formset = Twin2FormSet(request.POST, request.FILES, prefix='twin2')
+        token = request.POST['csrfmiddlewaretoken'] + str(time.time())
         if t1_formset.is_valid() and t2_formset.is_valid():
-            # do something with the cleaned_data on the formsets.
-            pass
+
+            #t1
+            t1_answer = {}
+            rnum = 1
+            t1_answer[0] = ['Twin', 'Date','Age', 'Head', 'Length', 'Weight']
+            for form in t1_formset:
+                #if form.has_changed():
+                t1_answer[rnum] = [t1, form.cleaned_data.get('measurement_date'),
+                                   form.cleaned_data.get('measurement_age'),
+                                   form.cleaned_data.get('measurement_head'),
+                                   form.cleaned_data.get('measurement_length'),
+                                   form.cleaned_data.get('measurement_weight'),
+                                   ]
+                rnum += 1
+
+            tresult = TestResult()
+            if visit:
+                tresult.testee = visit[0].subject
+            else:
+                tresult.testee = user
+            tresult.test_questionnaire = qnaire
+            tresult.test_result_question = qnaire.question_set.all()[0] #check these exist
+            tresult.test_result_text = t1_answer
+            tresult.test_token = token
+            tresult.save()
+
+            # t2
+            t2_answer = {}
+            rnum = 1
+            t2_answer[0] =['Twin', 'Date','Age', 'Head', 'Length', 'Weight']
+            for form in t2_formset:
+                #if form.has_changed():
+                t2_answer[rnum] = [t2, form.cleaned_data.get('measurement_date'),
+                                    form.cleaned_data.get('measurement_age'),
+                                    form.cleaned_data.get('measurement_head'),
+                                    form.cleaned_data.get('measurement_length'),
+                                    form.cleaned_data.get('measurement_weight'),
+                                   ]
+                rnum += 1
+
+            tresult = TestResult()
+            if visit:
+                tresult.testee = visit[1].subject
+            else:
+                tresult.testee = user
+            tresult.test_questionnaire = qnaire
+            tresult.test_result_question = qnaire.question_set.all()[1]
+            tresult.test_result_text = t2_answer
+            tresult.test_token = token
+            tresult.save()
+
+            # Save user info with category
+            template = 'questionnaires/done.html'
+            try:
+                subjectcat = SubjectQuestionnaire(subject=user, questionnaire=qnaire,
+                                                  session_token=token)
+                subjectcat.save()
+                messages = 'Congratulations, %s!  You have completed the questionnaire.' % user
+            except IntegrityError:
+                print("ERROR: Error saving results")
+                messages.error(request, 'There was an error saving your result.')
     else:
         t1_formset = Twin1FormSet(prefix='twin1')
         t2_formset = Twin2FormSet(prefix='twin2')
-    return render(request, 'custom/baby.html', {
+    return render(request, template, {
         't1_formset': t1_formset,
         't2_formset': t2_formset,
+        'qtitle': qnaire.title,
+        'twin1': t1,
+        'twin2': t2,
+        'messages': messages,
     })
 
 

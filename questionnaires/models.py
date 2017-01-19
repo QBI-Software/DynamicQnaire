@@ -79,7 +79,7 @@ class Question(models.Model):
 class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     choice_image = models.ImageField(verbose_name="Choice Image", null=True, blank=True)
-    choice_text = models.CharField(_("Choice Text"), max_length=500, default="")
+    choice_text = models.TextField(_("Choice Text"), max_length=5000, default="")
     choice_value = models.CharField(_("Value"),default='0', max_length=20)
     show_label = models.BooleanField(_("Show label"), default=True)
     group = models.ManyToManyField(Group, verbose_name="Group", blank=True)
@@ -98,7 +98,7 @@ class TestResult(models.Model):
     test_questionnaire = models.ForeignKey(Questionnaire, verbose_name="Questionnaire", null=False)
     test_result_question = models.ForeignKey(Question,verbose_name="Question", null=False)
     test_result_choice = models.ForeignKey(Choice, verbose_name="Choice", null=True)
-    test_result_text = models.CharField(verbose_name="FreeText", max_length=500, null=True)
+    test_result_text = models.TextField(verbose_name="FreeText", max_length=5000, null=True)
     test_result_date = models.DateField(_("Date"), null=True)
     test_token = models.CharField(_("Hiddentoken"), max_length=100)
 

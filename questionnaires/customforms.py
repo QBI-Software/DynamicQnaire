@@ -32,21 +32,28 @@ class BABYForm1(forms.Form):
     """
     Custom form for Baby Measurements: BABY1
     """
-    measurement_date = forms.DateField(label="Date")
-    measurement_head = forms.IntegerField(label="Head")
-    measurement_length = forms.IntegerField(label="Body length")
-    measurement_weight = forms.IntegerField(label="Body weight")
-    count = forms.IntegerField(required=False, widget = forms.HiddenInput())
-    qtitle = 'Baby Measurements'
+    LENGTH_UNITS=[{0,'cm'},{1,'inches'}]
+    WEIGHT_UNITS = [{0, 'g'}, {1, 'lb'}]
+    measurement_date = forms.DateField(label="Date",widget=forms.DateInput(format=('%d-%m-%Y'),
+                                        attrs={'class': 'form-control','type': 'date',
+                                             'placeholder': 'Select a date'}
+                                      ))
+    measurement_age = forms.FloatField(label="Head", widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    #measurement_age_units = forms.ChoiceField(label="Age units", choices=[{0, 'Days'}, {1, 'Weeks'},{2, 'Months'},{3, 'Years'}],
+    #                                 widget=forms.Select(attrs={'class': 'form-control'}))
+    measurement_head = forms.FloatField(label="Head circumference", widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    #measurement_head_units = forms.ChoiceField(label="Head units",
+    #                                          choices=LENGTH_UNITS,
+    #                                          widget=forms.Select(attrs={'class': 'form-control'}))
+    measurement_length = forms.FloatField(label="Body length", widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    #measurement_length_units = forms.ChoiceField(label="Length/Height units",
+    #                                           choices=LENGTH_UNITS,
+    #                                           widget=forms.Select(attrs={'class': 'form-control'}))
+    measurement_weight = forms.FloatField(label="Body weight",widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    #measurement_weight_units = forms.ChoiceField(label="Weight units",
+    #                                           choices=WEIGHT_UNITS,
+    #                                           widget=forms.Select(attrs={'class': 'form-control'}))
 
-
-    def __init__(self, *args, **kwargs):
-        code = 'BABY1'
-        print("debug: form code=", code)
-        super(BABYForm1, self).__init__(*args, **kwargs)
-        qs = Questionnaire.objects.get(code=code)
-        print("DEBUG: qs=", qs.title)
-        self.qtitle = qs.title
 
     class Meta:
-        fields =('measurement_date','measurement_head','measurement_length','measurement_weight','count')
+        fields =('measurement_date','measurement_age','measurement_head','measurement_length','measurement_weight')
