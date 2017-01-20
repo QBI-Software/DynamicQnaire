@@ -48,7 +48,7 @@ from .models import Questionnaire, Choice, TestResult, SubjectQuestionnaire,Cate
 from .forms import AxesCaptchaForm, AnswerForm, TestResultDeleteForm, BaseQuestionFormSet, replaceTwinNames
 from .tables import FilteredSingleTableView, TestResultTable,SubjectQuestionnaireTable,SubjectVisitTable
 from .filters import TestResultFilter,SubjectQuestionnaireFilter,SubjectVisitFilter
-from .customforms import BABYForm1, CustomForm1
+
 
 
 ## Login
@@ -451,8 +451,11 @@ def load_questionnaire(request, *args, **kwargs):
         if qnaire.type == 'single':
             return singlepage_questionnaire(request, qnaire, questions)
         elif qnaire.type =='custom':
-            customurl = 'questionnaires:%s' % qnaire.code
-            return HttpResponseRedirect(reverse(customurl))
+            code = qnaire.code.replace('-','')
+            customurl = 'questionnaires:%s' % code
+            print("DEBUG: customurl=",customurl)
+            print("DEBUG: reverse=", reverse(customurl, kwargs={'code': qnaire.code}))
+            return HttpResponseRedirect(reverse(customurl, kwargs={'code': qnaire.code}))
         else:
             num = 0
             for q in questions:
@@ -595,135 +598,4 @@ def singlepage_questionnaire(request,qnaire, questions):
     }
 
     return render(request, template, context)
-
-#################CUSTOM QUESTIONNAIRES - HARD-CODED ###############
-def show_message_form_condition(wizard):
-    # try to get the cleaned data of step 1
-    cleaned_data = wizard.get_cleaned_data_for_step('0') or {}
-    # check if the field ``leave_message`` was checked.
-    return cleaned_data.get('leave_message', True)
-
-class ContactWizard(SessionWizardView):
-    template = 'questionnaires/test.html'
-
-    def done(self, form_list, **kwargs):
-        return render(self.request, 'questionnaires/done.html', {
-            'form_data': [form.cleaned_data for form in form_list],
-        })
-
-### BABY MEASUREMENTS ####
-def baby_measurements(request, code):
-    """
-    Baby measurements questionnaire to be filled out by a parent (only)
-    :param request: HTTP request URL
-    :param code: Questionnaire code from URL
-    :return: custom questionnaire form
-    """
-    print("DEBUG: request=", request)
-    print("DEBUG: code1=", code)
-    user = request.user
-    visit = SubjectVisit.objects.filter(parent1=user) | SubjectVisit.objects.filter(parent2=user)
-    messages = ''
-    template = 'custom/baby.html'
-    if visit:
-        t1 = visit[0].subject.username
-        if visit[0].subject.first_name:
-            t1 = visit[0].subject.first_name
-        t2 = visit[1].subject.username
-        if visit[1].subject.first_name:
-            t2 = visit[1].subject.first_name
-
-    else:
-        t1 = 'Twin1'
-        t2 = 'Twin2'
-        messages ='No twins found for this user'
-
-    qnaire = Questionnaire.objects.get(code=code)
-    #Both twins on one page
-    Twin1FormSet = formset_factory(BABYForm1, extra=5)
-    Twin2FormSet = formset_factory(BABYForm1, extra=5)
-    if request.method == 'POST':
-        t1_formset = Twin1FormSet(request.POST, request.FILES, prefix='twin1')
-        t2_formset = Twin2FormSet(request.POST, request.FILES, prefix='twin2')
-        token = request.POST['csrfmiddlewaretoken'] + str(time.time())
-        if t1_formset.is_valid() and t2_formset.is_valid():
-            headers = ['Twin', 'Date','Age', 'Head', 'Length', 'Weight']
-            #t1
-            t1_answer = {}
-            rnum = 1
-            t1_answer[0] = headers
-            for form in t1_formset:
-                #if form.has_changed():
-                tdate = form.cleaned_data.get('measurement_date')
-                if isinstance(tdate, datetime.date):
-                    tfdate = tdate.strftime('%d-%m-%Y')
-                    t1_answer[rnum] = [t1, tfdate,
-                                       form.cleaned_data.get('measurement_age'),
-                                       form.cleaned_data.get('measurement_head'),
-                                       form.cleaned_data.get('measurement_length'),
-                                       form.cleaned_data.get('measurement_weight'),
-                                       ]
-                    rnum += 1
-
-            tresult = TestResult()
-            if visit:
-                tresult.testee = visit[0].subject
-            else:
-                tresult.testee = user
-            tresult.test_questionnaire = qnaire
-            tresult.test_result_question = qnaire.question_set.all()[0] #check these exist
-            tresult.test_result_text = t1_answer
-            tresult.test_token = token
-            tresult.save()
-
-            # t2
-            t2_answer = {}
-            rnum = 1
-            t2_answer[0] = headers
-            for form in t2_formset:
-                #if form.has_changed():
-                tdate = form.cleaned_data.get('measurement_date')
-                if type(tdate) is datetime:
-                    tfdate = tdate.strftime('%d-%m-%Y')
-                    t2_answer[rnum] = [t2, tfdate,
-                                        form.cleaned_data.get('measurement_age'),
-                                        form.cleaned_data.get('measurement_head'),
-                                        form.cleaned_data.get('measurement_length'),
-                                        form.cleaned_data.get('measurement_weight'),
-                                       ]
-                    rnum += 1
-
-            tresult = TestResult()
-            if visit:
-                tresult.testee = visit[1].subject
-            else:
-                tresult.testee = user
-            tresult.test_questionnaire = qnaire
-            tresult.test_result_question = qnaire.question_set.all()[1]
-            tresult.test_result_text = t2_answer
-            tresult.test_token = token
-            tresult.save()
-
-            # Save user info with category
-            template = 'questionnaires/done.html'
-            try:
-                subjectcat = SubjectQuestionnaire(subject=user, questionnaire=qnaire,
-                                                  session_token=token)
-                subjectcat.save()
-                messages = 'Congratulations, %s!  You have completed the questionnaire.' % user
-            except IntegrityError:
-                print("ERROR: Error saving results")
-                messages.error(request, 'There was an error saving your result.')
-    else:
-        t1_formset = Twin1FormSet(prefix='twin1')
-        t2_formset = Twin2FormSet(prefix='twin2')
-    return render(request, template, {
-        't1_formset': t1_formset,
-        't2_formset': t2_formset,
-        'qtitle': qnaire.title,
-        'twin1': t1,
-        'twin2': t2,
-        'messages': messages,
-    })
-
 

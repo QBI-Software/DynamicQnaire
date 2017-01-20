@@ -125,8 +125,9 @@ class SubjectVisit(models.Model):
     parent2 = models.ForeignKey(User, verbose_name="Parent 2", null=True, blank=True, related_name="parent2")
     xnatid = models.CharField(_("XNAT ID"), null=True, blank=True,max_length=20, unique=True)
     category = models.ForeignKey(Category,verbose_name="Wave",) #ie Wave number
-    date_visit = models.DateTimeField(verbose_name="Date of Visit", null=False)  # only one entry per visit
-    icon = models.ImageField(verbose_name="Subject icon", null=True, blank=True)
+    date_visit = models.DateTimeField(_("Date of Visit"), null=False)  # only one entry per visit
+    icon = models.ImageField(_("Subject icon"), null=True, blank=True)
+    #gender = models.PositiveSmallIntegerField(_("Gender"), null=False, default=0, choices=((0,'Unknown'),(1, 'Male'), (2, 'Female')))
 
     def __str__(self):
         return self.subject.username + ": " + self.category.name

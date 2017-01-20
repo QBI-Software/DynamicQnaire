@@ -1,0 +1,168 @@
+{% extends "questionnaires/base.html" %}
+{% block title %}Questionnaire{% endblock %}
+{% load i18n %}
+{% block head %}
+{% endblock %}
+{% block content %}
+
+<div style="background-color:{{form.qbgcolor}}; color:{{form.textcolor}};">
+
+    <form action="" method="post">{% csrf_token %}
+
+        <div class="container-fluid ui-content" align="center">
+
+
+            <h2>{{qtitle}}</h2>
+            <p class="btn-warning">{{messages}}</p>
+
+            <ul class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#t1">{{twin1}}</a></li>
+                <li><a data-toggle="tab" href="#t2">{{twin2}}</a></li>
+            </ul>
+            <div class="tab-content">
+                <div id="t1" class="tab-pane fade in active">
+
+                    <h3>Please select for {{twin1}}</h3>
+                    {{ t1_formset.management_form }}
+
+                    <div class="row">
+                        <div class="col-sm-1"></div>
+                        <div class="col-sm-8 form-group table-responsive" align="center">
+                            <table id="paneltable1" class="paneltable table" cellspacing="10px">
+                                <thead>
+                                <tr>
+                                    <th class="fixedcol"><h3>Stage</h3></th>
+                                    <th><h3>1</h3></th>
+                                    <th><h3>2</h3></th>
+                                    <th><h3>3</h3></th>
+                                    <th><h3>4</h3></th>
+                                    <th><h3>5</h3></th>
+                                    <th><h3>NA</h3></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for form in t1_formset %}
+                                {% if form.prefix == "twin1-0" %}
+                                <tr>
+                                    <td>&nbsp;</td>
+
+
+                                    {% for choice in form.question.field.choices %}
+                                    <td>
+                                        <img src="/static/media/{{choice.1.choice_image }}"
+                                             title="{{choice.1.choice_text}}"/>
+                                        <p class="caption">{{choice.1.choice_text}}</p>
+
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <td class="fixedcol"><label>{{form.question.label}}</label></td>
+                                    {% for choice in form.question.field.choices %}
+                                    <td>
+                                        <input type="{{form.question.help_text}}"
+                                               id="{{ form.question.id_for_label}}"
+                                               name="{{form.prefix}}-{{ form.question.name }}"
+                                               value="{{ choice.0 }}"
+                                        />
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+
+                                {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                <tr>
+                                    <td></td>
+                                </tr>
+                                </tfoot>
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div id="t2" class="tab-pane fade">
+                    <h3>Please select for {{twin2}}</h3>
+                    {{ t2_formset.management_form }}
+
+                    <div class="row">
+                        <div class="col-sm-1"></div>
+                        <div class="col-sm-8 form-group table-responsive" align="center">
+                            <table id="paneltable2" class="paneltable table" cellspacing="10px">
+                                <thead>
+                                <tr>
+                                    <th class="fixedcol"><h3>Stage</h3></th>
+                                    <th><h3>1</h3></th>
+                                    <th><h3>2</h3></th>
+                                    <th><h3>3</h3></th>
+                                    <th><h3>4</h3></th>
+                                    <th><h3>5</h3></th>
+                                    <th><h3>NA</h3></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for form in t2_formset %}
+                                {% if form.prefix == "twin2-0" %}
+                                <tr>
+                                    <td>&nbsp;</td>
+
+
+                                    {% for choice in form.question.field.choices %}
+                                    <td>
+                                        <img src="/static/media/{{choice.1.choice_image }}"
+                                             title="{{choice.1.choice_text}}"/>
+                                        <p class="caption">{{choice.1.choice_text}}</p>
+
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <td class="fixedcol"><label>{{form.question.label}}</label></td>
+                                    {% for choice in form.question.field.choices %}
+                                    <td>
+                                        <input type="{{form.question.help_text}}"
+                                               id="{{ form.question.id_for_label}}"
+                                               name="{{form.prefix}}-{{ form.question.name }}"
+                                               value="{{ choice.0 }}"
+                                        />
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+
+                                {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                <tr>
+                                    <td></td>
+                                </tr>
+                                </tfoot>
+                            </table>
+
+                        </div>
+                    </div>
+
+                </div>
+                </div>
+                <input type="submit" value="Save" class="btn btn-success"/>
+            </div>
+
+
+    </form>
+</div>
+<script>
+$('#paneltable').fixedHeaderTable({ fixedColumn: true, footer:false,cloneHeadToFoot: false });
+$('#next').click(function(e){
+    var pos1 = $('#paneltable1').position();
+
+    $(#paneltable1).animate({ 'top': pos1.top + 'px', 'left': pos1.left + 'px'}, 200, function(){
+        //end of animation.. if you want to add some code here
+    });
+
+});
+
+
+</script>
+{% endblock content %}

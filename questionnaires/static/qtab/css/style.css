@@ -355,12 +355,34 @@ width:auto;
 }
 
 /*Custom forms */
-#customtable{
+.customtable{
 width:400px;}
 }
-#customtable > tbody > tr > td > input[type=number]{
+.customtable > tbody > tr > td > input[type=number]{
     width:90px;
 }
-#customtable > tbody > tr > td > input[type=date]{
+.customtable > tbody > tr > td > input[type=date]{
     width:160px;
+}
+.paneltable{
+    width:400px;
+    margin-left:200px;
+    margin-bottom:80px;
+}
+.paneltable .caption{
+    margin: 5px 120px;
+    max-width: 300px;
+    }
+.paneltable td.fixedcol,.paneltable th.fixedcol{
+    position:fixed;
+    width:250px;
+    margin-left:-150px;
+}
+.paneltable td, .paneltable th{
+    text-align:center;
+    vertical-align:middle;
+}
+.paneltable td img{
+    padding:50px 160px;
+    margin:0 50px;
 }

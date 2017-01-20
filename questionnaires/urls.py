@@ -1,12 +1,9 @@
 from axes.decorators import watch_login
 from django.conf.urls import url
 from django.contrib.auth.views import password_change, password_reset,password_reset_complete, password_reset_confirm, password_reset_done
-#from .forms import ContactForm1, ContactForm2
-from .views import ContactWizard, show_message_form_condition
-from . import views
 
+from . import views, customviews
 
-#contact_forms = [ContactForm1, ContactForm2]
 
 app_name = 'questionnaires'
 urlpatterns = [
@@ -26,7 +23,8 @@ urlpatterns = [
     url(r'^(?P<pk>[0-9]+)/qintro/$', views.DetailView.as_view(), name='qintro'),
     url(r'^(?P<pk>[0-9]+)/q/$', views.load_questionnaire, name='q'),
     url(r'^(?P<token>[0-9]+)/deleteresults/$', views.TestResultDelete.as_view(), name='deleteresults'),
-    url(r'^custom/BABY1/$', views.baby_measurements, {'code': 'BABY1'}, name='BABY1'),
+    url(r'^custom/(?P<code>\w+)/$', customviews.baby_measurements, name='BABY1'),
+    url(r'^custom2/(?P<code>[0-9A-Za-z\-]+)/$', customviews.maturation, name='Wav1P12'),
     #url(r'^custom/(?P<code>\w+)/$', CustomWizard.as_view(),name='custom'),
     #url(r'^contact/$', ContactWizard.as_view(contact_forms,  condition_dict={'1': show_message_form_condition} ),name='contact'),
 
