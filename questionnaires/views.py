@@ -1,7 +1,7 @@
 import os
 import operator
 from collections import OrderedDict
-from datetime import datetime
+import datetime
 import time
 
 from axes.utils import reset
@@ -349,6 +349,14 @@ def download_report(request, *args, **kwargs):
             smart_str(choicevalue),
             smart_str(freetext),
         ])
+        #Output any custom data as table
+        if qs.questionnaire.type =='custom':
+            if qs.questionnaire.code == 'BABY1':
+                t = eval(qresult.test_result_text)
+                if type(t) is dict:
+                    for r,val in t.items():
+                        writer.writerow(val)
+
     return response
 
 
@@ -639,20 +647,23 @@ def baby_measurements(request, code):
         t2_formset = Twin2FormSet(request.POST, request.FILES, prefix='twin2')
         token = request.POST['csrfmiddlewaretoken'] + str(time.time())
         if t1_formset.is_valid() and t2_formset.is_valid():
-
+            headers = ['Twin', 'Date','Age', 'Head', 'Length', 'Weight']
             #t1
             t1_answer = {}
             rnum = 1
-            t1_answer[0] = ['Twin', 'Date','Age', 'Head', 'Length', 'Weight']
+            t1_answer[0] = headers
             for form in t1_formset:
                 #if form.has_changed():
-                t1_answer[rnum] = [t1, form.cleaned_data.get('measurement_date'),
-                                   form.cleaned_data.get('measurement_age'),
-                                   form.cleaned_data.get('measurement_head'),
-                                   form.cleaned_data.get('measurement_length'),
-                                   form.cleaned_data.get('measurement_weight'),
-                                   ]
-                rnum += 1
+                tdate = form.cleaned_data.get('measurement_date')
+                if isinstance(tdate, datetime.date):
+                    tfdate = tdate.strftime('%d-%m-%Y')
+                    t1_answer[rnum] = [t1, tfdate,
+                                       form.cleaned_data.get('measurement_age'),
+                                       form.cleaned_data.get('measurement_head'),
+                                       form.cleaned_data.get('measurement_length'),
+                                       form.cleaned_data.get('measurement_weight'),
+                                       ]
+                    rnum += 1
 
             tresult = TestResult()
             if visit:
@@ -668,16 +679,19 @@ def baby_measurements(request, code):
             # t2
             t2_answer = {}
             rnum = 1
-            t2_answer[0] =['Twin', 'Date','Age', 'Head', 'Length', 'Weight']
+            t2_answer[0] = headers
             for form in t2_formset:
                 #if form.has_changed():
-                t2_answer[rnum] = [t2, form.cleaned_data.get('measurement_date'),
-                                    form.cleaned_data.get('measurement_age'),
-                                    form.cleaned_data.get('measurement_head'),
-                                    form.cleaned_data.get('measurement_length'),
-                                    form.cleaned_data.get('measurement_weight'),
-                                   ]
-                rnum += 1
+                tdate = form.cleaned_data.get('measurement_date')
+                if type(tdate) is datetime:
+                    tfdate = tdate.strftime('%d-%m-%Y')
+                    t2_answer[rnum] = [t2, tfdate,
+                                        form.cleaned_data.get('measurement_age'),
+                                        form.cleaned_data.get('measurement_head'),
+                                        form.cleaned_data.get('measurement_length'),
+                                        form.cleaned_data.get('measurement_weight'),
+                                       ]
+                    rnum += 1
 
             tresult = TestResult()
             if visit:
