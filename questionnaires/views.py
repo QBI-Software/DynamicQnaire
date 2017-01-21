@@ -1,7 +1,8 @@
 import os
 import operator
 from collections import OrderedDict
-import datetime
+import datetime as dt
+from datetime import datetime
 import time
 
 from axes.utils import reset

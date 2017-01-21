@@ -10,7 +10,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User, Group
 from .forms import AnswerForm, BaseQuestionFormSet
 from .customforms import BABYForm1
-from .models import Questionnaire, TestResult, SubjectQuestionnaire, SubjectVisit
+from .models import Questionnaire, Question, TestResult, SubjectQuestionnaire, SubjectVisit
 
 
 #################CUSTOM QUESTIONNAIRES - HARD-CODED ###############
@@ -193,43 +193,37 @@ def maturation(request, code):
         t2_formset = Twin2FormSet(request.POST, prefix='twin2')
         token = request.POST['csrfmiddlewaretoken'] + str(time.time())
         if t1_formset.is_valid() and t2_formset.is_valid():
-            headers = ['Twin', 'Stage Now', 'Stage Next']
-            #t1
-            t1_answer = {}
-            rnum = 1
-            t1_answer[0] = headers
-            #TODO: data in form.data['twin1-0-question'] etc
-            for form in t1_formset:
-                t1_answer[rnum] = [t1, form.cleaned_data]
-                rnum += 1
+            #data in form.data['twin1-0-question'] etc
+            for i in range(0, len(Twin1_data)):
+                formid = 'twin1-%d-question' % i
+                val = request.POST[formid]  # TODO Validate data input
+                #qn = Question.objects.get(pk=Twin1_data[i]['qid'].pk)
+                qn = Twin1_questions[i]
+                tresult = TestResult()
+                if visit:
+                    tresult.testee = visit[0].subject
 
-            tresult = TestResult()
-            if visit:
-                tresult.testee = visit[0].subject
-
-            tresult.test_questionnaire = qnaire
-            tresult.test_result_question = qnaire.question_set.all()[0] #check these exist
-            tresult.test_result_text = t1_answer
-            tresult.test_token = token
-            tresult.save()
+                tresult.test_questionnaire = qnaire
+                tresult.test_result_question = qn
+                tresult.test_result_text = [t1,val]
+                tresult.test_token = token
+                tresult.save()
 
             # t2
-            t2_answer = {}
-            rnum = 1
-            t2_answer[0] = headers
-            for form in t2_formset:
-                t1_answer[rnum] = [t1, form.cleaned_data]
-                rnum += 1
+            for i in range(0, len(Twin2_data)):
+                formid = 'twin2-%d-question' % i
+                val = request.POST[formid]  # TODO Validate data input
+                #qn = Question.objects.get(pk=Twin1_data[i]['qid'].pk)
+                qn = Twin2_questions[i]
+                tresult = TestResult()
+                if visit:
+                    tresult.testee = visit[0].subject
 
-            tresult = TestResult()
-            if visit:
-                tresult.testee = visit[1].subject
-
-            tresult.test_questionnaire = qnaire
-            tresult.test_result_question = qnaire.question_set.all()[1]
-            tresult.test_result_text = t2_answer
-            tresult.test_token = token
-            tresult.save()
+                tresult.test_questionnaire = qnaire
+                tresult.test_result_question = qn
+                tresult.test_result_text = [t2,val]
+                tresult.test_token = token
+                tresult.save()
 
             # Save user info with category
             template = 'questionnaires/done.html'
