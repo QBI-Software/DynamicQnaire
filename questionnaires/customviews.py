@@ -142,7 +142,7 @@ def baby_measurements(request, code):
         'messages': messages,
     })
 
-##########################Maturation ######################
+##########################Both twins per page ######################
 def maturation(request, code):
     """
     Sexual maturation questionnaire to be filled out by a parent (only)
@@ -151,10 +151,11 @@ def maturation(request, code):
     :return: custom questionnaire form
     """
     user = request.user
-    print("DEBUG: code=", code)
+    #print("DEBUG: code=", code)
 
     messages = ''
-    template = 'custom/maturation.html'
+    #template = 'custom/maturation.html'
+    template = 'custom/panelviewer.html'
     try:
         qnaire = Questionnaire.objects.get(code=code)
     except ObjectDoesNotExist:
@@ -162,32 +163,32 @@ def maturation(request, code):
 
     visit = SubjectVisit.objects.filter(parent1=user) | SubjectVisit.objects.filter(parent2=user)
     if visit:
-        t1 = visit[0].subject.username
-        if visit[0].subject.first_name:
-            t1 = visit[0].subject.first_name
-        t2 = visit[1].subject.username
-        if visit[1].subject.first_name:
-            t2 = visit[1].subject.first_name
+        twin1 = visit[0].subject
+        twin2 = visit[1].subject
+        t1 = twin1.username
+        if twin1.first_name:
+            t1 = twin1.first_name
+        t2 = twin2.username
+        if twin2.first_name:
+            t2 = twin2.first_name
     else:
         raise ValueError('No twins found for this user')
 
     #Both twins on one page - determine male or female
-    male = Group.objects.filter(name__startswith='Male')
-    female = Group.objects.filter(name__startswith='Female')
     pattern1 = 'Twin'
 
-
     Twin1FormSet = formset_factory(AnswerForm, formset=BaseQuestionFormSet, validate_max=False)
-    Twin1_questions = qnaire.question_set.filter(question_text__contains='Twin').order_by('order')
+    Twin1_questions = qnaire.question_set.filter(group__in=twin1.groups.all()).order_by('order').distinct()
     for q in Twin1_questions:
         q.question_text=re.sub(pattern1, t1, q.question_text, flags=re.IGNORECASE)
-    Twin1_data = [{'qid': q, 'myuser': visit[0].subject} for q in Twin1_questions]
+    Twin1_data = [{'qid': q, 'myuser': twin1} for q in Twin1_questions]
 
     Twin2FormSet = formset_factory(AnswerForm, formset=BaseQuestionFormSet, validate_max=False)
-    Twin2_questions = qnaire.question_set.filter(question_text__contains='Twin').order_by('order')
+    Twin2_questions = qnaire.question_set.filter(group__in=twin2.groups.all()).order_by('order').distinct()
     for q in Twin2_questions:
         q.question_text = re.sub(pattern1, t2, q.question_text, flags=re.IGNORECASE)
-    Twin2_data = [{'qid': q, 'myuser': visit[1].subject} for q in Twin2_questions]
+    Twin2_data = [{'qid': q, 'myuser': twin2} for q in Twin2_questions]
+    print("debug: t2=", Twin2_questions)
     if request.method == 'POST':
         t1_formset = Twin1FormSet(request.POST, prefix='twin1')
         t2_formset = Twin2FormSet(request.POST, prefix='twin2')
@@ -201,7 +202,7 @@ def maturation(request, code):
                 qn = Twin1_questions[i]
                 tresult = TestResult()
                 if visit:
-                    tresult.testee = visit[0].subject
+                    tresult.testee = twin1
 
                 tresult.test_questionnaire = qnaire
                 tresult.test_result_question = qn
@@ -217,7 +218,7 @@ def maturation(request, code):
                 qn = Twin2_questions[i]
                 tresult = TestResult()
                 if visit:
-                    tresult.testee = visit[0].subject
+                    tresult.testee = twin2
 
                 tresult.test_questionnaire = qnaire
                 tresult.test_result_question = qn

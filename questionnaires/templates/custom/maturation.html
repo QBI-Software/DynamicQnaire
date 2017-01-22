@@ -25,6 +25,7 @@
                     <h3>Please select for {{twin1}}</h3>
                     {{ t1_formset.management_form }}
 
+
                     <div class="row">
                         <div class="col-sm-1"></div>
                         <div class="col-sm-8 form-group table-responsive" align="center">
@@ -42,7 +43,7 @@
                                 </thead>
                                 <tbody>
                                 {% for form in t1_formset %}
-                                {% if form.prefix == "twin1-0" %}
+                                {% if form.prefix == "twin1-1" %}
                                 <tr>
                                     <td>&nbsp;</td>
 
@@ -104,7 +105,7 @@
                                 </thead>
                                 <tbody>
                                 {% for form in t2_formset %}
-                                {% if form.prefix == "twin2-0" %}
+                                {% if form.prefix == "twin2-1" %}
                                 <tr>
                                     <td>&nbsp;</td>
 
@@ -153,15 +154,7 @@
     </form>
 </div>
 <script>
-$('#paneltable').fixedHeaderTable({ fixedColumn: true, footer:false,cloneHeadToFoot: false });
-$('#next').click(function(e){
-    var pos1 = $('#paneltable1').position();
 
-    $(#paneltable1).animate({ 'top': pos1.top + 'px', 'left': pos1.left + 'px'}, 200, function(){
-        //end of animation.. if you want to add some code here
-    });
-
-});
 
 
 </script>
