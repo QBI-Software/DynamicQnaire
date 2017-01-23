@@ -37,7 +37,7 @@ def baby_measurements(request, code):
     :return: custom questionnaire form
     """
     user = request.user
-    print("DEBUG: code=", code)
+    #print("DEBUG: code=", code)
     visit = SubjectVisit.objects.filter(parent1=user) | SubjectVisit.objects.filter(parent2=user)
     messages = ''
     template = 'custom/baby.html'
@@ -195,7 +195,7 @@ def maturation(request, code):
         token = request.POST['csrfmiddlewaretoken'] + str(time.time())
         if t1_formset.is_valid() and t2_formset.is_valid():
             #data in form.data['twin1-0-question'] etc
-            for i in range(0, len(Twin1_data)):
+            for i in range(1, len(Twin1_data)):
                 formid = 'twin1-%d-question' % i
                 val = request.POST[formid]  # TODO Validate data input
                 #qn = Question.objects.get(pk=Twin1_data[i]['qid'].pk)
@@ -211,7 +211,7 @@ def maturation(request, code):
                 tresult.save()
 
             # t2
-            for i in range(0, len(Twin2_data)):
+            for i in range(1, len(Twin2_data)):
                 formid = 'twin2-%d-question' % i
                 val = request.POST[formid]  # TODO Validate data input
                 #qn = Question.objects.get(pk=Twin1_data[i]['qid'].pk)
