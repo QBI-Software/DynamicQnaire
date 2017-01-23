@@ -2,6 +2,7 @@ from ckeditor_uploader.fields import RichTextUploadingField
 from colorfield.fields import ColorField
 from django.contrib.auth.models import User, Group
 from django.db import models
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils.translation import ugettext_lazy as _
 
 ##### DEFAULT COLORS ############################
@@ -68,6 +69,8 @@ class Question(models.Model):
     textcolor = ColorField(_("Text Color"),default=TCDEFAULT)
     css = models.PositiveSmallIntegerField(_("CSS class"), choices=CSSCLASSES, default=1)
     usegrid = models.BooleanField(_("Use Grid Layout"), default=False)
+    gridcols = models.PositiveSmallIntegerField(_("Number Columns in Grid Layout"), default=3, null=True, blank=True,validators=[ MaxValueValidator(5),  MinValueValidator(1)])
+    duplicate = models.BooleanField(_("Duplicate answers"), default=False)
 
     def num_choices(self):
         return self.choice_set.count()

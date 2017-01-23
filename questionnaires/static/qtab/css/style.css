@@ -165,7 +165,7 @@ input.imageradio:checked + img{ /* (RADIO CHECKED) IMAGE STYLES */
 
 /* RADIO buttons as boxes */
 #qtable tr th, #qtable tr td {
-    border-top:0;
+    border:0;
 }
 
 td.default,td.coloredbox{
@@ -177,7 +177,7 @@ td.default,td.coloredbox{
     -moz-border-radius: 5px; /* or 50% */
     border-radius: 5px; /* or 50% */
     border: 1px solid #ccc;
-    width:180px;
+    max-width:180px;
 }
 
 /* reds */
@@ -251,33 +251,38 @@ td.coloredbox input:checked{
 only screen and (max-width: 760px),
 (min-device-width: 768px) and (max-device-width: 1024px)  {
 
-	/* Force table to not be like tables anymore *
+	/* Force table to not be like tables anymore */
 	table, thead, tbody, th, td, tr {
 		display: block;
 	}
+	#qtable{
+	margin-left:25%;
+	}
 
-	/* Hide table headers (but not display: none;, for accessibility) *
+	/* Hide table headers (but not display: none;, for accessibility) */
 	thead tr {
 		position: absolute;
 		top: -9999px;
 		left: -9999px;
 	}
 
-	tr { border: 1px solid #ccc; }
-
-	td {
-		/* Behave  like a "row" *
+	/*tr { border: 1px solid #ccc; }*/
+    td { display:none;}
+	td.default, td.coloredbox {
+		/* Behave  like a "row" */
 		border: none;
 		border-bottom: 1px solid #eee;
 		position: relative;
-		padding-left: 50%;
-		white-space: normal;
+		/*padding-left: 50%;*/
+		white-space: normal !important;
+		horizontal-align:center;
+		text-align:center;
 	}
 
-	td:before {
-		/* Now like a table header *
+	td.default:before {
+		/* Now like a table header */
 		position: absolute;
-		/* Top/left values mimic padding *
+		/* Top/left values mimic padding */
 		top: 6px;
 		left: 6px;
 		width: 45%;
@@ -290,6 +295,8 @@ td.default{
   background:0;
   min-width:25%;
   opacity: 1.0;
+  white-space: normal;
+  border: 1px solid #ccc;
 }
 /* Special styled checkboxes with CSS3: http://code.stephenmorley.org/html-and-css/styling-checkboxes-and-radio-buttons/*/
 .btn-header{

@@ -1,6 +1,7 @@
 from captcha.fields import CaptchaField
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
+from django.core.exceptions import ObjectDoesNotExist
 from django.forms import Form, ModelForm
 from django.forms.formsets import BaseFormSet
 import re
@@ -63,6 +64,7 @@ class AnswerForm(Form):
             if self.textcolor != question.textcolor and question.textcolor != TCDEFAULT:
                 self.textcolor = question.textcolor
             self.usegrid = question.usegrid
+            self.gridcols = question.gridcols
             csslist = dict(question.CSSCLASSES)
             self.tdcss = csslist[question.css]
             choices = []
@@ -70,8 +72,22 @@ class AnswerForm(Form):
             usergrouplist = user.groups.values_list('name')
             #Replace Twin1 and Twin2 with appropriate names
             question.question_text = replaceTwinNames(user, question.question_text)
+            if question.duplicate:
+                qnlist = ['question', 'question2']
+                self.twin1 = 'Twin1'
+                self.twin2 = 'Twin2'
+                try:
+                    twins = SubjectVisit.objects.filter(parent1=user) | SubjectVisit.objects.filter(parent2=user)#Only for parent user
+                    self.twin1 = twins[0].subject.first_name
+                    self.twin2 = twins[1].subject.first_name
+                    self.t1 = twins[0].subject
+                    self.t2 = twins[1].subject
+                except ObjectDoesNotExist:
+                    print("Twins not found for this user=", user.id)
+            else:
+                qnlist = ['question']
 
-
+            # Options for choices
             for c in question.choice_set.order_by('pk'):
                 includeflag = 1
                 #If choice has groups - check they are in user groups
@@ -82,63 +98,63 @@ class AnswerForm(Form):
                 if includeflag:
                     index = (c.choice_value, c)
                     choices.append(index)
-            #Options for choices
 
-            if question.question_type == 1:
-                self.fields['question'] = forms.ChoiceField(
-                    label=question.question_text,
-                    help_text='radio',  # use this to detect type
-                    widget=forms.RadioSelect(attrs={'class': 'form-control'}),
-                    required=question.question_required,
-                    choices=choices,
+            for qnid in qnlist:
+                if question.question_type == 1:
+                    self.fields[qnid] = forms.ChoiceField(
+                        label=question.question_text,
+                        help_text='radio',  # use this to detect type
+                        widget=forms.RadioSelect(attrs={'class': 'form-control'}),
+                        required=question.question_required,
+                        choices=choices,
+                    )
+                elif question.question_type == 2:
+                    self.fields[qnid] = forms.MultipleChoiceField(
+                        label=question.question_text,
+                        help_text='checkbox',
+                        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-control'}),
+                        required=question.question_required,
+                        choices=choices,
                 )
-            elif question.question_type == 2:
-                self.fields['question'] = forms.MultipleChoiceField(
-                    label=question.question_text,
-                    help_text='checkbox',
-                    widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-control'}),
-                    required=question.question_required,
-                    choices=choices,
-            )
-            elif question.question_type == 3:
-                self.fields['question'] = forms.CharField(
-                    label=question.question_text,
-                    help_text='text',
-                    widget=forms.TextInput(attrs={'class': 'form-control'}),
-                    required=question.question_required,
+                elif question.question_type == 3:
+                    self.fields[qnid] = forms.CharField(
+                        label=question.question_text,
+                        help_text='text',
+                        widget=forms.TextInput(attrs={'class': 'form-control'}),
+                        required=question.question_required,
 
-                )
-            elif question.question_type == 4:
-                self.fields['question'] = forms.ChoiceField(
-                    label=question.question_text,
-                    widget=forms.Select(attrs={'class': 'form-control'}),
-                    help_text='select',
-                    required=question.question_required,
-                    choices=choices,
-                )
-            elif question.question_type == 5:
-                self.fields['question'] = forms.DateField(
-                    label=question.question_text,
-                    widget=forms.DateInput(format=('%d-%m-%Y'),
-                                           attrs={'class': 'form-control',
-                                             'type': 'date',
-                                             'placeholder': 'Select a date'}
-                                      ),
-                    help_text='date',
-                    required=question.question_required,
-                )
-            elif question.question_type == 6:
-                self.fields['question'] = forms.ChoiceField(
-                    label=question.question_text,
-                    widget=forms.Select(attrs={'class': 'form-control'}),
-                    help_text='slider',
-                    required=question.question_required,
-                    choices=choices,
-                )
+                    )
+                elif question.question_type == 4:
+                    self.fields[qnid] = forms.ChoiceField(
+                        label=question.question_text,
+                        widget=forms.Select(attrs={'class': 'form-control'}),
+                        help_text='select',
+                        required=question.question_required,
+                        choices=choices,
+                    )
+                elif question.question_type == 5:
+                    self.fields[qnid] = forms.DateField(
+                        label=question.question_text,
+                        widget=forms.DateInput(format=('%d-%m-%Y'),
+                                               attrs={'class': 'form-control',
+                                                 'type': 'date',
+                                                 'placeholder': 'Select a date'}
+                                          ),
+                        help_text='date',
+                        required=question.question_required,
+                    )
+                elif question.question_type == 6:
+                    self.fields[qnid] = forms.ChoiceField(
+                        label=question.question_text,
+                        widget=forms.Select(attrs={'class': 'form-control'}),
+                        help_text='slider',
+                        required=question.question_required,
+                        choices=choices,
+                    )
 
 
     class Meta:
-        fields =('question')
+        fields =('question', 'question2')
 
 ############### SINGLE PAGE #################
 class BaseQuestionFormSet(BaseFormSet):

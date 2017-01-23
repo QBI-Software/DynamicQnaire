@@ -31,6 +31,7 @@ from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic import FormView, RedirectView
 from formtools.wizard.views import SessionWizardView
 from ipware.ip import get_ip
+from django.contrib.auth.models import User
 
 try:
     from StringIO import StringIO
@@ -322,10 +323,11 @@ def download_report(request, *args, **kwargs):
             smart_str(u"Choice"),
             smart_str(u"Value"),
             smart_str(u"Text"),
+            smart_str(u"Tested"),
      ])
     testresults = TestResult.objects.filter(test_token=qs.session_token)
     for qresult in testresults:
-        #check testee == user
+        testee = qresult.testee
         choicetext = ""
         choicevalue = ""
         freetext = ""
@@ -349,6 +351,7 @@ def download_report(request, *args, **kwargs):
             smart_str(choicetext),
             smart_str(choicevalue),
             smart_str(freetext),
+            smart_str(testee),
         ])
         #Output any custom data as table
         if qs.questionnaire.type =='custom':
@@ -454,8 +457,6 @@ def load_questionnaire(request, *args, **kwargs):
         elif qnaire.type =='custom':
             code = qnaire.code.replace('-','')
             customurl = 'questionnaires:%s' % code
-            print("DEBUG: customurl=",customurl)
-            print("DEBUG: reverse=", reverse(customurl, kwargs={'code': qnaire.code}))
             return HttpResponseRedirect(reverse(customurl, kwargs={'code': qnaire.code}))
         else:
             num = 0
@@ -466,6 +467,7 @@ def load_questionnaire(request, *args, **kwargs):
             initdata = OrderedDict(linkdata)
             form = QuestionnaireWizard.as_view(form_list=formlist, initial_dict=initdata) #, condition_dict =cond_data)
     return form(context=RequestContext(request), request=request)
+
 
 class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
     template_name = 'questionnaires/qpage.html'
@@ -488,33 +490,44 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
         qnaire = qn.qid
         store_token = self.request.POST['csrfmiddlewaretoken'] + str(time.time())
         for key in form_dict:
+            f = form_dict.get(key)
             qn = self.initial_dict.get(key)['qid']
             #Get response
             response = list(form_list)[int(key)].cleaned_data
-            choiceidx = response['question']
-            if qn.question_type in [3,5]:
-                # Not choice but free text
-                answers = [choiceidx]
-            elif qn.question_type == 2:
-                answers = qn.choice_set.filter(choice_value__in=choiceidx)
-            else:
-                answers = qn.choice_set.filter(choice_value=choiceidx)
-
-            # Load save for each choice
-            for answer in answers:
-                tresult = TestResult()
-                tresult.testee = self.request.user
-                tresult.test_questionnaire = qnaire
-                tresult.test_result_question = qn
-                if qn.question_type == 5:
-                    tresult.test_result_date = answer
-                elif qn.question_type == 3:
-                    tresult.test_result_text = answer
+            if qn.duplicate:
+                questions = ['question','question2']
+                if isinstance(f.t1,User):
+                    users = [f.t2,f.t1]
                 else:
-                    tresult.test_result_choice = answer
+                    users = [self.request.user, self.request.user]
+            else:
+                questions = ['question']
+                users = [self.request.user]
+            for q in questions:
+                choiceidx = response[q]
+                if qn.question_type in [3,5]:
+                    # Not choice but free text
+                    answers = [choiceidx]
+                elif qn.question_type == 2:
+                    answers = qn.choice_set.filter(choice_value__in=choiceidx)
+                else:
+                    answers = qn.choice_set.filter(choice_value=choiceidx)
 
-                tresult.test_token = store_token
-                tresult.save()
+                # Load save for each choice
+                for answer in answers:
+                    tresult = TestResult()
+                    tresult.testee = users.pop()
+                    tresult.test_questionnaire = qnaire
+                    tresult.test_result_question = qn
+                    if qn.question_type == 5:
+                        tresult.test_result_date = answer
+                    elif qn.question_type == 3:
+                        tresult.test_result_text = answer
+                    else:
+                        tresult.test_result_choice = answer
+
+                    tresult.test_token = store_token
+                    tresult.save()
 
         # Store category for user
         subjectcat = SubjectQuestionnaire(subject=self.request.user, questionnaire=qnaire,

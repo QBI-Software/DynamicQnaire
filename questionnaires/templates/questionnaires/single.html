@@ -61,7 +61,7 @@
                                 {% if choice.1.show_label %}{{ choice.1.choice_text }}{% endif %}
                                 </label>
                                 {% if form.usegrid %}</td>
-                                    {% if forloop.counter|divisibleby:"3"%}</tr><tr>{% endif %}
+                                    {% if forloop.counter|divisibleby:\" + form.gridcols + \" %}</tr><tr>{% endif %}
                                 {%else %}</div>
                                 {% endif %}
 

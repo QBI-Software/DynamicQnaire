@@ -38,7 +38,7 @@
                     <img src="/static/media/{{ wizard.form.qimage }}" width="400px"
                          alt="{{wizard.form.question.label}}"/><br/>
                     {% endif %}
-    {% if wizard.form.question.field.choices %}
+                {% if wizard.form.question.field.choices %}
 
                      <label><h3>{{wizard.form.question.label}}</h3></label>
                     {% if wizard.form.question.errors %}
@@ -47,12 +47,26 @@
 
 
           {% if wizard.form.question.help_text == 'select' or wizard.form.question.help_text == 'slider'%}
-                <select class="form-control {{wizard.form.question.help_text}}" id="{{ wizard.form.question.id_for_label}}"
-                                        name="{{wizard.form.prefix}}-{{ wizard.form.question.name }}">
+                {% if wizard.form.question2 %}
+                    <h3><span class="label label-primary">{{wizard.form.twin1}}</span></h3>
+                {% endif %}
+                <select class="form-control {{wizard.form.question.help_text}}"
+                        id="{{ wizard.form.question.id_for_label}}"
+                        name="{{wizard.form.prefix}}-{{ wizard.form.question.name }}">
                                 {% for choice in wizard.form.question.field.choices %}
                                 <option value="{{ choice.0 }}">{{choice.1.choice_text}}</option>
                                 {% endfor %}
                </select>
+                    {% if wizard.form.question2 %}
+                    <h3><span class="label label-primary">{{wizard.form.twin2}}</span></h3>
+                    <select class="form-control {{wizard.form.question2.help_text}}"
+                            id="{{ wizard.form.question2.id_for_label}}"
+                            name="{{wizard.form.prefix}}-{{ wizard.form.question2.name }}">
+                                {% for choice in wizard.form.question2.field.choices %}
+                                <option value="{{ choice.0 }}">{{choice.1.choice_text}}</option>
+                                {% endfor %}
+               </select>
+                    {% endif %}
                 {% if  wizard.form.question.help_text == 'slider' %}
                     <span id="sliderparams" selectid="{{ wizard.form.question.id_for_label}}" rmin="{{wizard.form.question.field.choices.0.0}}" numoptions="{{wizard.form.question.field.choices|length}}"></span>
                     <div id="slider"></div>
@@ -61,9 +75,16 @@
 
             {% if wizard.form.usegrid %}
                     <table id="qtable" class="table"> <tbody> <tr>
+                        {% if wizard.form.question2 %}
+                        <td><h3><span class="label label-primary">{{wizard.form.twin1}}</span></h3></td>
+                        {% endif %}
             {% else %}
                     <div class="radio-list">
+                        {% if wizard.form.question2 %}
+                            <h3><span class="label label-primary">{{wizard.form.twin1}}</span></h3>
+                        {% endif %}
             {% endif %}
+                        <!--One set -->
             {% for choice in wizard.form.question.field.choices %}
             {% if wizard.form.usegrid %}
                  <td></td><td class="{{wizard.form.tdcss}} color{{forloop.counter}}">
@@ -87,19 +108,58 @@
                 </label>
 
             {% if wizard.form.usegrid %}</td>
-                {% if forloop.counter|divisibleby:"3"%}</tr><tr>{% endif %}
+                {% if forloop.counter|divisibleby:wizard.form.gridcols %}</tr><tr>{% endif %}
             {%else %}</div>
             {% endif %}
 
            {% endfor %}
+                <!-- Two set Question 2-->
+                {% if wizard.form.question2 %}
+                        <td><h3><span class="label label-primary">{{wizard.form.twin2}}</span></h3></td>
 
+                {% for choice in wizard.form.question2.field.choices %}
+            {% if wizard.form.usegrid %}
+                 <td></td><td class="{{wizard.form.tdcss}} color{{forloop.counter}}">
 
-            {% if wizard.form.usegrid %}</tr></tbody></table> {% else %} </div>{%endif%}
+            {%else %}
+                <div class="radio-default">
+            {% endif %}
+
+                <label><input type="{{wizard.form.question2.help_text}}"
+                              id="{{ wizard.form.question2.id_for_label}}"
+                              name="{{wizard.form.prefix}}-{{ wizard.form.question2.name }}"
+                              value="{{ choice.0 }}"
+                  {% if choice.1.choice_image %}
+                              class="imageradio"> <img src="/static/media/{{choice.1.choice_image }}"
+                                                       title="{{choice.1.choice_text}}"/>
+                    {% else %}
+                    />
+                    {% endif %}
+
+                    {% if choice.1.show_label %}{{ choice.1.choice_text }}{% endif %}
+                </label>
+
+            {% if wizard.form.usegrid %}</td>
+                {% if forloop.counter|divisibleby:wizard.form.gridcols %}</tr><tr>{% endif %}
+                {%else %}</div>
+            {% endif %}
+
+           {% endfor %}
+
 {% endif %}
+            {% if wizard.form.usegrid %}</tr></tbody></table> {% else %} </div>{%endif%}
+
+        {% endif %}
 
     {% else %}
                     <h3>{{wizard.form.question.field.label}}</h3>
-                    {{wizard.form.question}}
+                    {% if wizard.form.question2 %}
+                     <h3><span class="label label-primary">{{wizard.form.twin1}}</span></h3>
+                    {% endif %}{{wizard.form.question}}
+                    {% if wizard.form.question2 %}
+                     <h3><span class="label label-primary">{{wizard.form.twin2}}</span></h3>
+                    {{wizard.form.question2}}
+                    {% endif %}
     {% endif %}
 
 
