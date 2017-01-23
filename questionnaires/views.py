@@ -536,14 +536,15 @@ def singlepage_questionnaire(request,qnaire, questions):
     """
     user = request.user
     messages = ''
-    token = request.POST['csrfmiddlewaretoken'] + str(time.time())
+    qbgcolor = qnaire.bgcolor
+    qtextcolor = qnaire.textcolor
     # Create the formset, specifying the form and formset we want to use.
     LinkFormSet = formset_factory(AnswerForm, formset=BaseQuestionFormSet, validate_max=False)
     link_data = [{'qid': q, 'myuser': request.user} for q in questions]
 
     if request.method == 'POST':
         link_formset = LinkFormSet(request.POST) #cannot reload as dynamic
-
+        token = request.POST['csrfmiddlewaretoken'] + str(time.time())
         if link_formset.is_valid():
             # Now save the data for each form in the formset
             new_data = []
@@ -588,8 +589,7 @@ def singlepage_questionnaire(request,qnaire, questions):
 
     else:
         link_formset = LinkFormSet(initial=link_data)
-        qbgcolor = qnaire.bgcolor
-        qtextcolor = qnaire.textcolor
+
     context = {
         'formset': link_formset,
         'qtitle' : qnaire.title,

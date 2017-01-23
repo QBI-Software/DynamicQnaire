@@ -168,7 +168,7 @@ input.imageradio:checked + img{ /* (RADIO CHECKED) IMAGE STYLES */
     border-top:0;
 }
 
-td.coloredbox{
+td.default,td.coloredbox{
     display:block;
     background-color:antiquewhite;
     /*text-align:center;*/
@@ -177,7 +177,7 @@ td.coloredbox{
     -moz-border-radius: 5px; /* or 50% */
     border-radius: 5px; /* or 50% */
     border: 1px solid #ccc;
-    width:190px;
+    width:180px;
 }
 
 /* reds */
@@ -289,6 +289,7 @@ only screen and (max-width: 760px),
 td.default{
   background:0;
   min-width:25%;
+  opacity: 1.0;
 }
 /* Special styled checkboxes with CSS3: http://code.stephenmorley.org/html-and-css/styling-checkboxes-and-radio-buttons/*/
 .btn-header{
@@ -362,6 +363,7 @@ width:400px;}
 .customtable > tbody > tr > td > input[type=date]{
     width:160px;
 }
+/* Not used
 .paneltable{
     width:400px;
     margin-left:200px;
@@ -385,7 +387,7 @@ width:400px;}
     margin:0 50px;
     overflow:hidden;
 }
-
+*/
 /* Overrides nowrap of btn class */
 .allowwrap{
     white-space:normal !important;
@@ -414,11 +416,8 @@ width:400px;}
 .temp {
   position: absolute;
   color: #666;
-
   bottom: 15px;
-  /*left: 15px;
-  font-family: 'Josefin Slab', serif;
-  font-weight: 100;font-size: 100px;*/
+
 }
 .temp table{
 
@@ -436,15 +435,7 @@ width:400px;}
     height:130px;
     margin-top:10px;
 }
-/*#slide-0 {
-  background-image: url(http://farm8.staticflickr.com/7347/8731666710_34d07e709e_z.jpg);
-}
-#slide-1 {
-  background-image: url(http://farm8.staticflickr.com/7384/8730654121_05bca33388_z.jpg);
-}
-#slide-2 {
-  background-image: url(http://farm8.staticflickr.com/7382/8732044638_9337082fc6_z.jpg);
-}*/
+
 .slide:before {
   content: "";
   position: absolute;
