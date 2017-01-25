@@ -32,6 +32,7 @@ from django.views.generic import FormView, RedirectView
 from formtools.wizard.views import SessionWizardView
 from ipware.ip import get_ip
 from django.contrib.auth.models import User
+from django.utils import six
 
 try:
     from StringIO import StringIO
@@ -435,6 +436,25 @@ class TestResultDelete(LoginRequiredMixin, PermissionRequiredMixin, generic.Form
 
 
 ################QUESTIONNAIRE FORMS ###################################
+
+# def showif_previous_0(wizard):
+#     currentstep = '0' #assumes first
+#     if wizard.storage.current_step:
+#         currentstep = wizard.storage.current_step
+#     fdata = wizard.storage.get_step_data(currentstep)
+#     print("Process step: fdata=", fdata)
+#     # self.get_cleaned_data_for_step(currentstep)  #
+#     qn_val = '0'
+#     field = 'question'
+#     print("Process step: condition=", qn_val, " field=", field)
+#     print("Process step: form value=", fdata[field])
+#     return fdata[field] != qn_val
+#
+#
+# def return_true(wizard): #  callable function called in _condition_dict
+#     print("DEBUG: RETURN TRUE")
+#     return True
+
 @login_required
 def load_questionnaire(request, *args, **kwargs):
     """ Prepare questionnaire wizard with required questions """
@@ -450,7 +470,8 @@ def load_questionnaire(request, *args, **kwargs):
         #Set initial data
         linkdata = {}
         condata = {}
-
+        conditional_actions = {0:True, 1: 'showif_1', 2: 'skipif_1'}
+        #conditional_actions = {1: showif_previous_0, 2: showif_previous_0}
         #Setup empty forms
         if qnaire.type == 'single':
             return singlepage_questionnaire(request, qnaire, questions)
@@ -462,10 +483,11 @@ def load_questionnaire(request, *args, **kwargs):
             num = 0
             for q in questions:
                 linkdata[str(num)] = {'qid': q}
+                condata[str(num)] = conditional_actions[q.conditional]
                 num += 1
             formlist = [AnswerForm] * questions.count()
             initdata = OrderedDict(linkdata)
-            form = QuestionnaireWizard.as_view(form_list=formlist, initial_dict=initdata) #, condition_dict =cond_data)
+            form = QuestionnaireWizard.as_view(form_list=formlist, initial_dict=initdata, condition_dict =condata)
     return form(context=RequestContext(request), request=request)
 
 
@@ -473,13 +495,42 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
     template_name = 'questionnaires/qpage.html'
     file_storage = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'photos'))
 
+
     def dispatch(self, request, *args, **kwargs):
         return super(QuestionnaireWizard, self).dispatch(request, *args, **kwargs)
 
+    def process_step(self, form):
+        rtn = True
+        currentstep = str(self.steps.current)
+        nextstep = int(self.steps.current) + 1
+        nextstep = str(nextstep)
+        fdata = self.get_form_step_data(form) #fdata = self.get_cleaned_data_for_step(currentstep)
+        #print("Process step: fdata=", fdata)
+        # self.get_cleaned_data_for_step(currentstep)  #
+        condition = self.condition_dict.get(currentstep)
+        if (not isinstance(condition,bool)):
+            field = '%d-question' % int(currentstep)
+            #print("Process step: condition=", condition, " field=", field)
+            #print("Process step: form value=", fdata[field])
+            check_val = condition.split('_')[-1]
+            if condition.split('_')[0]=='showif':
+                self.condition_dict[nextstep] = (check_val == fdata[field])
+
+            elif condition.split('_')[0]=='skipif':
+                self.condition_dict[nextstep] = (check_val != fdata[field])
+            #Update dict
+            self.request.session['conditionals'] = self.condition_dict
+            #print("DEBUG: Conditionals=", self.condition_dict)
+            #print("DEBUG: Forms=", self.get_form_list())
+        return self.get_form_step_data(form)
 
     def get_form_initial(self, step):
         initial = self.initial_dict.get(step)
         initial.update({'myuser': self.request.user})
+        #TODO conditionals - do not allow overwrite
+        if self.request.session.get('conditionals'):
+            self.condition_dict = self.request.session.get('conditionals')
+
         return initial
 
     # In addition to form_list, the done() method is passed a form_dict, which allows you to access the wizard’s forms based on their step names.
@@ -489,11 +540,14 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
         qn = self.initial_dict.get('0')['qid']
         qnaire = qn.qid
         store_token = self.request.POST['csrfmiddlewaretoken'] + str(time.time())
+        idx = [key for key in form_dict]
         for key in form_dict:
             f = form_dict.get(key)
+            i = idx.index(key)
             qn = self.initial_dict.get(key)['qid']
             #Get response
-            response = list(form_list)[int(key)].cleaned_data
+            response = list(form_list)[i].cleaned_data
+
             if qn.duplicate:
                 questions = ['question','question2']
                 if isinstance(f.t1,User):

@@ -56,8 +56,10 @@ class Questionnaire(models.Model):
 class Question(models.Model):
     INPUTS = ((1, 'Radio'), (2, 'Checkbox'), (3, 'Textfield'), (4, 'Dropdown'), (5,'Date'), (6,'Slider'))
     CSSCLASSES = ((1, 'default'), (2, 'coloredbox'))
+    CONDITIONALS = ((0,'None'),(1,'Show next if this value is 1'),(2,'Skip next if this value is 0'))
     qid = models.ForeignKey(Questionnaire, verbose_name="Questionnaire", null=False)
-    order = models.PositiveSmallIntegerField(_("Number"), default=0)
+    order = models.PositiveSmallIntegerField(_("Order"), default=0)
+    conditional = models.PositiveSmallIntegerField(_("Conditional"), default=0, choices=CONDITIONALS)
     question_required = models.BooleanField(_("Required"), default=True)
     question_text = models.CharField(_("Question Text"), max_length=500)
     question_image = models.ImageField(verbose_name="Question Image", null=True, blank=True)
