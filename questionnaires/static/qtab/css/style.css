@@ -349,11 +349,11 @@ td.default{
     box-shadow: none;
 }
 
-/* Slider
-#slider{
+/* Slider - NB there  is also a slider with sliding windows so don't use ID*/
+.ui-slider{
     margin:10px 0;
     width:50%;
-}*/
+}
 span.sliderparams{
     padding:0px 10px;
     }
