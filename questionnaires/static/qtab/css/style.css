@@ -79,6 +79,9 @@ ul.errorlist{
     list-display-type:none;
     }
 
+select{
+    max-width: 100%;
+    }
 /**Report **/
 #report-logo{
     margin: 0 40px 0 0;
