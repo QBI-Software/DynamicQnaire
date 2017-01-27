@@ -28,7 +28,7 @@
                             {% endif %}
 
                            {% if form.qimage %}
-                            <img src="/static/media/{{ form.qimage }}" max-width="400px" alt="{{form.question.label}}"/><br/>
+                            <img src="/media/{{ form.qimage }}" max-width="400px" alt="{{form.question.label}}"/><br/>
                             {% endif %}
 
                             </th>
@@ -65,7 +65,7 @@
                                             name="{{form.prefix}}-{{ form.question.name }}"
                                             value="{{ choice.0 }}"
                                     {% if choice.1.choice_image %}
-                                            class="imageradio"> <img src="/static/media/{{choice.1.choice_image }}"
+                                            class="imageradio"> <img src="/media/{{choice.1.choice_image }}"
                                                        title="{{choice.1.choice_text}}"/>
                                     {% else %}
                                     />
