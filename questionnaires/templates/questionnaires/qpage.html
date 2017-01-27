@@ -76,7 +76,7 @@
           {% else %}
 
             {% if wizard.form.usegrid %}
-                    <table id="qtable" class="table"> <tbody> <tr>
+                    <table id="qtable" class="table columns-{{wizard.form.gridcols}}"> <tbody> <tr>
                         {% if wizard.form.question2 %}
                         <td><h3><span class="label label-primary">{{wizard.form.twin1}}</span></h3></td>
                         {% endif %}
@@ -121,7 +121,7 @@
 
                 {% for choice in wizard.form.question2.field.choices %}
             {% if wizard.form.usegrid %}
-                 <td class="{{wizard.form.tdcss}} color{{forloop.counter}}">
+                 <td class="{{wizard.form.tdcss}} color{{forloop.counter}} ">
 
             {%else %}
                 <div class="radio-default">

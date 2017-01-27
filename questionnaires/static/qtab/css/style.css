@@ -173,19 +173,20 @@ input.imageradio:checked + img{ /* (RADIO CHECKED) IMAGE STYLES */
 }
 #qtable tr th, #qtable tr td {
     border:0;
+
 }
 
 
-td.default,td.coloredbox{
+td.default, td.coloredbox{
 
-    background-color:antiquewhite;
-    /*display:block;text-align:center;*/
+    /*background-color:antiquewhite;
+    display:block;text-align:center;*/
     margin:20px 0;
     opacity: 0.8;
     -moz-border-radius: 5px; /* or 50% */
     border-radius: 5px; /* or 50% */
     border: 1px solid #ccc;
-    max-width:180px;
+
 }
 #qtable td h3{
     margin:0;
@@ -243,6 +244,7 @@ td.color11{
 td.color12{
   background-color:darkkhaki;
 }
+
 td.coloredbox label{
     /*margin-left: -30px;*/
     width: 100%;
@@ -269,6 +271,20 @@ td.coloredbox input:checked{
     height: 80px;
 
 }
+/* Render for 2 cols */
+table.columns-2{
+    width:75%;
+    }
+table.columns-2 td{
+  width:200px;
+  }
+table.columns-2 td label{
+    margin-left: -20px;
+    margin-top: 10px;
+    }
+table.columns-2 td input{
+    width:auto;
+    }
 
 @media
 only screen and (max-width: 760px)  {
