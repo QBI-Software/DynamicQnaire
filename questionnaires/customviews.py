@@ -36,25 +36,42 @@ def baby_measurements(request, code):
     :param code: Questionnaire code from URL
     :return: custom questionnaire form
     """
+
+    messages = ''
+    template = 'custom/baby.html'
     user = request.user
     #print("DEBUG: code=", code)
     visit = SubjectVisit.objects.filter(parent1=user) | SubjectVisit.objects.filter(parent2=user)
-    messages = ''
-    template = 'custom/baby.html'
     if visit:
-        t1 = visit[0].subject.username
-        if visit[0].subject.first_name:
-            t1 = visit[0].subject.first_name
-        t2 = visit[1].subject.username
-        if visit[1].subject.first_name:
-            t2 = visit[1].subject.first_name
-
+        twin1 = visit[0].subject
+        twin2 = visit[1].subject
+        t1 = twin1.username
+        if twin1.first_name:
+            t1 = twin1.first_name
+        t2 = twin2.username
+        if twin2.first_name:
+            t2 = twin2.first_name
+        twins = [twin2, twin1]
     else:
-        t1 = 'Twin1'
-        t2 = 'Twin2'
+        t1 = 'Twin 1'
+        t2 = 'Twin 2'
         messages ='No twins found for this user'
 
-    qnaire = Questionnaire.objects.get(code=code)
+    try:
+        qnaire = Questionnaire.objects.get(code=code)
+    except ObjectDoesNotExist:
+        raise ValueError('Unable to find questionnaire')
+
+    #Allow question text to be edited
+    if qnaire.question_set.count() != 2:
+        raise ValueError('Two questions need to be set up for this custom questionnaire')
+    else:
+        Twin_questions = qnaire.question_set.all().order_by('order')
+        print("DEBUG: Twin-q=", Twin_questions, ' 0:', Twin_questions[0])
+        q1 = re.sub('Twin1', t1, Twin_questions[0].question_text, flags=re.IGNORECASE)
+        q2 = re.sub('Twin2', t2, Twin_questions[1].question_text, flags=re.IGNORECASE)
+        questions = [Twin_questions[1],Twin_questions[0]]
+
     #Both twins on one page
     Twin1FormSet = formset_factory(BABYForm1, extra=5)
     Twin2FormSet = formset_factory(BABYForm1, extra=5)
@@ -64,16 +81,20 @@ def baby_measurements(request, code):
         token = request.POST['csrfmiddlewaretoken'] + str(time.time())
         if t1_formset.is_valid() and t2_formset.is_valid():
             headers = ['Twin', 'Date','Age', 'Head', 'Length', 'Weight']
-            #t1
-            t1_answer = {}
-            rnum = 1
-            t1_answer[0] = headers
-            for form in t1_formset:
-                #if form.has_changed():
-                tdate = form.cleaned_data.get('measurement_date')
-                if isinstance(tdate, datetime.date):
-                    tfdate = tdate.strftime('%d-%m-%Y')
-                    t1_answer[rnum] = [t1, tfdate,
+
+            for fmset in [t1_formset, t2_formset]:
+                t_answer = {}
+                t_answer[0] = headers
+                rnum = 1
+                if visit:
+                    testee = twins.pop()
+                else:
+                    testee = user
+                for form in fmset:
+                    tdate = form.cleaned_data.get('measurement_date')
+                    if isinstance(tdate, datetime.date):
+                        tfdate = tdate.strftime('%d-%m-%Y')
+                    t_answer[rnum] = [testee.username, tfdate,
                                        form.cleaned_data.get('measurement_age'),
                                        form.cleaned_data.get('measurement_head'),
                                        form.cleaned_data.get('measurement_length'),
@@ -81,44 +102,13 @@ def baby_measurements(request, code):
                                        ]
                     rnum += 1
 
-            tresult = TestResult()
-            if visit:
-                tresult.testee = visit[0].subject
-            else:
-                tresult.testee = user
-            tresult.test_questionnaire = qnaire
-            tresult.test_result_question = qnaire.question_set.all()[0] #check these exist
-            tresult.test_result_text = t1_answer
-            tresult.test_token = token
-            tresult.save()
-
-            # t2
-            t2_answer = {}
-            rnum = 1
-            t2_answer[0] = headers
-            for form in t2_formset:
-                #if form.has_changed():
-                tdate = form.cleaned_data.get('measurement_date')
-                if type(tdate) is datetime:
-                    tfdate = tdate.strftime('%d-%m-%Y')
-                    t2_answer[rnum] = [t2, tfdate,
-                                        form.cleaned_data.get('measurement_age'),
-                                        form.cleaned_data.get('measurement_head'),
-                                        form.cleaned_data.get('measurement_length'),
-                                        form.cleaned_data.get('measurement_weight'),
-                                       ]
-                    rnum += 1
-
-            tresult = TestResult()
-            if visit:
-                tresult.testee = visit[1].subject
-            else:
-                tresult.testee = user
-            tresult.test_questionnaire = qnaire
-            tresult.test_result_question = qnaire.question_set.all()[1]
-            tresult.test_result_text = t2_answer
-            tresult.test_token = token
-            tresult.save()
+                tresult = TestResult()
+                tresult.testee = testee
+                tresult.test_questionnaire = qnaire
+                tresult.test_result_question = questions.pop()
+                tresult.test_result_text = t_answer
+                tresult.test_token = token
+                tresult.save()
 
             # Save user info with category
             template = 'questionnaires/done.html'
@@ -139,6 +129,8 @@ def baby_measurements(request, code):
         'qtitle': qnaire.title,
         'twin1': t1,
         'twin2': t2,
+        'q1' : q1,
+        'q2' : q2,
         'messages': messages,
     })
 

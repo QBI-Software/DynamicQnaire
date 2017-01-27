@@ -73,7 +73,8 @@
 
                                 </div>
                             </div>
-                            <nav class="slider-nav">
+                            <h3>Stage</h3>
+                            <nav id="slider-nav1" class="slider-nav">
                                 <a href="#slide-0" class="active">1</a>
                                 <a href="#slide-1">2</a>
                                 <a href="#slide-2">3</a>
@@ -143,7 +144,7 @@
                                 </div>
                             </div>
 
-                            <nav class="slider-nav">
+                            <h3>Stage</h3><nav id="slider-nav2" class="slider-nav">
                                 <a href="#slide2-0" class="active">1</a>
                                 <a href="#slide2-1">2</a>
                                 <a href="#slide2-2">3</a>
@@ -169,12 +170,12 @@
 
   el: {
     slider: $("#slider"),
-    allSlides: $("#t1 > .slide"),
-    sliderNav: $("#t1 > .slider-nav"),
-    allNavButtons: $("#t1 > .slider-nav > a")
+    allSlides: $("#slider > .holder > .slide"),
+    sliderNav: $("#slider-nav1"),
+    allNavButtons: $("#slider-nav1 > a")
   },
 
-  timing: 5000,
+  timing: 800,
   slideWidth: 300, // could measure this
 
   // In this simple example, might just move the
@@ -222,9 +223,9 @@
 var slider2 = {
   el: {
     slider: $("#slider2"),
-    allSlides: $("#t2 > .slide"),
-    sliderNav: $("#t2 > .slider-nav"),
-    allNavButtons: $("#t2 > .slider-nav > a")
+    allSlides: $("#slider2 > .holder > .slide"),
+    sliderNav: $("#slider-nav2"),
+    allNavButtons: $("#slider-nav2 > a")
   },
 
   timing: 800,
@@ -234,16 +235,17 @@ var slider2 = {
   // binding here to the init function
   init: function() {
     this.bindUIEvents();
+
   },
 
   bindUIEvents: function() {
     // You can either manually scroll...
     this.el.slider.on("scroll", function(event) {
-      slider.moveSlidePosition(event);
+      slider2.moveSlidePosition(event);
     });
     // ... or click a thing
     this.el.sliderNav.on("click", "a", function(event) {
-      slider.handleNavClick(event, this);
+      slider2.handleNavClick(event, this);
     });
   },
 
@@ -255,6 +257,7 @@ var slider2 = {
   },
 
   handleNavClick: function(event, el) {
+
     event.preventDefault();
     var position = $(el).attr("href").split("-").pop();
 
@@ -273,6 +276,7 @@ var slider2 = {
 };
 
 slider.init();
+
 slider2.init();
 
 $( ":input:radio" ).click(function(event) {

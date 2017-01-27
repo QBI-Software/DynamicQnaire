@@ -1,45 +1,58 @@
 {% extends "questionnaires/base.html" %}
-{% block content %}
+{% load staticfiles %}
+{% block title %}Questionnaire{% endblock %}
+{% load i18n %}
+{% block head %}
 {{ form.media }}
-<div class="container-ui">
+{% endblock %}
+{% block content %}
+
+<div class="container-fluid ui-content">
     <h1>{{qtitle}}</h1>
     <div class="row">
         <div class="col-sm-12">
             <div class="well" style="background-color:{{qbgcolor}}; color:{{qtextcolor}};">
-                {{messages}}
+                <div id="msg">{{messages}}</div>
                 <form method="POST" action="">
                     {% csrf_token %}
                     {{ formset.management_form }}
                     {{ formset.non_form_errors }}
-<table id="single_page" class="table table-condensed">
+                <table id="single_page" class="table table-condensed">
                         {% for form in formset %}
-
-
-                        {{form.non_field_errors }}
-                       <tr><th><h3>{{form.question.label}}</h3>
+                       {{form.non_field_errors }}
+                       <tr>
+                           <th>
+                               <h3>{{form.question.label}}</h3>
                            {% if form.question.errors %}
                             <p>{{ form.question.errors.as_ul }}</p>
                             {% endif %}
 
                            {% if form.qimage %}
-                            <img src="/media/{{ form.qimage }}" width="400px"
-                         alt="{{form.question.label}}"/><br/>
-                         {% endif %}
+                            <img src="/static/media/{{ form.qimage }}" max-width="400px" alt="{{form.question.label}}"/><br/>
+                            {% endif %}
 
                             </th>
                            <td>
 
                         {% if form.question.field.choices %}
-                            {% if form.question.help_text == 'select' %}
-                                <select class="form-control" id="{{ form.question.id_for_label}}"
+                            {% if form.question.help_text == 'select'  or form.question.help_text == 'slider'%}
+                                <select class="form-control {{form.question.help_text}}" id="{{ form.question.id_for_label}}"
                                                         name="{{form.prefix}}-{{ form.question.name }}">
                                                 {% for choice in form.question.field.choices %}
                                                 <option value="{{ choice.0 }}">{{choice.1.choice_text}}</option>
                                                 {% endfor %}
                                 </select>
+                               {% if  form.question.help_text == 'slider'%}
+                                <span id="sliderparams-{{forloop.counter}}" class="sliderparams"
+                                      selectid="{{ form.question.id_for_label}}"
+                                      counter="{{forloop.counter}}"
+                                      rmin="{{form.question.field.choices.0.0}}"
+                                      numoptions="{{form.question.field.choices|length}}"></span>
+                                <div id="slider-{{forloop.counter}}"></div>
+                                {% endif%}
                             {% else %}
                                 {% if form.usegrid %}
-                                <table id="qtable" class="table"> <tbody> <tr>
+                                <table class="table"> <tbody> <tr>
                                 {% else %}
                                 <div class="radio-list">
                                 {% endif %}
@@ -52,7 +65,7 @@
                                             name="{{form.prefix}}-{{ form.question.name }}"
                                             value="{{ choice.0 }}"
                                     {% if choice.1.choice_image %}
-                                            class="imageradio"> <img src="/media/{{choice.1.choice_image }}"
+                                            class="imageradio"> <img src="/static/media/{{choice.1.choice_image }}"
                                                        title="{{choice.1.choice_text}}"/>
                                     {% else %}
                                     />
@@ -61,7 +74,7 @@
                                 {% if choice.1.show_label %}{{ choice.1.choice_text }}{% endif %}
                                 </label>
                                 {% if form.usegrid %}</td>
-                                    {% if forloop.counter|divisibleby:\" + form.gridcols + \" %}</tr><tr>{% endif %}
+                                    {% if forloop.counter|divisibleby:wizard.form.gridcols %}</tr><tr>{% endif %}
                                 {%else %}</div>
                                 {% endif %}
 
@@ -87,4 +100,28 @@
         </div>
     </div>
 </div>
+<script type="text/javascript" src="{% static "qtab/js/qtab.js" %}"></script>
+<script type="text/javascript">
+$( ".sliderparams" ).each(function( index ) {
+    var minrange = parseInt($(this).attr("rmin"));
+    var num = parseInt($(this).attr("numoptions"));
+    var selectid = "#" + $(this).attr("selectid");
+    var select = $(selectid);
+    var sliderid = "#slider-" + $(this).attr("counter");
+
+    $( sliderid ).slider({
+        range:"min",
+        min: minrange,
+        max: num,
+        value: select[ 0 ].selectedIndex + 1,
+        slide: function( event, ui ) {
+          select[ 0 ].selectedIndex = ui.value - 1;
+        }
+    });
+    select.on( "change", function() {
+          $( sliderid ).slider( "value", this.selectedIndex + 1 );
+        });
+    });
+
+	</script>
 {% endblock content %}

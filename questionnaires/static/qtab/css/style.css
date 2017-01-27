@@ -164,14 +164,19 @@ input.imageradio:checked + img{ /* (RADIO CHECKED) IMAGE STYLES */
 }
 
 /* RADIO buttons as boxes */
+#qtable{
+    border-collapse: separate;
+    border-spacing: 10px;
+}
 #qtable tr th, #qtable tr td {
     border:0;
 }
 
+
 td.default,td.coloredbox{
-    display:block;
+
     background-color:antiquewhite;
-    /*text-align:center;*/
+    /*display:block;text-align:center;*/
     margin:20px 0;
     opacity: 0.8;
     -moz-border-radius: 5px; /* or 50% */
@@ -179,7 +184,22 @@ td.default,td.coloredbox{
     border: 1px solid #ccc;
     max-width:180px;
 }
-
+#qtable td h3{
+    margin:0;
+    }
+.sidelabel span{
+    float:left;
+    width: 20%;
+    height: 30px;
+    margin-right:10%;
+    margin-left:25%;
+    vertical-align:middle;
+    padding: 5px;
+}
+select.select{
+    float:left;
+    width:auto;
+    }
 /* reds */
 td.color1{
   background-color:mediumseagreen;
@@ -248,12 +268,12 @@ td.coloredbox input:checked{
 }
 
 @media
-only screen and (max-width: 760px),
-(min-device-width: 768px) and (max-device-width: 1024px)  {
+only screen and (max-width: 760px)  {
 
 	/* Force table to not be like tables anymore */
 	table, thead, tbody, th, td, tr {
 		display: block;
+		margin:0;
 	}
 	#qtable{
 	margin-left:25%;
@@ -267,7 +287,7 @@ only screen and (max-width: 760px),
 	}
 
 	/*tr { border: 1px solid #ccc; }*/
-    td { display:none;}
+
 	td.default, td.coloredbox {
 		/* Behave  like a "row" */
 		border: none;
@@ -275,7 +295,6 @@ only screen and (max-width: 760px),
 		position: relative;
 		/*padding-left: 50%;*/
 		white-space: normal !important;
-		horizontal-align:center;
 		text-align:center;
 	}
 
@@ -305,11 +324,6 @@ td.default{
 
 /* Single page questionnaire */
 /* Form layout */
-/*label, input, select {
-    min-width:200px;
-    min-height:25px;
-}
-*/
 
 #single_page label{
     min-width:200px;
@@ -318,7 +332,6 @@ td.default{
 }
 #single_page td{
  vertical-align:middle !important;
-
 }
 
 #single_page li{
@@ -336,17 +349,25 @@ td.default{
     box-shadow: none;
 }
 
-/* Slider */
+/* Slider
 #slider{
     margin:10px 0;
     width:50%;
-}
+}*/
+span.sliderparams{
+    padding:0px 10px;
+    }
 select.slider{
-width:auto;
+    width:auto;
 }
 
 /*Resize images */
 
+@media screen and (max-width: 740px) {
+ #single_page td{
+     border: 0;
+    }
+   }
 @media screen and (max-width: 480px) {
     .navbar-brand img{
         left:300px;
@@ -358,6 +379,7 @@ width:auto;
     body{
     width:480px;
     }
+
 }
 
 /*Custom forms */
@@ -457,7 +479,7 @@ width:400px;}
   margin: 10px 0;
 }
 .slider-nav a {
-  width: 25px;
+  width: 35px;
   height: 25px;
   display: inline-block;
   background: #ccc;
@@ -465,8 +487,9 @@ width:400px;}
   /*text-indent: -9999px;*/
   border-radius: 50%;
   font-size:larger;
-  color: #666;
+  color: #3c763d;
 }
 .slider-nav a.active {
-  background: #999;
+  background: #3c763d;
+  color: white;
 }

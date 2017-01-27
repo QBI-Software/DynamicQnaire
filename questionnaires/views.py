@@ -213,6 +213,11 @@ class IndexView(generic.ListView):
         #Reorder list by 'order' to allow manual override
         qlist = sorted(qlist, key=operator.attrgetter('order'))
         rlist = sorted(rlist, key=operator.attrgetter('date_stored'), reverse=True)
+        # Reset session conditional data
+        if self.request.session.get('conditionals'):
+            print("DEBUG: FORM_INITIAL: Reset conditionals")
+            self.request.session['conditionals'] = {}
+
 
         context['questionnaire_list'] = qlist
         context['result_list']= rlist
@@ -483,10 +488,12 @@ def load_questionnaire(request, *args, **kwargs):
             num = 0
             for q in questions:
                 linkdata[str(num)] = {'qid': q}
-                condata[str(num)] = conditional_actions[q.conditional]
+                if q.conditional:
+                    condata[str(num)] = conditional_actions[q.conditional]
                 num += 1
             formlist = [AnswerForm] * questions.count()
             initdata = OrderedDict(linkdata)
+            print("DEBUG: Initial Conditionals=", condata)
             form = QuestionnaireWizard.as_view(form_list=formlist, initial_dict=initdata, condition_dict =condata)
     return form(context=RequestContext(request), request=request)
 
@@ -505,13 +512,14 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
         nextstep = int(self.steps.current) + 1
         nextstep = str(nextstep)
         fdata = self.get_form_step_data(form) #fdata = self.get_cleaned_data_for_step(currentstep)
-        #print("Process step: fdata=", fdata)
+        print("DEBUG: Process step: fdata=", fdata)
         # self.get_cleaned_data_for_step(currentstep)  #
         condition = self.condition_dict.get(currentstep)
-        if (not isinstance(condition,bool)):
+        print("DEBUG: Process step: condition=", condition)
+        if (condition is not None and not isinstance(condition,bool)):
             field = '%d-question' % int(currentstep)
-            #print("Process step: condition=", condition, " field=", field)
-            #print("Process step: form value=", fdata[field])
+            print("DEBUG: Process step: condition=", condition, " field=", field)
+            print("DEBUG: Process step: form value=", fdata[field])
             check_val = condition.split('_')[-1]
             if condition.split('_')[0]=='showif':
                 self.condition_dict[nextstep] = (check_val == fdata[field])
@@ -520,27 +528,30 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
                 self.condition_dict[nextstep] = (check_val != fdata[field])
             #Update dict
             self.request.session['conditionals'] = self.condition_dict
-            #print("DEBUG: Conditionals=", self.condition_dict)
-            #print("DEBUG: Forms=", self.get_form_list())
+            print("DEBUG: PROCESS STEP: Conditionals=", self.condition_dict)
+            print("DEBUG: PROCESS STEP: Forms=", self.get_form_list())
         return self.get_form_step_data(form)
 
     def get_form_initial(self, step):
         initial = self.initial_dict.get(step)
         initial.update({'myuser': self.request.user})
-        #TODO conditionals - do not allow overwrite
+        #Sesion conditionals - do not allow overwrite but need to detect new questionnaire
+        print("DEBUG: FORM_INITIAL: step=", step, " type=", type(step))
         if self.request.session.get('conditionals'):
+            print("DEBUG: FORM_INITIAL: Load conditionals from session")
             self.condition_dict = self.request.session.get('conditionals')
 
         return initial
 
     # In addition to form_list, the done() method is passed a form_dict, which allows you to access the wizard’s forms based on their step names.
     def done(self, form_list, form_dict, **kwargs):
-
         # Find question and questionnaire
         qn = self.initial_dict.get('0')['qid']
         qnaire = qn.qid
         store_token = self.request.POST['csrfmiddlewaretoken'] + str(time.time())
         idx = [key for key in form_dict]
+        formuser =self.request.user
+
         for key in form_dict:
             f = form_dict.get(key)
             i = idx.index(key)
@@ -550,13 +561,14 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
 
             if qn.duplicate:
                 questions = ['question','question2']
-                if isinstance(f.t1,User):
+                if (hasattr(f,'t1') and isinstance(f.t1,User)):
                     users = [f.t2,f.t1]
                 else:
-                    users = [self.request.user, self.request.user]
+                    users = [formuser, formuser]
             else:
                 questions = ['question']
-                users = [self.request.user]
+                users = [formuser]
+
             for q in questions:
                 choiceidx = response[q]
                 if qn.question_type in [3,5]:
@@ -566,11 +578,11 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
                     answers = qn.choice_set.filter(choice_value__in=choiceidx)
                 else:
                     answers = qn.choice_set.filter(choice_value=choiceidx)
-
+                testee = users.pop()
                 # Load save for each choice
                 for answer in answers:
                     tresult = TestResult()
-                    tresult.testee = users.pop()
+                    tresult.testee = testee
                     tresult.test_questionnaire = qnaire
                     tresult.test_result_question = qn
                     if qn.question_type == 5:

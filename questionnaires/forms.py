@@ -78,10 +78,11 @@ class AnswerForm(Form):
                 self.twin2 = 'Twin2'
                 try:
                     twins = SubjectVisit.objects.filter(parent1=user) | SubjectVisit.objects.filter(parent2=user)#Only for parent user
-                    self.twin1 = twins[0].subject.first_name
-                    self.twin2 = twins[1].subject.first_name
-                    self.t1 = twins[0].subject
-                    self.t2 = twins[1].subject
+                    if twins:
+                        self.twin1 = twins[0].subject.first_name
+                        self.twin2 = twins[1].subject.first_name
+                        self.t1 = twins[0].subject
+                        self.t2 = twins[1].subject
                 except ObjectDoesNotExist:
                     print("Twins not found for this user=", user.id)
             else:
