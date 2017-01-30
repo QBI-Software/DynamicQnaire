@@ -27,6 +27,37 @@ $( "td.coloredbox :input:checkbox" ).click(function() {
 
 });
 
+$( "td.coloredbox_sm :input:radio" ).click(function(event) {
+        var choice = $(this).parent().text();
+        var color = $( this ).parent().parent().css( "opacity" );
+        var inputid = event.target.id;
+        $( "#msg" ).text( "You selected: " + choice );
+        $( "#msg-" + inputid ).text( "You selected: " + choice );
+        $("td.coloredbox").css("opacity",0.6);
+        $( this ).parent().parent().css( "opacity",1.0 );
+        /*.show().fadeOut( 1000 );*/
+
+});
+
+
+$( "td.coloredbox_sm :input:checkbox" ).click(function() {
+        var choice = $(this).val();
+        var color = $( this ).parent().parent().css( "opacity" );
+        var data = $("#msg" ).text();
+        var arr = data.split(':');
+        if ($(this).prop('checked')){
+            selected.push(choice);
+            $( this ).parent().parent().css( "opacity",1.0 );
+        }else{
+            selected.splice( $.inArray(choice, selected), 1 );
+            $( this ).parent().parent().css( "opacity",0.6);
+        }
+        $( "#msg" ).text( "You selected: " + selected.toString()  );
+
+        /*.show().fadeOut( 1000 );*/
+
+});
+
 /* currently within each page as needed
 $( ".sliderparams" ).each(function( index ) {
     var spid = "#" + sp.id;

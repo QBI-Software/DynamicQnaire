@@ -54,15 +54,23 @@ class Questionnaire(models.Model):
 
 
 class Question(models.Model):
+    """
+    Main model for question information
+    Conditionals is optional but must match views.load_questionnaire [conditional_actions] and be implemented by views.QuestionnaireWizard process_step
+    """
     INPUTS = ((1, 'Radio'), (2, 'Checkbox'), (3, 'Textfield'), (4, 'Dropdown'), (5,'Date'), (6,'Slider'))
-    CSSCLASSES = ((1, 'default'), (2, 'coloredbox'))
-    CONDITIONALS = ((0,'None'),(1,'Show next if this value is 1'),
-                    (2,'Skip next if this value is 1'),
-                    (3,'Skip next 2 qns if this value is 2'),
-                    (4,'Show checked only [values=order start at 0]'))
+    CSSCLASSES = ((1, 'default'), (2, 'coloredbox'), (3, 'coloredbox_sm'))
+    CONDITIONALS = ((0,'None'),
+                    (1,'Show next only if this value is <value>'),
+                    (2,'Skip next <skip> qns if this value is <value>'),
+                    (3,'Skip next <skip> qns if this value is more than <value>'),
+                    (4,'Skip next <skip> qns if this value is less than <value>'),
+                    (5,'Show checked only [values=order start at 0]'))
     qid = models.ForeignKey(Questionnaire, verbose_name="Questionnaire", null=False)
     order = models.PositiveSmallIntegerField(_("Order"), default=0)
     conditional = models.PositiveSmallIntegerField(_("Conditional"), default=0, choices=CONDITIONALS)
+    condval = models.PositiveSmallIntegerField(_("Conditional value"), default=0)
+    condskip = models.PositiveSmallIntegerField(_("Conditional skip"), default=0)
     question_required = models.BooleanField(_("Required"), default=True)
     question_text = models.CharField(_("Question Text"), max_length=500)
     question_image = models.ImageField(verbose_name="Question Image", null=True, blank=True)

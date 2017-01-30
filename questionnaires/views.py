@@ -459,7 +459,7 @@ def load_questionnaire(request, *args, **kwargs):
         #Set initial data
         linkdata = {}
         condata = {}
-        conditional_actions = {0:True, 1: 'showif_1', 2: 'skipif_1', 3: 'skip2if_2', 4: 'showchecked'}
+        conditional_actions = {0:True, 1: 'showif', 2: 'skipif', 3: 'skipmore', 4: 'skipless', 5:'showchecked'}
         #conditional_actions = {1: showif_previous_0, 2: showif_previous_0}
         #Setup empty forms
         if qnaire.type == 'single':
@@ -473,7 +473,7 @@ def load_questionnaire(request, *args, **kwargs):
             for q in questions:
                 linkdata[str(num)] = {'qid': q}
                 if q.conditional:
-                    condata[str(num)] = conditional_actions[q.conditional]
+                    condata[str(num)] = '%s_%d_%d' % (conditional_actions[q.conditional], q.condval, q.condskip)
                 num += 1
             formlist = [AnswerForm] * questions.count()
             initdata = OrderedDict(linkdata)
@@ -491,12 +491,8 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
         return super(QuestionnaireWizard, self).dispatch(request, *args, **kwargs)
 
     def process_step(self, form):
-        rtn = True
-        currentstep = str(self.steps.current)
-        nextstep = int(self.steps.current) + 1
-        next2step = int(self.steps.current) + 2
-        nextstep = str(nextstep)
-        next2step = str(next2step)
+        currentstep = self.steps.current
+        nextstep = int(currentstep) + 1
         fdata = self.get_form_step_data(form)
         #print("DEBUG: Process step: fdata=", fdata)
         # Modify conditional dict - true/false: this is used when generating form_list
@@ -505,16 +501,22 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
         if (condition is not None and not isinstance(condition,bool)):
             field = '%d-question' % int(currentstep)
             print("DEBUG: Process step: condition=", condition, " field=", field)
-            check_val = condition.split('_')[-1]
+            cond_type = condition.split('_')[0]
+            check_val = condition.split('_')[1]
+            skip_val = condition.split('_')[2]
             #print("DEBUG: Process step: form value=", fdata[field], " vs check=", check_val)
-            if condition.split('_')[0]=='showif':
+            if cond_type =='showif':
                 self.condition_dict[nextstep] = (check_val == fdata[field])
-            elif condition.split('_')[0]=='skipif':
-                self.condition_dict[nextstep] = (check_val != fdata[field])
-            elif condition.split('_')[0]=='skip2if':
-                self.condition_dict[nextstep] = (check_val != fdata[field])
-                self.condition_dict[next2step] = (check_val != fdata[field])
-            elif condition.split('_')[0] == 'showchecked':
+            elif cond_type =='skipif':
+                for i in range(nextstep, int(skip_val) + nextstep):
+                    self.condition_dict[str(i)] = (check_val != fdata[field])
+            elif cond_type =='skipmore':
+                for i in range(nextstep, int(skip_val) + nextstep):
+                    self.condition_dict[str(i)] = (int(fdata[field]) <= int(check_val))
+            elif cond_type == 'skipless':
+                for i in range(nextstep, int(skip_val) + nextstep):
+                    self.condition_dict[str(i)] = (int(fdata[field]) >= int(check_val))
+            elif cond_type == 'showchecked':
                 # Questions must be ordered from zero to work - TODO: provide check?
                 # Set every option to false then
                 #print("DEBUG: Process step: options=",form.fields['question'].choices)

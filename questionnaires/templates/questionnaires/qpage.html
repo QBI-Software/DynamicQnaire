@@ -78,12 +78,14 @@
             {% if wizard.form.usegrid %}
                     <table id="qtable" class="table columns-{{wizard.form.gridcols}}"> <tbody> <tr>
                         {% if wizard.form.question2 %}
-                        <td><h3><span class="label label-primary">{{wizard.form.twin1}}</span></h3></td>
+                        <td><h3><span class="label label-primary">{{wizard.form.twin1}}</span></h3>
+                        <br/><span id="msg-{{wizard.form.question.id_for_label}}" class="badge"></span></td>
                         {% endif %}
             {% else %}
                     <div class="radio-list">
                         {% if wizard.form.question2 %}
                             <h3><span class="label label-primary">{{wizard.form.twin1}}</span></h3>
+                            <br/><span id="msg-{{wizard.form.question.id_for_label}}" class="badge"></span>
                         {% endif %}
             {% endif %}
                         <!--One set -->
@@ -117,7 +119,8 @@
            {% endfor %}
                 <!-- Two set Question 2-->
                 {% if wizard.form.question2 %}
-                        <td><h3><span class="label label-primary">{{wizard.form.twin2}}</span></h3></td>
+                        <td><h3><span class="label label-primary">{{wizard.form.twin2}}</span></h3>
+                        <br/><span id="msg-{{wizard.form.question2.id_for_label}}" class="badge"></span></td>
 
                 {% for choice in wizard.form.question2.field.choices %}
             {% if wizard.form.usegrid %}
@@ -157,9 +160,11 @@
                     <h3>{{wizard.form.question.field.label}}</h3>
                     {% if wizard.form.question2 %}
                      <h3><span class="label label-primary">{{wizard.form.twin1}}</span></h3>
+                    <span id="msg-{{wizard.form.question.id_for_label}}" class="badge"></span>
                     {% endif %}{{wizard.form.question}}
                     {% if wizard.form.question2 %}
                      <h3><span class="label label-primary">{{wizard.form.twin2}}</span></h3>
+                    <span id="msg-{{wizard.form.question2.id_for_label}}" class="badge"></span>
                     {{wizard.form.question2}}
                     {% endif %}
     {% endif %}
