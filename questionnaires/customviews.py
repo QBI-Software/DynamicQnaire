@@ -29,8 +29,14 @@ def baby_measurements(request, code):
 
     messages = ''
     template = 'custom/baby.html'
+    error_template = 'custom/error.html'
     user = request.user
-    #print("DEBUG: code=", code)
+
+    try:
+        qnaire = Questionnaire.objects.get(code=code)
+    except ObjectDoesNotExist:
+        raise ValueError('Unable to find questionnaire')
+
     visit = SubjectVisit.objects.filter(parent1=user) | SubjectVisit.objects.filter(parent2=user)
     if visit:
         twin1 = visit[0].subject
@@ -45,16 +51,21 @@ def baby_measurements(request, code):
     else:
         t1 = 'Twin 1'
         t2 = 'Twin 2'
-        messages ='No twins found for this user'
+        messages = 'No twins found for this user: %s' % user.username
+        return render(request, error_template, {
+            'qtitle': qnaire.title,
+            'messages': messages,
+        })
 
-    try:
-        qnaire = Questionnaire.objects.get(code=code)
-    except ObjectDoesNotExist:
-        raise ValueError('Unable to find questionnaire')
+
 
     #Allow question text to be edited
     if qnaire.question_set.count() != 2:
-        raise ValueError('Two questions need to be set up for this custom questionnaire')
+        messages ='Two questions need to be set up for this custom questionnaire'
+        return render(request, error_template, {
+            'qtitle': qnaire.title,
+            'messages': messages,
+        })
     else:
         Twin_questions = qnaire.question_set.all().order_by('order')
         print("DEBUG: Twin-q=", Twin_questions, ' 0:', Twin_questions[0])
@@ -139,6 +150,7 @@ def maturation(request, code):
     messages = ''
     #template = 'custom/maturation.html'
     template = 'custom/panelviewer.html'
+    error_template = 'custom/error.html'
     try:
         qnaire = Questionnaire.objects.get(code=code)
     except ObjectDoesNotExist:
@@ -155,7 +167,11 @@ def maturation(request, code):
         if twin2.first_name:
             t2 = twin2.first_name
     else:
-        raise ValueError('No twins found for this user')
+        messages ='No twins found for this user: %s' % user.username
+        return render(request, error_template, {
+        'qtitle': qnaire.title,
+        'messages': messages,
+    })
 
     #Both twins on one page - determine male or female
     pattern1 = 'Twin'
@@ -171,7 +187,7 @@ def maturation(request, code):
     for q in Twin2_questions:
         q.question_text = re.sub(pattern1, t2, q.question_text, flags=re.IGNORECASE)
     Twin2_data = [{'qid': q, 'myuser': twin2} for q in Twin2_questions]
-    print("debug: t2=", Twin2_questions)
+    #print("debug: t2=", Twin2_questions)
     if request.method == 'POST':
         t1_formset = Twin1FormSet(request.POST, prefix='twin1')
         t2_formset = Twin2FormSet(request.POST, prefix='twin2')
@@ -217,7 +233,7 @@ def maturation(request, code):
                 subjectcat.save()
                 messages = 'Congratulations, %s!  You have completed the questionnaire.' % user
             except IntegrityError:
-                print("ERROR: Error saving results")
+                messages = "ERROR: Error saving results - please tell Admin"
                 messages.error(request, 'There was an error saving your result.')
     else:
         t1_formset = Twin1FormSet(prefix='twin1', initial=Twin1_data)
