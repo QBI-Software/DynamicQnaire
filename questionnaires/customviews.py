@@ -7,6 +7,7 @@ from django.forms import formset_factory
 from django.shortcuts import render
 from formtools.wizard.views import SessionWizardView
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User, Group
 from .forms import AnswerForm, BaseQuestionFormSet
 from .customforms import BABYForm1
@@ -14,21 +15,10 @@ from .models import Questionnaire, Question, TestResult, SubjectQuestionnaire, S
 
 
 #################CUSTOM QUESTIONNAIRES - HARD-CODED ###############
-def show_message_form_condition(wizard):
-    # try to get the cleaned data of step 1
-    cleaned_data = wizard.get_cleaned_data_for_step('0') or {}
-    # check if the field ``leave_message`` was checked.
-    return cleaned_data.get('leave_message', True)
-
-class ContactWizard(SessionWizardView):
-    template = 'questionnaires/test.html'
-
-    def done(self, form_list, **kwargs):
-        return render(self.request, 'questionnaires/done.html', {
-            'form_data': [form.cleaned_data for form in form_list],
-        })
+# Some questionnaires have very different formats so this is used to define these
 
 ### BABY MEASUREMENTS ####
+@login_required
 def baby_measurements(request, code):
     """
     Baby measurements questionnaire to be filled out by a parent (only)
@@ -135,6 +125,7 @@ def baby_measurements(request, code):
     })
 
 ##########################Both twins per page ######################
+@login_required
 def maturation(request, code):
     """
     Sexual maturation questionnaire to be filled out by a parent (only)

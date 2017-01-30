@@ -442,27 +442,11 @@ class TestResultDelete(LoginRequiredMixin, PermissionRequiredMixin, generic.Form
 
 ################QUESTIONNAIRE FORMS ###################################
 
-# def showif_previous_0(wizard):
-#     currentstep = '0' #assumes first
-#     if wizard.storage.current_step:
-#         currentstep = wizard.storage.current_step
-#     fdata = wizard.storage.get_step_data(currentstep)
-#     print("Process step: fdata=", fdata)
-#     # self.get_cleaned_data_for_step(currentstep)  #
-#     qn_val = '0'
-#     field = 'question'
-#     print("Process step: condition=", qn_val, " field=", field)
-#     print("Process step: form value=", fdata[field])
-#     return fdata[field] != qn_val
-#
-#
-# def return_true(wizard): #  callable function called in _condition_dict
-#     print("DEBUG: RETURN TRUE")
-#     return True
-
 @login_required
 def load_questionnaire(request, *args, **kwargs):
-    """ Prepare questionnaire wizard with required questions """
+    """ Prepare questionnaire wizard with required questions
+        Note: initial values are reloaded every step - so need process_step with session vars to maintain conditionals
+    """
     raise_exception = True
     qid = kwargs.get('pk')
     if qid is not None:
@@ -475,7 +459,7 @@ def load_questionnaire(request, *args, **kwargs):
         #Set initial data
         linkdata = {}
         condata = {}
-        conditional_actions = {0:True, 1: 'showif_1', 2: 'skipif_1'}
+        conditional_actions = {0:True, 1: 'showif_1', 2: 'skipif_1', 3: 'skip2if_2', 4: 'showchecked'}
         #conditional_actions = {1: showif_previous_0, 2: showif_previous_0}
         #Setup empty forms
         if qnaire.type == 'single':
@@ -493,7 +477,7 @@ def load_questionnaire(request, *args, **kwargs):
                 num += 1
             formlist = [AnswerForm] * questions.count()
             initdata = OrderedDict(linkdata)
-            print("DEBUG: Initial Conditionals=", condata)
+            #print("DEBUG: Initial Conditionals=", condata)
             form = QuestionnaireWizard.as_view(form_list=formlist, initial_dict=initdata, condition_dict =condata)
     return form(context=RequestContext(request), request=request)
 
@@ -510,35 +494,53 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
         rtn = True
         currentstep = str(self.steps.current)
         nextstep = int(self.steps.current) + 1
+        next2step = int(self.steps.current) + 2
         nextstep = str(nextstep)
-        fdata = self.get_form_step_data(form) #fdata = self.get_cleaned_data_for_step(currentstep)
-        print("DEBUG: Process step: fdata=", fdata)
-        # self.get_cleaned_data_for_step(currentstep)  #
+        next2step = str(next2step)
+        fdata = self.get_form_step_data(form)
+        #print("DEBUG: Process step: fdata=", fdata)
+        # Modify conditional dict - true/false: this is used when generating form_list
         condition = self.condition_dict.get(currentstep)
-        print("DEBUG: Process step: condition=", condition)
+        #print("DEBUG: Process step: condition=", condition)
         if (condition is not None and not isinstance(condition,bool)):
             field = '%d-question' % int(currentstep)
             print("DEBUG: Process step: condition=", condition, " field=", field)
-            print("DEBUG: Process step: form value=", fdata[field])
             check_val = condition.split('_')[-1]
+            #print("DEBUG: Process step: form value=", fdata[field], " vs check=", check_val)
             if condition.split('_')[0]=='showif':
                 self.condition_dict[nextstep] = (check_val == fdata[field])
-
             elif condition.split('_')[0]=='skipif':
                 self.condition_dict[nextstep] = (check_val != fdata[field])
+            elif condition.split('_')[0]=='skip2if':
+                self.condition_dict[nextstep] = (check_val != fdata[field])
+                self.condition_dict[next2step] = (check_val != fdata[field])
+            elif condition.split('_')[0] == 'showchecked':
+                # Questions must be ordered from zero to work - TODO: provide check?
+                # Set every option to false then
+                #print("DEBUG: Process step: options=",form.fields['question'].choices)
+                choices = [k for k,v in form.fields['question'].choices]
+                #print("DEBUG: Process step: keys=",choices)
+                for k in choices:
+                    self.condition_dict[k] = False
+                #Get checked values from this step - set conditionals for matching forms
+                #print("DEBUG: Process step: fdata=",fdata.getlist(field))
+                for val in fdata.getlist(field):
+                    #print("DEBUG: Process step: form value=",val )
+                    self.condition_dict[val] = True
+
             #Update dict
             self.request.session['conditionals'] = self.condition_dict
-            print("DEBUG: PROCESS STEP: Conditionals=", self.condition_dict)
-            print("DEBUG: PROCESS STEP: Forms=", self.get_form_list())
+            #print("DEBUG: PROCESS STEP: Conditionals=", self.condition_dict)
+            #print("DEBUG: PROCESS STEP: Forms=", self.get_form_list())
         return self.get_form_step_data(form)
 
     def get_form_initial(self, step):
         initial = self.initial_dict.get(step)
         initial.update({'myuser': self.request.user})
         #Sesion conditionals - do not allow overwrite but need to detect new questionnaire
-        print("DEBUG: FORM_INITIAL: step=", step, " type=", type(step))
+        #print("DEBUG: FORM_INITIAL: step=", step, " type=", type(step))
         if self.request.session.get('conditionals'):
-            print("DEBUG: FORM_INITIAL: Load conditionals from session")
+            #print("DEBUG: FORM_INITIAL: Load conditionals from session")
             self.condition_dict = self.request.session.get('conditionals')
 
         return initial

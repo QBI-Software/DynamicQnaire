@@ -56,7 +56,10 @@ class Questionnaire(models.Model):
 class Question(models.Model):
     INPUTS = ((1, 'Radio'), (2, 'Checkbox'), (3, 'Textfield'), (4, 'Dropdown'), (5,'Date'), (6,'Slider'))
     CSSCLASSES = ((1, 'default'), (2, 'coloredbox'))
-    CONDITIONALS = ((0,'None'),(1,'Show next if this value is 1'),(2,'Skip next if this value is 0'))
+    CONDITIONALS = ((0,'None'),(1,'Show next if this value is 1'),
+                    (2,'Skip next if this value is 1'),
+                    (3,'Skip next 2 qns if this value is 2'),
+                    (4,'Show checked only [values=order start at 0]'))
     qid = models.ForeignKey(Questionnaire, verbose_name="Questionnaire", null=False)
     order = models.PositiveSmallIntegerField(_("Order"), default=0)
     conditional = models.PositiveSmallIntegerField(_("Conditional"), default=0, choices=CONDITIONALS)
@@ -65,8 +68,6 @@ class Question(models.Model):
     question_image = models.ImageField(verbose_name="Question Image", null=True, blank=True)
     question_type = models.PositiveSmallIntegerField(_("Type"), default=1, choices=INPUTS)
     group = models.ManyToManyField(Group, verbose_name="Group", blank=True)
-    #skip_value = models.CharField(_("Conditional value"), max_length=20, blank=True, null=True)
-    #skip_goto = models.PositiveSmallIntegerField(_("Skip to question"), blank=True, null=True)
     bgcolor = ColorField(_("Background Color"),default=BGDEFAULT)
     textcolor = ColorField(_("Text Color"),default=TCDEFAULT)
     css = models.PositiveSmallIntegerField(_("CSS class"), choices=CSSCLASSES, default=1)
