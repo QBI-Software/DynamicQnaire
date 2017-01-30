@@ -504,7 +504,7 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
             cond_type = condition.split('_')[0]
             check_val = condition.split('_')[1]
             skip_val = condition.split('_')[2]
-            #print("DEBUG: Process step: form value=", fdata[field], " vs check=", check_val)
+            print("DEBUG: Process step: form value=", fdata[field], " vs check=", check_val)
             if cond_type =='showif':
                 self.condition_dict[str(nextstep)] = (check_val == fdata[field])
             elif cond_type =='skipif':
@@ -532,8 +532,8 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
 
             #Update dict
             self.request.session['conditionals'] = self.condition_dict
-            #print("DEBUG: PROCESS STEP: Conditionals=", self.condition_dict)
-            #print("DEBUG: PROCESS STEP: Forms=", self.get_form_list())
+            print("DEBUG: PROCESS STEP: Conditionals=", self.condition_dict)
+            print("DEBUG: PROCESS STEP: Forms=", self.get_form_list())
         return self.get_form_step_data(form)
 
     def get_form_initial(self, step):
