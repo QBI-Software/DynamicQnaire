@@ -247,8 +247,8 @@ td.color12{
 }
 
 td.coloredbox label{
-    /*margin-left: -30px;*/
-    width:190px;
+    margin-left: 10%; /*-30px;*/
+    width: 150px; /*190px; */
     display: block;
     text-align: center;
     margin-bottom: 20px;
@@ -282,6 +282,7 @@ td.coloredbox_sm{
    }
 td.coloredbox_sm label{
     width:100px;
+    padding: 0 0 20px 0;
 }
 td.coloredbox_sm input{
     height: 50px;
@@ -300,14 +301,18 @@ table.columns-2 td{
   width:200px;
 }
 table.columns-2 td label{
-    margin-left: -20px;
+    margin-left: -40px;
     margin-top: 10px;
+    width:auto;
+    padding-top: 10px;
 }
 table.columns-2 td input[type=radio]{
     width:auto;
     margin-left: 40px;
 }
-
+table.columns-4 td.coloredbox label{
+    margin-left:0px;
+    }
 @media
 only screen and (max-width: 760px)  {
 
