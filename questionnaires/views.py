@@ -506,7 +506,7 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
             skip_val = condition.split('_')[2]
             #print("DEBUG: Process step: form value=", fdata[field], " vs check=", check_val)
             if cond_type =='showif':
-                self.condition_dict[nextstep] = (check_val == fdata[field])
+                self.condition_dict[str(nextstep)] = (check_val == fdata[field])
             elif cond_type =='skipif':
                 for i in range(nextstep, int(skip_val) + nextstep):
                     self.condition_dict[str(i)] = (check_val != fdata[field])

@@ -174,6 +174,7 @@ input.imageradio:checked + img{ /* (RADIO CHECKED) IMAGE STYLES */
 #qtable tr th, #qtable tr td {
     border:0;
     width: auto;
+    min-height:80px;
 }
 
 
@@ -201,7 +202,7 @@ td.default, td.coloredbox, td.coloredbox_sm{
     padding: 5px;
 }
 select.select{
-    float:left;
+    /*float:left;*/
     width:auto;
     }
 /* reds */
@@ -254,7 +255,7 @@ td.coloredbox label{
 }
 td.coloredbox input{
     height: 44px;
-
+    width: 100%;
     margin-bottom: -40px;
     /*width:190px; left:-50px;*/
     padding: 2px;
@@ -294,17 +295,18 @@ td.coloredbox_sm input{
 /* Render for 2 cols */
 table.columns-2{
     width:75%;
-    }
+}
 table.columns-2 td{
   width:200px;
-  }
+}
 table.columns-2 td label{
     margin-left: -20px;
     margin-top: 10px;
-    }
-table.columns-2 td input{
+}
+table.columns-2 td input[type=radio]{
     width:auto;
-    }
+    margin-left: 40px;
+}
 
 @media
 only screen and (max-width: 760px)  {
