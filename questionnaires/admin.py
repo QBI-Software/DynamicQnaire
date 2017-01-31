@@ -203,7 +203,7 @@ class QuestionnaireAdmin(admin.ModelAdmin):
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size': '100'})}
     }
-    actions=['sequence_questions','remove_questionnaire_results']
+    actions=['sequence_questions','remove_questionnaire_results', 'check_valid']
 
     def sequence_questions(self,request,queryset):
         """ Generate order sequences for questions in set of questionnaires - will reset existing """
@@ -234,6 +234,55 @@ class QuestionnaireAdmin(admin.ModelAdmin):
         msg = "%d result sets successfully REMOVED from selected questionnaires." % n
         self.message_user(request, msg)
 
+    def check_valid(self, request, queryset):
+        """ Validity check for questionnaires - will display any problems """
+        allmsgs = []
+        for obj in queryset:
+            msgs=[]
+            #check active
+            if not obj.active:
+                notice = '%s: Questionnaire is not ACTIVE' % obj.code
+                msgs.append(notice)
+            if obj.type == 'custom':
+                notice = '%s: Type is set to CUSTOM - this is only for hard-coded questionnaires' % obj.code
+                msgs.append(notice)
+            if obj.question_set.count() == 0:
+                notice = '%s: No questions have been added' % obj.code
+                msgs.append(notice)
+            #Check Order numbers are sequential
+            ordernos = [qn.order for qn in obj.question_set.all()]
+            if len(ordernos) > 1:
+                if sum(ordernos) == 0:
+                    notice = '%s: questions have not been ordered' % obj.code
+                    msgs.append(notice)
+                else:
+                    orders = sorted(ordernos)
+                    a = [j - i for i, j in zip(orders[:-1], orders[1:])]
+                    if (sum(a)/len(a) != 1.0):
+                        notice = '%s: questions are missing order numbers' % obj.code
+                        msgs.append(notice)
+            #Check Questions with conditions
+            ctr = 0
+            qnlist = list(obj.question_set.all())
+            for qn in qnlist:
+                if qn.conditional:
+                    if qn.conditional < 5:
+                        choicevals = [int(choice.choice_value) for choice in qn.choice_set.all()]
+                        if qn.condval not in choicevals:
+                            notice = '%s: %s: Conditional value does not match' % (obj.code, qn.order)
+                            msgs.append(notice)
+                        if qn.conditional > 1 and qn.condskip == 0:
+                            notice = '%s: %s: Conditional skip not set' % (obj.code, qn.order)
+                            msgs.append(notice)
+
+
+            if len(msgs) == 0:
+                notice = '%s: Questionnaire is VALID' % obj.code
+                allmsgs.append(notice)
+            else:
+                allmsgs += msgs
+        msg =' **** '.join( allmsgs)
+        self.message_user(request, msg)
 
     sequence_questions.short_description = 'Number all questions'
     remove_questionnaire_results.short_description = 'Remove questionnaire results'
@@ -245,6 +294,33 @@ class SubjectVisitAdmin(admin.ModelAdmin):
     list_display = ( 'subject','category', 'date_visit', 'xnatid','is_parent','gender','parent1','parent2','twin','icon')
     list_filter = ['category']
     search_fields = ['subject__username']
+    actions = ['check_subject_visit_valid']
+
+    def check_subjectvisit_valid(self, request, queryset):
+        allmsgs=[]
+        for obj in queryset:
+            msgs=[]
+            #check user has first_name
+            if not obj.subject.first_name:
+                notice = '%s: Subject First name not set' % obj.subject.username
+                msgs.append(notice)
+            if not obj.gender:
+                notice = '%s: Subject gender not set' % obj.subject.username
+                msgs.append(notice)
+            if not obj.is_parent and not obj.parent1 and not obj.parent2:
+                notice = '%s: The "is_parent" flag is not set or parents not added' % obj.subject.username
+                msgs.append(notice)
+            if not obj.is_parent and not obj.twin:
+                notice = '%s: Twin not added' % obj.subject.username
+                msgs.append(notice)
+            if len(msgs) == 0:
+                notice = '%s: is VALID' % obj.subject.username
+                allmsgs.append(notice)
+            else:
+                allmsgs += msgs
+        msg = ' **** '.join(allmsgs)
+        self.message_user(request, msg)
+
 
 admin.site.register(Questionnaire, QuestionnaireAdmin)
 admin.site.register(Question, QuestionAdmin)
