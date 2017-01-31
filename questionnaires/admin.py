@@ -321,6 +321,7 @@ class SubjectVisitAdmin(admin.ModelAdmin):
         msg = ' **** '.join(allmsgs)
         self.message_user(request, msg)
 
+    check_subject_visit_valid.short_description = 'Check Subject Visit is valid'
 
 admin.site.register(Questionnaire, QuestionnaireAdmin)
 admin.site.register(Question, QuestionAdmin)
