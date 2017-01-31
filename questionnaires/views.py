@@ -325,6 +325,7 @@ def download_report(request, *args, **kwargs):
     #Output question results
     gender_re = re.compile(r'\[(FE)?MALE\sTwin\]')
     twins = list(qs.subject.subjectvisit.get_twins())
+    twintoggle = 0
     writer.writerow([smart_str(u"**Results**")])
     writer.writerow([
             smart_str(u"Question"),
@@ -355,7 +356,12 @@ def download_report(request, *args, **kwargs):
             freetext = qresult.test_result_date
         qtext = replaceTwinNames(qresult.testee,qresult.test_result_question.question_text)
         if bool(gender_re.search(qtext) and twins is not None):
-            twin = twins.pop(0)
+            twin = twins[twintoggle]
+            if twintoggle:
+                twintoggle = 0
+            else:
+                twintoggle = 1
+
             qtext = gender_re.sub(twin.subject.first_name,qtext)
         writer.writerow([
             smart_str(qtext),
