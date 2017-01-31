@@ -296,7 +296,7 @@ class SubjectVisitAdmin(admin.ModelAdmin):
     search_fields = ['subject__username']
     actions = ['check_subject_visit_valid']
 
-    def check_subjectvisit_valid(self, request, queryset):
+    def check_subject_visit_valid(self, request, queryset):
         allmsgs=[]
         for obj in queryset:
             msgs=[]
