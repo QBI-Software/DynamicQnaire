@@ -35,7 +35,6 @@ def replaceTwinNames(user,question_text):
                                         flags=re.IGNORECASE)
         question_text = re.sub(pattern2, twins[1].subject.first_name, question_text,
                                         flags=re.IGNORECASE)
-
     return question_text
 
 class AnswerForm(Form):
@@ -70,8 +69,9 @@ class AnswerForm(Form):
             choices = []
             #Filter for user groups - ignore for superuser
             usergrouplist = user.groups.values_list('name')
-            #Replace Twin1 and Twin2 with appropriate names
+            #Replace Twin1 and Twin2 with appropriate names where user is parent
             question.question_text = replaceTwinNames(user, question.question_text)
+            #Detect question for MALE or FEMALE twin
             if question.duplicate:
                 qnlist = ['question', 'question2']
                 self.twin1 = 'Twin1'
@@ -91,6 +91,8 @@ class AnswerForm(Form):
             # Options for choices
             for c in question.choice_set.order_by('pk'):
                 includeflag = 1
+                #Check if choice text needs replacing
+                c.choice_text = replaceTwinNames(user, c.choice_text)
                 #If choice has groups - check they are in user groups
                 if (not user.is_superuser and c.group.count() > 0):
                     choicegroups = c.group.values_list('name')

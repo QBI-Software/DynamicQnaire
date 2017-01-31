@@ -141,8 +141,37 @@ class SubjectVisit(models.Model):
     category = models.ForeignKey(Category,verbose_name="Wave",) #ie Wave number
     date_visit = models.DateTimeField(_("Date of Visit"), null=False)  # only one entry per visit
     icon = models.ImageField(_("Subject icon"), null=True, blank=True)
-    #gender = models.PositiveSmallIntegerField(_("Gender"), null=False, default=0, choices=((0,'Unknown'),(1, 'Male'), (2, 'Female')))
+    gender = models.PositiveSmallIntegerField(_("Gender"), null=False, default=0, choices=((0,'Unknown'),(1, 'Male'), (2, 'Female')))
+    is_parent = models.BooleanField(_("Is Parent"), default=False)
 
     def __str__(self):
         return self.subject.username + ": " + self.category.name
+
+    # Only for parent user
+    def get_twins(self):
+        twins = None
+        if self.is_parent:
+            twins = SubjectVisit.objects.filter(parent1=self.subject) | SubjectVisit.objects.filter(parent2=self.subject)
+        return twins
+
+    def has_mm(self):
+        genders = []
+        test = [1,1]
+        if self.is_parent:
+            genders = [twin.gender for twin in self.get_twins()]
+        return (genders == test)
+
+    def has_ff(self):
+        genders = []
+        test = [2,2]
+        if self.is_parent:
+            genders = [twin.gender for twin in self.get_twins()]
+        return (genders == test)
+
+    def has_mf(self):
+        genders = []
+        test = [1, 2]
+        if self.is_parent:
+            genders = [twin.gender for twin in self.get_twins()]
+        return (sorted(genders) == test)
 
