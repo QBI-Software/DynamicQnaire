@@ -301,9 +301,9 @@ table.columns-2 td{
   width:200px;
 }
 table.columns-2 td label{
-    margin-left: -40px;
+    margin-left: 0px;
     margin-top: 10px;
-    width:auto;
+    /*width:auto;*/
     padding-top: 10px;
 }
 table.columns-2 td input[type=radio]{
