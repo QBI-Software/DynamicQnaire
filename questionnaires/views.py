@@ -1,9 +1,10 @@
-import os
+import copy
 import operator
-from collections import OrderedDict
-import datetime as dt
-from datetime import datetime
+import os
+import re
 import time
+from collections import OrderedDict
+from datetime import datetime
 
 from axes.utils import reset
 from django.conf import settings
@@ -11,7 +12,9 @@ from django.contrib.auth import REDIRECT_FIELD_NAME, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib.auth.models import User
 from django.contrib.auth.views import password_change
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.storage import FileSystemStorage
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.db import IntegrityError
@@ -31,10 +34,6 @@ from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic import FormView, RedirectView
 from formtools.wizard.views import SessionWizardView
 from ipware.ip import get_ip
-from django.contrib.auth.models import User
-from django.utils import six
-import re
-import copy
 
 try:
     from StringIO import StringIO
@@ -356,6 +355,7 @@ def download_report(request, *args, **kwargs):
             freetext = qresult.test_result_date
         qtext = replaceTwinNames(qresult.testee,qresult.test_result_question.question_text)
         if bool(gender_re.search(qtext) and twins is not None):
+            #TODO: these need to be gender-specific and testee not mum
             twin = twins[twintoggle]
             if twintoggle:
                 twintoggle = 0
@@ -455,7 +455,14 @@ class TestResultDelete(LoginRequiredMixin, PermissionRequiredMixin, generic.Form
 
 ################QUESTIONNAIRE FORMS ###################################
 def parse_twin_question(subject,q):
-    rtn = None
+    """
+    Some questions require replacement of male or female twin names
+    This handles duplication where two males or two females and otherwise rejects other gender
+    :param subject: parent subjectvisit
+    :param q: question to be parsed
+    :return: dict with twin as key and question as value with altered text or NONE if no replacements
+    """
+    rtn = {}
     male_re = re.compile(r'\[MALE\sTwin\]')
     female_re = re.compile(r'\[FEMALE\sTwin\]')
     twins = subject.get_twins()
@@ -464,19 +471,21 @@ def parse_twin_question(subject,q):
         q2 = copy.copy(q)
         q.question_text = male_re.sub(twins[0].subject.first_name,q.question_text)
         q2.question_text = male_re.sub(twins[1].subject.first_name, q2.question_text)
-        rtn = [q,q2]
+        rtn = {twins[0]: q, twins[1]: q2}
     elif subject.has_ff() and bool(female_re.search(q.question_text)):
         q2 = copy.copy(q)
         q.question_text = female_re.sub(twins[0].subject.first_name,q.question_text)
         q2.question_text = female_re.sub(twins[1].subject.first_name, q2.question_text)
-        rtn = [q,q2]
+        rtn = {twins[0]: q, twins[1]: q2}
     elif subject.has_mf():
         for twin in twins:
-            if twin.gender ==1:
+            if twin.gender ==1 and bool(male_re.search( q.question_text)):
                 q.question_text = male_re.sub(twin.subject.first_name, q.question_text)
-            else:
+                rtn = {twin: q}
+            elif twin.gender ==2 and bool(female_re.search(q.question_text)):
                 q.question_text = female_re.sub(twin.subject.first_name, q.question_text)
-        rtn = [q]
+                rtn = {twin: q}
+
     return rtn
 
 
@@ -491,24 +500,30 @@ def load_questionnaire(request, *args, **kwargs):
     qid = kwargs.get('pk')
     if qid is not None:
         qnaire = Questionnaire.objects.get(pk=qid)
-        subject = SubjectVisit.objects.get(subject=request.user)
+        try:
+            subject = SubjectVisit.objects.get(subject=request.user)
+        except ObjectDoesNotExist:
+            subject = None
+            pass
         gender_re = re.compile(r'\[(FE)?MALE\sTwin\]')
         usergrouplist = request.user.groups.all()
         questions = qnaire.question_set.filter(
             Q(group__isnull=True)|Q(group__in=usergrouplist)).order_by('order')
 
         # Detect question for MALE or FEMALE twin and duplicate if necessary
-        if subject.is_parent:
-            print("DEBUG: Parent")
+        twinlist = {}
+        if subject is not None and subject.is_parent:
             temp = list()
+
             for q in questions:
                 if bool(gender_re.search(q.question_text)):
                     qrtn = parse_twin_question(subject, q)
-                    if qrtn is None:
+                    if not qrtn:
                         continue
                     else:
-                        for r in qrtn:
-                            temp.append(r)
+                        for twin,question in qrtn.items():
+                            temp.append(question)
+                            twinlist[question.pk] = twin.subject
                 else:
                     temp.append(q)
             questions = temp
@@ -518,7 +533,6 @@ def load_questionnaire(request, *args, **kwargs):
         linkdata = {}
         condata = {}
         conditional_actions = {0:True, 1: 'showif', 2: 'skipif', 3: 'skipmore', 4: 'skipless', 5:'showchecked'}
-        #conditional_actions = {1: showif_previous_0, 2: showif_previous_0}
         #Setup empty forms
         if qnaire.type == 'single':
             return singlepage_questionnaire(request, qnaire, questions)
@@ -529,13 +543,16 @@ def load_questionnaire(request, *args, **kwargs):
         else:
             num = 0
             for q in questions:
-                linkdata[str(num)] = {'qid': q}
+                if twinlist and (q.pk in twinlist.keys()):
+                    twin = twinlist.get(q.pk)
+                else:
+                    twin = ''
+                linkdata[str(num)] = {'qid': q, 'twin':twin}
                 if q.conditional:
                     condata[str(num)] = '%s_%d_%d' % (conditional_actions[q.conditional], q.condval, q.condskip)
                 num += 1
             formlist = [AnswerForm] * len(questions) #questions.count()
             initdata = OrderedDict(linkdata)
-            #print("DEBUG: Initial Conditionals=", condata)
             form = QuestionnaireWizard.as_view(form_list=formlist, initial_dict=initdata, condition_dict =condata)
     return form(context=RequestContext(request), request=request)
 
@@ -552,17 +569,13 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
         currentstep = self.steps.current
         nextstep = int(currentstep) + 1
         fdata = self.get_form_step_data(form)
-        #print("DEBUG: Process step: fdata=", fdata)
         # Modify conditional dict - true/false: this is used when generating form_list
         condition = self.condition_dict.get(currentstep)
-        #print("DEBUG: Process step: condition=", condition)
         if (condition is not None and not isinstance(condition,bool)):
             field = '%d-question' % int(currentstep)
-            #print("DEBUG: Process step: condition=", condition, " field=", field)
             cond_type = condition.split('_')[0]
             check_val = condition.split('_')[1]
             skip_val = condition.split('_')[2]
-            #print("DEBUG: Process step: form value=", fdata[field], " vs check=", check_val)
             if cond_type =='showif':
                 self.condition_dict[str(nextstep)] = (check_val == fdata[field])
             elif cond_type =='skipif':
@@ -575,32 +588,25 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
                 for i in range(nextstep, int(skip_val) + nextstep):
                     self.condition_dict[str(i)] = (int(fdata[field]) >= int(check_val))
             elif cond_type == 'showchecked':
-                # Questions must be ordered from zero to work - TODO: provide check?
-                # Set every option to false then
-                #print("DEBUG: Process step: options=",form.fields['question'].choices)
+                # Questions must be ordered from zero to work properly
+                # Set every option to false then overwrite
                 choices = [k for k,v in form.fields['question'].choices]
-                #print("DEBUG: Process step: keys=",choices)
                 for k in choices:
                     self.condition_dict[k] = False
                 #Get checked values from this step - set conditionals for matching forms
-                #print("DEBUG: Process step: fdata=",fdata.getlist(field))
                 for val in fdata.getlist(field):
-                    #print("DEBUG: Process step: form value=",val )
                     self.condition_dict[val] = True
 
             #Update dict
             self.request.session['conditionals'] = self.condition_dict
-            #print("DEBUG: PROCESS STEP: Conditionals=", self.condition_dict)
-            #print("DEBUG: PROCESS STEP: Forms=", self.get_form_list())
+
         return self.get_form_step_data(form)
 
     def get_form_initial(self, step):
         initial = self.initial_dict.get(step)
         initial.update({'myuser': self.request.user})
         #Sesion conditionals - do not allow overwrite but need to detect new questionnaire
-        #print("DEBUG: FORM_INITIAL: step=", step, " type=", type(step))
         if self.request.session.get('conditionals'):
-            #print("DEBUG: FORM_INITIAL: Load conditionals from session")
             self.condition_dict = self.request.session.get('conditionals')
 
         return initial
@@ -614,10 +620,12 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
         idx = [key for key in form_dict]
         formuser =self.request.user
 
+
         for key in form_dict:
             f = form_dict.get(key)
             i = idx.index(key)
             qn = self.initial_dict.get(key)['qid']
+            twin = self.initial_dict.get(key)['twin']
             #Get response
             response = list(form_list)[i].cleaned_data
 
@@ -629,7 +637,10 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
                     users = [formuser, formuser]
             else:
                 questions = ['question']
-                users = [formuser]
+                if isinstance(twin,User):
+                    users = [twin]
+                else:
+                    users = [formuser]
 
             for q in questions:
                 choiceidx = response[q]
