@@ -197,7 +197,7 @@ class QuestionnaireAdmin(admin.ModelAdmin):
         (None, {'fields': ['title','active','description', 'intropage','code','order','type','bgcolor','textcolor','category','group']}),
     ]
     inlines = [QuestionInline]
-    list_display = ('title','description','code','type','active','categorylist','num_questions')
+    list_display = ('title','description','code','order','type','categorylist','num_questions','active')
     list_filter = ['type','active', 'group', 'category']
     search_fields = ['title']
     formfield_overrides = {
@@ -223,7 +223,7 @@ class QuestionnaireAdmin(admin.ModelAdmin):
         """ Delete all result sets for selected questionnaires """
         n = 0
         for obj in queryset:
-            print("DEBUG: Questionnaire ", obj, " results to delete=", obj.testresult_set.count())
+            #print("DEBUG: Questionnaire ", obj, " results to delete=", obj.testresult_set.count())
             n0 = 0
             for t in obj.testresult_set.all():
                 t.delete()

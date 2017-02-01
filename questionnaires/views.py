@@ -322,9 +322,6 @@ def download_report(request, *args, **kwargs):
         smart_str(qs.questionnaire.question_set.count()),
     ])
     #Output question results
-    gender_re = re.compile(r'\[(FE)?MALE\sTwin\]')
-    twins = list(qs.subject.subjectvisit.get_twins())
-    twintoggle = 0
     writer.writerow([smart_str(u"**Results**")])
     writer.writerow([
             smart_str(u"Question"),
@@ -336,6 +333,7 @@ def download_report(request, *args, **kwargs):
             smart_str(u"Tested"),
      ])
     testresults = TestResult.objects.filter(test_token=qs.session_token)
+    gender_re = re.compile(r'\[(FE)?MALE\sTwin\]')
     for qresult in testresults:
         testee = qresult.testee
         choicetext = ""
@@ -354,15 +352,8 @@ def download_report(request, *args, **kwargs):
         elif qresult.test_result_date:
             freetext = qresult.test_result_date
         qtext = replaceTwinNames(qresult.testee,qresult.test_result_question.question_text)
-        if bool(gender_re.search(qtext) and twins is not None):
-            #TODO: these need to be gender-specific and testee not mum
-            twin = twins[twintoggle]
-            if twintoggle:
-                twintoggle = 0
-            else:
-                twintoggle = 1
-
-            qtext = gender_re.sub(twin.subject.first_name,qtext)
+        if bool(gender_re.search(qtext)):
+            qtext = gender_re.sub(testee.first_name,qtext)
         writer.writerow([
             smart_str(qtext),
             smart_str(choicetexts),
@@ -374,7 +365,7 @@ def download_report(request, *args, **kwargs):
         ])
         #Output any custom data as table
         if qs.questionnaire.type =='custom':
-            if qs.questionnaire.code == 'BABY1':
+            if qs.questionnaire.code == 'Wav1-P-08b':
                 t = eval(qresult.test_result_text)
                 if type(t) is dict:
                     for r,val in t.items():
