@@ -198,7 +198,7 @@ class QuestionnaireAdmin(admin.ModelAdmin):
     ]
     inlines = [QuestionInline]
     list_display = ('title','description','code','type','active','categorylist','num_questions')
-    list_filter = ['type','active']
+    list_filter = ['type','active', 'group', 'category']
     search_fields = ['title']
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size': '100'})}
@@ -292,7 +292,7 @@ class SubjectVisitAdmin(admin.ModelAdmin):
         (None, {'fields': ['date_visit', 'subject', 'category', 'xnatid','is_parent','gender','parent1','parent2','twin','icon']}),
     ]
     list_display = ( 'subject','category', 'date_visit', 'xnatid','is_parent','gender','parent1','parent2','twin','icon')
-    list_filter = ['category']
+    list_filter = ['category','is_parent','gender']
     search_fields = ['subject__username']
     actions = ['check_subject_visit_valid']
 
