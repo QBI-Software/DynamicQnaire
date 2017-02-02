@@ -582,11 +582,16 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
                 # Questions must be ordered from zero to work properly
                 # Set every option to false then overwrite
                 choices = [k for k,v in form.fields['question'].choices]
+
                 for k in choices:
-                    self.condition_dict[k] = False
-                #Get checked values from this step - set conditionals for matching forms
-                for val in fdata.getlist(field):
-                    self.condition_dict[val] = True
+                    if k not in fdata.getlist(field):
+                        nextcondition = self.condition_dict.get(k)
+                        if (nextcondition is not None and not isinstance(nextcondition, bool)):
+                            nextskip_val = nextcondition.split('_')[2]
+                            for nextk in range(int(k), int(nextskip_val)+int(k)+1):
+                                self.condition_dict[str(nextk)] = False
+                        else:
+                            self.condition_dict[k] = False
 
             #Update dict
             self.request.session['conditionals'] = self.condition_dict
