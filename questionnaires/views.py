@@ -445,7 +445,7 @@ class TestResultDelete(LoginRequiredMixin, PermissionRequiredMixin, generic.Form
 
 
 ################QUESTIONNAIRE FORMS ###################################
-def parse_twin_question(subject,q):
+def parse_twin_question(subject,q, questions):
     """
     Some questions require replacement of male or female twin names
     This handles duplication where two males or two females and otherwise rejects other gender
@@ -467,15 +467,31 @@ def parse_twin_question(subject,q):
         q2 = copy.copy(q)
         q.question_text = female_re.sub(twins[0].subject.first_name,q.question_text)
         q2.question_text = female_re.sub(twins[1].subject.first_name, q2.question_text)
-        rtn = {twins[0]: q, twins[1]: q2}
+        q2.pk = str(q.pk) + '-1'
+        #Pick up conditionals
+        t1 = [q]
+        t2 = [q2]
+        if q.conditional:
+            i = q.order + 1
+
+            for con in range(i, i + int(q.condskip)):
+                qsub = questions[con]
+                qsub2 = copy.copy(qsub)
+                qsub2.pk = str(qsub.pk) + '-1'
+                qsub.question_text = female_re.sub(twins[0].subject.first_name, qsub.question_text)
+                qsub2.question_text = female_re.sub(twins[1].subject.first_name, qsub2.question_text)
+                t1.append(qsub)
+                t2.append(qsub2)
+        rtn = {twins[0]: t1, twins[1]: t2}
+
     elif subject.has_mf():
         for twin in twins:
             if twin.gender ==1 and bool(male_re.search( q.question_text)):
                 q.question_text = male_re.sub(twin.subject.first_name, q.question_text)
-                rtn = {twin: q}
+                rtn = {twin: [q]}
             elif twin.gender ==2 and bool(female_re.search(q.question_text)):
                 q.question_text = female_re.sub(twin.subject.first_name, q.question_text)
-                rtn = {twin: q}
+                rtn = {twin: [q]}
 
     return rtn
 
@@ -508,13 +524,14 @@ def load_questionnaire(request, *args, **kwargs):
 
             for q in questions:
                 if bool(gender_re.search(q.question_text)):
-                    qrtn = parse_twin_question(subject, q)
+                    qrtn = parse_twin_question(subject, q, questions)
                     if not qrtn:
                         continue
                     else:
                         for twin,question in qrtn.items():
-                            temp.append(question)
-                            twinlist[question.pk] = twin.subject
+                            for qs in question:
+                                temp.append(qs)
+                                twinlist[qs.pk] = twin.subject
                 else:
                     temp.append(q)
             questions = temp
@@ -536,6 +553,9 @@ def load_questionnaire(request, *args, **kwargs):
             for q in questions:
                 if twinlist and (q.pk in twinlist.keys()):
                     twin = twinlist.get(q.pk)
+                    if isinstance(q.pk,str):
+                        #reset back to int
+                        q.pk = int(q.pk.split('-')[0])
                 else:
                     twin = ''
                 linkdata[str(num)] = {'qid': q, 'twin':twin}
