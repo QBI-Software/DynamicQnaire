@@ -496,7 +496,9 @@ def parse_twin_question(subject,q, questions):
     return rtn
 
 
-
+def get_conditional_string(q):
+    conditional_actions = {0: True, 1: 'showif', 2: 'skipif', 3: 'skipmore', 4: 'skipless', 5: 'showchecked'}
+    return '%s_%d_%d' % (conditional_actions[q.conditional], q.condval, q.condskip)
 
 @login_required
 def load_questionnaire(request, *args, **kwargs):
@@ -521,7 +523,7 @@ def load_questionnaire(request, *args, **kwargs):
         twinlist = {}
         if subject is not None and subject.is_parent:
             temp = list()
-
+            tempids = []
             for q in questions:
                 if bool(gender_re.search(q.question_text)):
                     qrtn = parse_twin_question(subject, q, questions)
@@ -531,16 +533,18 @@ def load_questionnaire(request, *args, **kwargs):
                         for twin,question in qrtn.items():
                             for qs in question:
                                 temp.append(qs)
+                                tempids.append(qs.id)
                                 twinlist[qs.pk] = twin.subject
-                else:
+                elif q.id not in tempids:
                     temp.append(q)
+                    tempids.append(q.id)
             questions = temp
 
 
         #Set initial data
         linkdata = {}
         condata = {}
-        conditional_actions = {0:True, 1: 'showif', 2: 'skipif', 3: 'skipmore', 4: 'skipless', 5:'showchecked'}
+
         #Setup empty forms
         if qnaire.type == 'single':
             return singlepage_questionnaire(request, qnaire, questions)
@@ -560,7 +564,7 @@ def load_questionnaire(request, *args, **kwargs):
                     twin = ''
                 linkdata[str(num)] = {'qid': q, 'twin':twin}
                 if q.conditional:
-                    condata[str(num)] = '%s_%d_%d' % (conditional_actions[q.conditional], q.condval, q.condskip)
+                    condata[str(num)] = get_conditional_string(q)
                 num += 1
             formlist = [AnswerForm] * len(questions) #questions.count()
             initdata = OrderedDict(linkdata)
@@ -589,15 +593,24 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
             skip_val = condition.split('_')[2]
             if cond_type =='showif':
                 self.condition_dict[str(nextstep)] = (check_val == fdata[field])
+                #If back step - need to regenerate conditional
+                if self.condition_dict[str(nextstep)] and self.initial_dict[str(nextstep)]['qid'].conditional:
+                    self.condition_dict[str(nextstep)] = get_conditional_string(self.initial_dict[str(nextstep)]['qid'])
             elif cond_type =='skipif':
                 for i in range(nextstep, int(skip_val) + nextstep):
                     self.condition_dict[str(i)] = (check_val != fdata[field])
+                    if self.condition_dict[str(i)] and self.initial_dict[str(i)]['qid'].conditional:
+                        self.condition_dict[str(i)] = get_conditional_string(self.initial_dict[str(i)]['qid'])
             elif cond_type =='skipmore':
                 for i in range(nextstep, int(skip_val) + nextstep):
                     self.condition_dict[str(i)] = (int(fdata[field]) <= int(check_val))
+                    if self.condition_dict[str(i)] and self.initial_dict[str(i)]['qid'].conditional:
+                        self.condition_dict[str(i)] = get_conditional_string(self.initial_dict[str(i)]['qid'])
             elif cond_type == 'skipless':
                 for i in range(nextstep, int(skip_val) + nextstep):
                     self.condition_dict[str(i)] = (int(fdata[field]) >= int(check_val))
+                    if self.condition_dict[str(i)] and self.initial_dict[str(i)]['qid'].conditional:
+                        self.condition_dict[str(i)] = get_conditional_string(self.initial_dict[str(i)]['qid'])
             elif cond_type == 'showchecked':
                 # Questions must be ordered from zero to work properly
                 # Set every option to false then overwrite
