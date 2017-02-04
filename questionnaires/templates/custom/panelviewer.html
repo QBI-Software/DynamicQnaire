@@ -11,21 +11,22 @@
 
         <div class="container-fluid ui-content" align="center">
             <h2>{{qtitle}}</h2>
+            <p>Please enter your selections for each section then click on "Submit all data"</p>
             <p class="btn-warning">{{messages}}</p>
             <ul class="nav nav-tabs">
-                <li class="active"><a data-toggle="tab" href="#t1">{{twin1}}</a></li>
-                <li><a data-toggle="tab" href="#t2">{{twin2}}</a></li>
+                <li class="active"><a data-toggle="tab" href="#t1a">{{twin1}} - Part A</a></li>
+                <li><a data-toggle="tab" href="#t1b">{{twin1}} - Part B</a></li>
+                <li><a data-toggle="tab" href="#t2a">{{twin2}} - Part A</a></li>
+                <li><a data-toggle="tab" href="#t2b">{{twin2}} - Part B</a></li>
             </ul>
             <div class="tab-content">
-                <div id="t1" class="tab-pane fade in active">
-
-
+                <div id="t1a" class="tab-pane fade in active">
                     {{ t1_formset.management_form }}
                     <div class="col-sm-4">
-                        <h3>You have selected {{twin1}}</h3>
+                        <h3>Please make your selections for {{twin1}} -  Part A</h3>
                         <p>&nbsp;</p>
                         <table class="sidetable" cellpadding="10">
-                            {% for form in t1_formset %}
+                            {% for form in t1_formset|slice:":3" %}
                             <tr>
                                 <td>
                                     <p>{{form.question.label}}</p>
@@ -36,6 +37,16 @@
                         </table>
                     </div>
                     <div class="col-sm-8">
+                        <h3>Stage</h3>
+                            <nav id="slider-nav1" class="slider-nav">
+                                <a href="#slide-0" class="active">1</a>
+                                <a href="#slide-1">2</a>
+                                <a href="#slide-2">3</a>
+                                <a href="#slide-3">4</a>
+                                <a href="#slide-4">5</a>
+                                <a href="#slide-5">?</a>
+
+                            </nav>
                         <!-- Sliding window :  https://css-tricks.com/slider-with-sliding-backgrounds/ -->
                         <div class="slider-wrap">
                             <div class="slider" id="slider">
@@ -73,29 +84,19 @@
 
                                 </div>
                             </div>
-                            <h3>Stage</h3>
-                            <nav id="slider-nav1" class="slider-nav">
-                                <a href="#slide-0" class="active">1</a>
-                                <a href="#slide-1">2</a>
-                                <a href="#slide-2">3</a>
-                                <a href="#slide-3">4</a>
-                                <a href="#slide-4">5</a>
-                                <a href="#slide-5">?</a>
 
-                            </nav>
                         </div>
                         <!-- end sliding window -->
                     </div>
                 </div> <!-- end tab1 -->
 
-                <div id="t2" class="tab-pane fade in">
-
-                    {{ t2_formset.management_form }}
+                <div id="t1b" class="tab-pane fade in">
+                    {{ t1_formset.management_form }}
                     <div class="col-sm-4">
-                        <h3>Please select for {{twin2}}</h3>
+                        <h3>Please make your selections for {{twin1}} -  Part B</h3>
                         <p>&nbsp;</p>
                         <table class="sidetable" cellpadding="10">
-                            {% for form in t2_formset %}
+                            {% for form in t1_formset|slice:"3:" %}
                             <tr>
                                 <td>
                                     <p>{{form.question.label}}</p>
@@ -106,6 +107,86 @@
                         </table>
                     </div>
                     <div class="col-sm-8">
+                        <h3>Stage</h3>
+                            <nav id="slider-nav3" class="slider-nav">
+                                <a href="#slide3-0" class="active">1</a>
+                                <a href="#slide3-1">2</a>
+                                <a href="#slide3-2">3</a>
+                                <a href="#slide3-3">4</a>
+                                <a href="#slide3-4">5</a>
+                                <a href="#slide3-5">?</a>
+
+                            </nav>
+                        <!-- Sliding window :  https://css-tricks.com/slider-with-sliding-backgrounds/ -->
+                        <div class="slider-wrap">
+                            <div class="slider" id="slider3">
+                                <div class="holder">
+
+                                    {% for choice in t1_formset.forms.3.question.field.choices %}
+
+                                    <div class="slide" id="slide3-{{forloop.counter0}}">
+                                <span class="temp">
+                                    <table><tr>
+                                    <td>
+                                    <img src="/media/{{choice.1.choice_image }}"
+                                         title="{{choice.1.choice_text}}"/>
+                            <p class="caption">{{choice.1.choice_text}}</p>
+                                    </td></tr>
+                                        <tr><td><input type="{{t1_formset.forms.4.question.help_text}}"
+                                                       id="{{ t1_formset.forms.4.question.id_for_label}}"
+                                                       name="{{t1_formset.forms.4.prefix}}-{{ t1_formset.forms.4.question.name }}"
+                                                       value="{{ choice.0 }}"
+                                        /></td></tr>
+
+
+                                    <tr><td><input type="{{t1_formset.forms.5.question.help_text}}"
+                                                   id="{{ t1_formset.forms.5.question.id_for_label}}"
+                                                   name="{{t1_formset.forms.5.prefix}}-{{ t1_formset.forms.5.question.name }}"
+                                                   value="{{ choice.0 }}"
+                                    /></td></tr>
+
+                                </table>
+                                </span>
+                                    </div>
+
+
+                                    {% endfor %}
+
+                                </div>
+                            </div>
+
+                        </div>
+                        <!-- end sliding window -->
+                    </div>
+                </div> <!-- end tab2 -->
+
+                <div id="t2a" class="tab-pane fade in">
+
+                    {{ t2_formset.management_form }}
+                    <div class="col-sm-4">
+                        <h3>Please make your selections for {{twin2}} - Part A</h3>
+                        <p>&nbsp;</p>
+                        <table class="sidetable" cellpadding="10">
+                            {% for form in t2_formset|slice:":3" %}
+                            <tr>
+                                <td>
+                                    <p>{{form.question.label}}</p>
+                                    <span id="response-{{form.question.id_for_label}}" class="badge"></span></td>
+                            </tr>
+
+                            {% endfor %}
+                        </table>
+                    </div>
+                    <div class="col-sm-8">
+                        <h3>Stage</h3><nav id="slider-nav2" class="slider-nav">
+                                <a href="#slide2-0" class="active">1</a>
+                                <a href="#slide2-1">2</a>
+                                <a href="#slide2-2">3</a>
+                                <a href="#slide2-3">4</a>
+                                <a href="#slide2-4">5</a>
+                                <a href="#slide2-5">?</a>
+
+                            </nav>
                         <!-- Sliding window :  https://css-tricks.com/slider-with-sliding-backgrounds/ -->
                         <div class="slider-wrap">
                             <div class="slider" id="slider2">
@@ -144,15 +225,77 @@
                                 </div>
                             </div>
 
-                            <h3>Stage</h3><nav id="slider-nav2" class="slider-nav">
-                                <a href="#slide2-0" class="active">1</a>
-                                <a href="#slide2-1">2</a>
-                                <a href="#slide2-2">3</a>
-                                <a href="#slide2-3">4</a>
-                                <a href="#slide2-4">5</a>
-                                <a href="#slide2-5">?</a>
+
+                        </div>
+                        <!-- end sliding window -->
+                    </div></div>
+
+                    <div id="t2b" class="tab-pane fade in">
+
+                    {{ t2_formset.management_form }}
+                    <div class="col-sm-4">
+                        <h3>Please make your selections for {{twin2}} - Part B</h3>
+                        <p>&nbsp;</p>
+                        <table class="sidetable" cellpadding="10">
+                            {% for form in t2_formset|slice:"3:" %}
+                            <tr>
+                                <td>
+                                    <p>{{form.question.label}}</p>
+                                    <span id="response-{{form.question.id_for_label}}" class="badge"></span></td>
+                            </tr>
+
+                            {% endfor %}
+                        </table>
+                    </div>
+                    <div class="col-sm-8">
+                        <h3>Stage</h3><nav id="slider-nav4" class="slider-nav">
+                                <a href="#slide4-0" class="active">1</a>
+                                <a href="#slide4-1">2</a>
+                                <a href="#slide4-2">3</a>
+                                <a href="#slide4-3">4</a>
+                                <a href="#slide4-4">5</a>
+                                <a href="#slide4-5">?</a>
 
                             </nav>
+                        <!-- Sliding window :  https://css-tricks.com/slider-with-sliding-backgrounds/ -->
+                        <div class="slider-wrap">
+                            <div class="slider" id="slider4">
+                                <div class="holder">
+
+                                    {% for choice in t2_formset.forms.3.question.field.choices %}
+
+                                    <div class="slide" id="slide4-{{forloop.counter0}}">
+                                <span class="temp">
+                                    <table><tr>
+                                    <td>
+                                    <img src="/media/{{choice.1.choice_image }}"
+                                         title="{{choice.1.choice_text}}"/>
+                            <p class="caption">{{choice.1.choice_text}}</p>
+                                    </td></tr>
+                                        <tr><td><input type="{{t2_formset.forms.4.question.help_text}}"
+                                                       id="{{ t2_formset.forms.4.question.id_for_label}}"
+                                                       name="{{t2_formset.forms.4.prefix}}-{{ t2_formset.forms.4.question.name }}"
+                                                       value="{{ choice.0 }}"
+                                        /></td></tr>
+
+
+                                    <tr><td><input type="{{t2_formset.forms.5.question.help_text}}"
+                                                   id="{{ t2_formset.forms.5.question.id_for_label}}"
+                                                   name="{{t2_formset.forms.5.prefix}}-{{ t2_formset.forms.5.question.name }}"
+                                                   value="{{ choice.0 }}"
+                                    /></td></tr>
+
+                                </table>
+                                </span>
+                                    </div>
+
+
+                                    {% endfor %}
+
+                                </div>
+                            </div>
+
+
                         </div>
                         <!-- end sliding window -->
                     </div>
@@ -275,9 +418,118 @@ var slider2 = {
 
 };
 
-slider.init();
+var slider3 = {
+  el: {
+    slider: $("#slider3"),
+    allSlides: $("#slider3 > .holder > .slide"),
+    sliderNav: $("#slider-nav3"),
+    allNavButtons: $("#slider-nav3 > a")
+  },
 
+  timing: 800,
+  slideWidth: 300, // could measure this
+
+  // In this simple example, might just move the
+  // binding here to the init function
+  init: function() {
+    this.bindUIEvents();
+
+  },
+
+  bindUIEvents: function() {
+    // You can either manually scroll...
+    this.el.slider.on("scroll", function(event) {
+      slider3.moveSlidePosition(event);
+    });
+    // ... or click a thing
+    this.el.sliderNav.on("click", "a", function(event) {
+      slider3.handleNavClick(event, this);
+    });
+  },
+
+  moveSlidePosition: function(event) {
+    // Magic Numbers =(
+    this.el.allSlides.css({
+      "background-position": $(event.target).scrollLeft()/6-100+ "px 0"
+    });
+  },
+
+  handleNavClick: function(event, el) {
+
+    event.preventDefault();
+    var position = $(el).attr("href").split("-").pop();
+
+    this.el.slider.animate({
+      scrollLeft: position * this.slideWidth
+    }, this.timing);
+
+    this.changeActiveNav(el);
+  },
+
+  changeActiveNav: function(el) {
+    this.el.allNavButtons.removeClass("active");
+    $(el).addClass("active");
+  }
+
+};
+var slider4 = {
+  el: {
+    slider: $("#slider4"),
+    allSlides: $("#slider4 > .holder > .slide"),
+    sliderNav: $("#slider-nav4"),
+    allNavButtons: $("#slider-nav4 > a")
+  },
+
+  timing: 800,
+  slideWidth: 300, // could measure this
+
+  // In this simple example, might just move the
+  // binding here to the init function
+  init: function() {
+    this.bindUIEvents();
+
+  },
+
+  bindUIEvents: function() {
+    // You can either manually scroll...
+    this.el.slider.on("scroll", function(event) {
+      slider4.moveSlidePosition(event);
+    });
+    // ... or click a thing
+    this.el.sliderNav.on("click", "a", function(event) {
+      slider4.handleNavClick(event, this);
+    });
+  },
+
+  moveSlidePosition: function(event) {
+    // Magic Numbers =(
+    this.el.allSlides.css({
+      "background-position": $(event.target).scrollLeft()/6-100+ "px 0"
+    });
+  },
+
+  handleNavClick: function(event, el) {
+
+    event.preventDefault();
+    var position = $(el).attr("href").split("-").pop();
+
+    this.el.slider.animate({
+      scrollLeft: position * this.slideWidth
+    }, this.timing);
+
+    this.changeActiveNav(el);
+  },
+
+  changeActiveNav: function(el) {
+    this.el.allNavButtons.removeClass("active");
+    $(el).addClass("active");
+  }
+
+};
+slider.init()
 slider2.init();
+slider3.init();
+slider4.init();
 
 $( ":input:radio" ).click(function(event) {
         var choice = $(this).val();

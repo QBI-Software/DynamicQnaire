@@ -116,6 +116,7 @@ select{
     font-size: 0.8em;
 }
 /* Progress Bar */
+
 .progress{
     overflow:visible;
 }
@@ -123,7 +124,7 @@ img.progressicon {
     left: -20px;
     top: -10px;
     position: relative;
-    display: block;
+    display: inline;
     }
 /** Search form **/
 #searchform label{
@@ -491,24 +492,30 @@ width:400px;}
 .temp {
   position: absolute;
   color: #666;
-  bottom: 15px;
+ /* bottom: 15px;*/
+  left: 50px;
+  padding: 0 20px;
 
 }
 .temp table{
-
-  height: 450px;
+   height: 450px;
 }
 .temp td{
 
     text-align:center;
 }
 .temp img{
-    height:150px;
+   /* height:150px;*/
+   max-width:200px;
 }
-.temp p.caption{
+.temp p{
     font-size:small;
-    height:130px;
-    margin-top:10px;
+    height:100px;
+    margin-top:30px;
+}
+.sidetable td{
+    height: 40px;
+    vertical-align:top;
 }
 
 .slide:before {

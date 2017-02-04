@@ -196,8 +196,9 @@ def maturation(request, code):
             #data in form.data['twin1-0-question'] etc
             for i in range(1, len(Twin1_data)):
                 formid = 'twin1-%d-question' % i
-                val = request.POST[formid]  # TODO Validate data input
-                #qn = Question.objects.get(pk=Twin1_data[i]['qid'].pk)
+                if not request.POST.get(formid, False):
+                    continue
+                val = request.POST[formid]
                 qn = Twin1_questions[i]
                 tresult = TestResult()
                 if visit:
@@ -212,8 +213,9 @@ def maturation(request, code):
             # t2
             for i in range(1, len(Twin2_data)):
                 formid = 'twin2-%d-question' % i
-                val = request.POST[formid]  # TODO Validate data input
-                #qn = Question.objects.get(pk=Twin1_data[i]['qid'].pk)
+                if not request.POST.get(formid, False):
+                    continue
+                val = request.POST[formid]
                 qn = Twin2_questions[i]
                 tresult = TestResult()
                 if visit:
@@ -234,7 +236,7 @@ def maturation(request, code):
                 messages = 'Congratulations, %s!  You have completed the questionnaire.' % user
             except IntegrityError:
                 messages = "ERROR: Error saving results - please tell Admin"
-                messages.error(request, 'There was an error saving your result.')
+                #messages.error(request, 'There was an error saving your result.')
     else:
         t1_formset = Twin1FormSet(prefix='twin1', initial=Twin1_data)
         t2_formset = Twin2FormSet(prefix='twin2', initial=Twin2_data)
