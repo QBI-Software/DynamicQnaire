@@ -28,7 +28,11 @@
                         <table class="sidetable" cellpadding="10">
                             {% for form in t1_formset|slice:":3" %}
                             <tr>
+                                {% if forloop.counter == 1 %}
+                                <td class="firstcell">
+                                {% else %}
                                 <td>
+                                {% endif %}
                                     <p>{{form.question.label}}</p>
                                     <span id="response-{{form.question.id_for_label}}" class="badge"></span></td>
                             </tr>
@@ -98,7 +102,11 @@
                         <table class="sidetable" cellpadding="10">
                             {% for form in t1_formset|slice:"3:" %}
                             <tr>
+                                {% if forloop.counter == 1 %}
+                                <td class="firstcell">
+                                {% else %}
                                 <td>
+                                {% endif %}
                                     <p>{{form.question.label}}</p>
                                     <span id="response-{{form.question.id_for_label}}" class="badge"></span></td>
                             </tr>
@@ -169,7 +177,11 @@
                         <table class="sidetable" cellpadding="10">
                             {% for form in t2_formset|slice:":3" %}
                             <tr>
+                                {% if forloop.counter == 1 %}
+                                <td class="firstcell">
+                                {% else %}
                                 <td>
+                                {% endif %}
                                     <p>{{form.question.label}}</p>
                                     <span id="response-{{form.question.id_for_label}}" class="badge"></span></td>
                             </tr>
@@ -239,7 +251,11 @@
                         <table class="sidetable" cellpadding="10">
                             {% for form in t2_formset|slice:"3:" %}
                             <tr>
+                                {% if forloop.counter == 1 %}
+                                <td class="firstcell">
+                                {% else %}
                                 <td>
+                                {% endif %}
                                     <p>{{form.question.label}}</p>
                                     <span id="response-{{form.question.id_for_label}}" class="badge"></span></td>
                             </tr>

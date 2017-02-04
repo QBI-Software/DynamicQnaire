@@ -517,6 +517,9 @@ width:400px;}
     height: 40px;
     vertical-align:top;
 }
+.sidetable td.firstcell{
+    height:360px;
+}
 
 .slide:before {
   content: "";
