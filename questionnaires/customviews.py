@@ -1,7 +1,8 @@
 import datetime
 import time
 import re
-
+import os
+from django.conf import settings
 from django.db import IntegrityError
 from django.forms import formset_factory
 from django.shortcuts import render
@@ -9,8 +10,10 @@ from formtools.wizard.views import SessionWizardView
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User, Group
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.files.storage import FileSystemStorage
 from .forms import AnswerForm, BaseQuestionFormSet
-from .customforms import BABYForm1
+from .customforms import BABYForm1,FamilyHistoryForm
 from .models import Questionnaire, Question, TestResult, SubjectQuestionnaire, SubjectVisit
 
 
@@ -246,6 +249,51 @@ def maturation(request, code):
         'qtitle': qnaire.title,
         'twin1': t1,
         'twin2': t2,
+        'messages': messages,
+    })
+
+##########################################
+@login_required
+def familyHistoryWizard(request, code):
+    """
+    Family History questionnaire to be filled out by a parent
+    :param request: HTTP request URL
+    :param code: Questionnaire code from URL
+    :return: custom questionnaire form
+    """
+    user = request.user
+    messages = ''
+    template = 'custom/history.html'
+    error_template = 'custom/error.html'
+    try:
+        qnaire = Questionnaire.objects.get(code=code)
+    except ObjectDoesNotExist:
+        raise ValueError('Unable to find questionnaire')
+    ParentFormSet = formset_factory(FamilyHistoryForm, formset=BaseQuestionFormSet, max_num=1,validate_max=True)
+    FamilyFormSet = formset_factory(FamilyHistoryForm, formset=BaseQuestionFormSet,
+                                    validate_max=False, can_order=True)
+    mother_data = [{'type': 'Mother','gender': 2,'name':'','age':'','decd':''}]
+    father_data = [{'type': 'Father', 'gender': 1,'name':'','age':'','decd':''}]
+    sibling_data = [{'type': 'Sibling', 'gender': 0,'name':'','age':'','decd':''}]
+    children_data = [{'type': 'Children', 'gender': 0,'name':'','age':'','decd':''}]
+
+    if request.method == 'POST':
+        mother_formset = ParentFormSet(request.POST, prefix='mother')
+        father_formset = ParentFormSet(request.POST, prefix='father')
+        sibling_formset = FamilyFormSet(request.POST, prefix='sibling')
+        children_formset = FamilyFormSet(request.POST, prefix='children')
+    else:
+        mother_formset = ParentFormSet(prefix='mother', initial=mother_data)
+        father_formset = ParentFormSet(prefix='father', initial=father_data)
+        sibling_formset = FamilyFormSet(prefix='sibling', initial=sibling_data)
+        children_formset = FamilyFormSet(prefix='children', initial=children_data)
+
+    return render(request, template, {
+        'mother_formset': mother_formset,
+        'father_formset': father_formset,
+        'sibling_formset': sibling_formset,
+        'children_formset': children_formset,
+        'qtitle': qnaire.title,
         'messages': messages,
     })
 

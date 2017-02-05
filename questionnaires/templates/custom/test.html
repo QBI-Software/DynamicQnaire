@@ -16,34 +16,29 @@
     {% endif %}
 </div>
 <div style="background-color:{{wizard.form.qbgcolor}}; color:{{wizard.form.textcolor}};">
-    <p>Question {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</p>
-
+    <p>Step {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</p>
     <form action="" method="post">{% csrf_token %}
+    <table>
+    {{ wizard.management_form }}
+    {% if wizard.form.forms %}
+        {{ wizard.form.management_form }}
+        {% for form in wizard.form.forms %}
+            {{ form }}
+        {% endfor %}
+    {% else %}
+        <table>
+        {{ wizard.form.as_table }}
+            </table>
+    {% endif %}
+    </table>
+    <input type="submit" class="btn btn-success" id="submit" value="{% trans "submit" %}"/>
+    {% if wizard.steps.prev %}
+    <button name="wizard_goto_step" type="submit" value="{{ wizard.steps.first }}">{% trans "first step" %}</button>
+    <button name="wizard_goto_step" type="submit" value="{{ wizard.steps.prev }}">{% trans "prev step" %}</button>
+    {% endif %}
 
-        <div class="container-fluid ui-content" align="center">
-            {{ wizard.management_form }}
-            <h2>{{wizard.form.qtitle}}</h2>
-            {{ article_formset.management_form }}
-            <table><thead><tr>
-                <th>Date</th>
-                <th>Head</th>
-                <th>Length</th>
-                <th>Weight</th>
-            </tr></thead>
-            <tbody>{% for form in article_formset %}
-            <tr>
-                <td>{{ form.measurement_date }}</td>
-                <td>{{ form.measurement_head }}</td>
-                <td>{{ form.measurement_length }}</td>
-                <td>{{ form.measurement_weight }}</td>
-            </tr>
-            {% endfor %}
-                </table>
+    </form>
 
-
-
-
-        </div>
 
 </div>
 

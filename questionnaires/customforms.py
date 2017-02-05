@@ -26,6 +26,26 @@ class CustomForm1(forms.Form):
     class Meta:
         fields=['mainquestion', 'subquestion1', 'subquestion2']
 
+###################################################
+GENDERS = [(0, 'Unknown'), (1, 'Male'), (2, 'Female')]
+class FamilyHistoryForm(forms.Form):
+    type = forms.CharField(label="Type", required=True,
+                              help_text="Person type",
+                              widget=forms.HiddenInput())
+    person = forms.CharField(label="First Name", required=True,
+                              help_text="Enter their first name",
+                              widget=forms.TextInput(attrs={'class': 'form-control'}))
+    gender = forms.ChoiceField(label="Gender", choices=GENDERS, required=True,
+                             help_text="Select person's gender at birth",
+                             widget=forms.Select(attrs={'class': 'form-control'}))
+    age = forms.IntegerField(label="Current Age", required=True,
+                            help_text="Enter person's current age or age at death",
+                            widget=forms.TextInput(attrs={'class': 'form-control'}))
+    decd = forms.BooleanField(label="Person is deceased", required=False,
+                            help_text="Check box if this person is deceased",
+                            widget=forms.CheckboxInput(attrs={'class': 'form-control'}))
+
+
 
 ############################
 class BABYForm1(forms.Form):
