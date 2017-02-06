@@ -1,4 +1,4 @@
-$( "input[type='date']" ).datepicker({ dateFormat: 'dd-mm-yy'});
+$( "input[type='date']" ).datepicker({ dateFormat: 'yy-mm-dd'});
 
 $( "td.coloredbox :input:radio" ).click(function() {
         var choice = $(this).parent().text();
