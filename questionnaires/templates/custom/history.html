@@ -13,119 +13,158 @@
 
             <h2>{{qtitle}}</h2>
             <p class="btn-warning">{{messages}}</p>
-            <p>Please provide information on the members of your family below. Click on each button to enter information then click "Add".</p>
+            <p>Please provide information on the members of your family below then click "Next".</p>
 
-              <div id="mother" class="collapse well">
-                {{ mother_formset.management_form }}
-                 <h3>Biological Mother</h3>
-                  <table class="customform table">
-
-                     {% for form in mother_formset %}
-                        {{ form }}
-                      <a href="javascript:void(0)" id="add-{{form.person.id_for_label}}" class="btn btn-warning">Add Mother</a>
-                  {% endfor %}
-              </table>
-
-              </div>
-            <div id="father" class="collapse well">
-                {{ father_formset.management_form }}
-                <h3>Biological Father</h3>
-                 <table class="customform table">
-                     {% for form in father_formset %}
-                        {{ form }}
-                     <a href="javascript:void(0)" id="add_-{{form.person.id_for_label}}" class="btn btn-warning">Add Father</a>
-                  {% endfor %}
-              </table>
-
-              </div>
-            <div id="sibling" class="collapse well">
-                {{ sibling_formset.management_form }}
-                <h3>Biological Siblings</h3>
-                 <table class="customform table">
-                     {% for form in sibling_formset %}
-                        {{ form }}
-                     <a href="javascript:void(0)" id="add_{{form.person.id_for_label}}" class="btn btn-warning">Add Sibling</a>
-                  {% endfor %}
-              </table>
-
-                <a href="javascript:void(0)" id="add_sibling_row" class="btn btn-warning">Add Another Sibling</a>
-              </div>
-            <div id="children" class="collapse well">
-                {{ children_formset.management_form }}
-                <h3>Biological Children</h3>
-                 <table class="customform table">
-                     {% for form in children_formset %}
-                        {{ form }}
-                     <a href="javascript:void(0)" id="add_{{form.person.id_for_label}}" class="btn btn-warning">Add Child</a>
-                  {% endfor %}
-              </table>
-
-                <a href="javascript:void(0)" id="add_children_row" class="btn btn-warning">Add Child</a>
-              </div>
-
-            <div id="results">
-                <table class="table">
-                    <thead><tr>
+            <div id="results well">
+                <table class="customform table">
+                    <thead>
+                    <tr>
                         <th>Type</th>
-                        <th>Name</th>
-                        <th>Age</th>
+                        <th>First Name</th>
                         <th>Gender</th>
+                        <th>Age (yrs)</th>
                         <th>Deceased</th>
                         <th>Order</th>
-                    </tr></thead>
+
+                    </tr>
+                    </thead>
+                    <tbody>
+
                     <tr id="mother_row">
-                        <th><button type="button" class="btn btn-info" data-toggle="collapse" data-target="#mother">Biological Mother</button></th>
+                        <th>
+                            <button type="button" class="btn btn-primary">
+                                Biological Mother
+                            </button>
+                        </th>
+                        {{ mother_formset.management_form }}
+                        {% for form in mother_formset %}
+                        <td>{{ form.person }}</td>
+                        <td>{{ form.gender }}</td>
+                        <td>{{ form.age }}</td>
+                        <td>{{ form.decd }}</td>
+                        <td>{{ form.type }}</td>
+                        {% endfor %}
+
+
                     </tr>
                     <tr id="father_row">
-                        <th><button type="button" class="btn btn-info" data-toggle="collapse" data-target="#father">Biological Father</button></th>
+                        <th>
+                            <button type="button" class="btn btn-primary">
+                                Biological Father
+                            </button>
+                        </th>
+                        {{ father_formset.management_form }}
+                        {% for form in father_formset %}
+                        <td>{{ form.person }}</td>
+                        <td>{{ form.gender }}</td>
+                        <td>{{ form.age }}</td>
+                        <td>{{ form.decd }}</td>
+                        <td>{{ form.type }}</td>
+
+                        {% endfor %}
+
+
                     </tr>
                     <tr id="sibling_row">
-                        <th><button type="button" class="btn btn-info" data-toggle="collapse" data-target="#sibling">Biological Siblings</button></th>
+                        <th>
+                            <button type="button" class="btn btn-primary">
+                                Biological Siblings
+                            </button>
+                        </th>
+
                     </tr>
+                    {{ sibling_formset.management_form }}
+                    {% for form in sibling_formset %}
+                    <tr>
+                        <td></td>
+                        <td>{{ form.person }}</td>
+                        <td>{{ form.gender }}</td>
+                        <td>{{ form.age }}</td>
+                        <td>{{ form.decd }}</td>
+                        <td>{{ form.ORDER }} {{ form.type }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr><td></td>
+                        <td colspan="4">
+                            <div id="empty_sibling_form" style="display:none"> {{
+                                sibling_formset.empty_form.as_table }}
+                            </div>
+                            <button id="add_sibling_row" class="btn btn-warning">Add Another Sibling</button>
+                        </td></tr>
+
+
                     <tr id="children_row">
-                        <th><button type="button" class="btn btn-info" data-toggle="collapse" data-target="#children">Biological Children</button></th>
+                        <th>
+                            <button type="button" class="btn btn-primary">
+                                Biological Children
+                            </button>
+                        </th>
+
                     </tr>
+                    {{ children_formset.management_form }}
+                    {% for form in children_formset %}
+                    <tr>
+                        <td></td>
+                        <td>{{ form.person }}</td>
+                        <td>{{ form.gender }}</td>
+                        <td>{{ form.age }}</td>
+                        <td>{{ form.decd }}</td>
+                        <td>{{ form.ORDER }} {{ form.type }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr><td></td>
+                        <td colspan="4">
+                            <div id="empty_children_form" style="display:none"> {{
+                                children_formset.empty_form.as_table }}
+                            </div>
+                            <button id="add_children_row" class="btn btn-warning">Add Another Child</button>
+
+
+                        </td></tr>
+
+                    </tbody>
                 </table>
             </div>
 
 
+            <input id="submit" type="submit" value="Next" class="btn btn-success"/>
+            <input type="hidden" id="completed" name="completed" value="0"/>
 
-            <input type="submit" value="Next" class="btn btn-success"/>
-
-    </div>
+        </div>
     </form>
 </div>
-<script>
+<script type="text/javascript">
 
-$('a.btn').click(function() {
-    var formid = $(this).attr('id');
-    var ids = formid.split("-");
-    var type = ids[1].split("_");
-    formid = '#'+ids[1]+'-'+ids[2];
-    var name = "<td>" + $(formid + '-person').val() + "</td>";
-    var gender = "<td>" + $(formid + '-gender option:selected').text() + "</td>";
-    var age = "<td>" + $(formid + '-age').val() + "</td>";
-    var dec = 'No';
-    if ($(formid + '-decd').val() == 1){
-        dec = 'Yes';
-        }
-    var decd = "<td>"+dec + "</td>";
-    var rowid = '#' + type[1] + '_row';
-    $(rowid).append(name);
-    $(rowid).append(age);
-    $(rowid).append(gender);
-    $(rowid).append(decd);
-
-    $('#' + type[1]).collapse('hide');
-});
-
-$('#add_form2').click(function() {
-    var form_idx = $('#id_twin2-TOTAL_FORMS').val();
-    var newrow = "<tr><td>"+$('#empty_form2').html().replace(/__prefix__/g, form_idx) + "</td></tr>";
+$('#add_sibling_row').click(function(event) {
+    var form_idx = $('#id_sibling-TOTAL_FORMS').val();
+    var newrow = "<tr><td>"+$('#empty_sibling_form').html().replace(/__prefix__/g, form_idx) + "</td></tr>";
     newrow = newrow.replace(/\<label/g,"</td><td><label style=\"display:none\"");
     newrow = newrow.replace(/\<td\>\s+\<\/td\>/,"");
-    $('#forms2').append(newrow);
-    $('#id_twin2-TOTAL_FORMS').val(parseInt(form_idx) + 1);
+
+    $('#sibling_row').append(newrow);
+    $('#id_sibling-' + form_idx + '-type').val('Sibling');
+    $('#id_sibling-TOTAL_FORMS').val(parseInt(form_idx) + 1);
+
+
 });
+
+$('#add_children_row').click(function(event) {
+    var form_idx = $('#id_children-TOTAL_FORMS').val();
+    var newrow = "<tr><td>"+$('#empty_children_form').html().replace(/__prefix__/g, form_idx) + "</td></tr>";
+    newrow = newrow.replace(/\<label/g,"</td><td><label style=\"display:none\"");
+    newrow = newrow.replace(/\<td\>\s+\<\/td\>/,"");
+
+    $('#children_row').append(newrow);
+    $('#id_children-' + form_idx + '-type').val('Children');
+    $('#id_children-TOTAL_FORMS').val(parseInt(form_idx) + 1);
+
+
+});
+
+$('#submit').click(function(event){
+    $('#completed').val(1);
+    });
+
+
 </script>
 {% endblock content %}

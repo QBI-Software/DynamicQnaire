@@ -2,18 +2,21 @@ import datetime
 import time
 import re
 import os
+from collections import OrderedDict
 from django.conf import settings
 from django.db import IntegrityError
 from django.forms import formset_factory
 from django.shortcuts import render
+from django.template import RequestContext
 from formtools.wizard.views import SessionWizardView
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User, Group
+from django.db.models import Q
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.files.storage import FileSystemStorage
 from .forms import AnswerForm, BaseQuestionFormSet
-from .customforms import BABYForm1,FamilyHistoryForm
+from .customforms import BABYForm1,FamilyHistoryForm, FamilyChoiceForm
 from .models import Questionnaire, Question, TestResult, SubjectQuestionnaire, SubjectVisit
 
 
@@ -270,18 +273,64 @@ def familyHistoryWizard(request, code):
     except ObjectDoesNotExist:
         raise ValueError('Unable to find questionnaire')
     ParentFormSet = formset_factory(FamilyHistoryForm, formset=BaseQuestionFormSet, max_num=1,validate_max=True)
-    FamilyFormSet = formset_factory(FamilyHistoryForm, formset=BaseQuestionFormSet,
+    FamilyFormSet = formset_factory(FamilyHistoryForm, formset=BaseQuestionFormSet, extra=0, max_num=50,
                                     validate_max=False, can_order=True)
     mother_data = [{'type': 'Mother','gender': 2,'name':'','age':'','decd':''}]
     father_data = [{'type': 'Father', 'gender': 1,'name':'','age':'','decd':''}]
-    sibling_data = [{'type': 'Sibling', 'gender': 0,'name':'','age':'','decd':''}]
-    children_data = [{'type': 'Children', 'gender': 0,'name':'','age':'','decd':''}]
+    sibling_data = [{'type': 'Sibling', 'gender': 0,'name':'','age':'','decd':''},
+                    {'type': 'Sibling', 'gender': 0, 'name': '', 'age': '', 'decd': ''}]
+    children_data = [{'type': 'Children', 'gender': 0,'name':'','age':'','decd':''},
+                     {'type': 'Children', 'gender': 0,'name':'','age':'','decd':''}]
 
     if request.method == 'POST':
+        family = []
         mother_formset = ParentFormSet(request.POST, prefix='mother')
         father_formset = ParentFormSet(request.POST, prefix='father')
         sibling_formset = FamilyFormSet(request.POST, prefix='sibling')
         children_formset = FamilyFormSet(request.POST, prefix='children')
+        token = request.POST['csrfmiddlewaretoken'] + str(time.time())
+        if request.POST['completed'] and mother_formset.is_valid() and father_formset.is_valid() and sibling_formset.is_valid() and children_formset.is_valid():
+            # data in form.data['twin1-0-question'] etc
+            labels = [s for s in mother_formset.data.keys() if "person" in s]
+            names = []
+            for data in [mother_formset.cleaned_data, father_formset.cleaned_data]:
+                names.append((data[0]['person'].lower(),data[0]['person']))
+                tresult = TestResult()
+                tresult.testee = user
+                tresult.test_questionnaire = qnaire
+                tresult.test_result_question = qnaire.question_set.order_by('order')[0]
+                tresult.test_result_text = data
+                tresult.test_token = token
+                tresult.save()
+
+            for data in [sibling_formset.cleaned_data, children_formset.cleaned_data]:
+                num = len(data)
+                for n in data:
+                    names.append((n['person'].lower(),n['person']))
+                    tresult = TestResult()
+                    tresult.testee = user
+                    tresult.test_questionnaire = qnaire
+                    tresult.test_result_question = qnaire.question_set.order_by('order')[0]
+                    tresult.test_result_text = n
+                    tresult.test_token = token
+                    tresult.save()
+
+            #Second step - Multi-page wizard - TODO: how to manage Request - return redirect('/page-with-form/') or HttpResponseRedirect
+            usergrouplist = request.user.groups.all()
+            questions = qnaire.question_set\
+                .filter(Q(group__isnull=True) | Q(group__in=usergrouplist))\
+                .order_by('order')[1:]
+            formlist = [FamilyChoiceForm] * questions.count()
+            linkdata = {}
+            for q in questions:
+                linkdata[str(q.order-1)] = {'qid': q, 'nameslist': names}
+            initdata = OrderedDict(linkdata)
+            form = FamilyChoiceWizard.as_view(form_list=formlist, initial_dict=initdata)
+            request.POST=None
+            request.method='GET'
+            return form(context=RequestContext(request), request=request)
+
+
     else:
         mother_formset = ParentFormSet(prefix='mother', initial=mother_data)
         father_formset = ParentFormSet(prefix='father', initial=father_data)
@@ -297,3 +346,27 @@ def familyHistoryWizard(request, code):
         'messages': messages,
     })
 
+class FamilyChoiceWizard(LoginRequiredMixin, SessionWizardView):
+    template_name = 'questionnaires/qpage.html'
+    file_storage = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'photos'))
+
+    def done(self, form_list, form_dict, **kwargs):
+        template = 'questionnaires/done.html'
+        qn = self.initial_dict.get('0')['qid']
+        qnaire = qn.qid
+        store_token = self.request.POST['csrfmiddlewaretoken'] + str(time.time())
+        formuser = self.request.user
+        # TODO: Save questions
+
+        try:
+            subjectcat = SubjectQuestionnaire(subject=formuser, questionnaire=qnaire,
+                                              session_token=store_token)
+            subjectcat.save()
+            messages = 'Congratulations, %s!  You have completed the questionnaire.' % formuser
+        except IntegrityError:
+            messages = "ERROR: Error saving results - please tell Admin"
+
+        return render(self.request, template, {
+            'form_data': [form.cleaned_data for form in form_list],
+            'qnaire_title': qnaire.title,
+        })

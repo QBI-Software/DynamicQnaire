@@ -40,12 +40,40 @@ class FamilyHistoryForm(forms.Form):
                              widget=forms.Select(attrs={'class': 'form-control'}))
     age = forms.IntegerField(label="Current Age", required=True,
                             help_text="Enter person's current age or age at death",
-                            widget=forms.TextInput(attrs={'class': 'form-control'}))
+                            widget=forms.NumberInput(attrs={'class': 'form-control'}))
     decd = forms.BooleanField(label="Person is deceased", required=False,
                             help_text="Check box if this person is deceased",
                             widget=forms.CheckboxInput(attrs={'class': 'form-control'}))
 
+class FamilyChoiceForm(forms.Form):
 
+    """Loads a question and multiple choice answer """
+    def __init__(self, *args, **kwargs):
+        qid = kwargs.get('initial')
+        super().__init__(*args, **kwargs)
+        if (qid):
+            #TODO Populate Question with names options
+            question = qid.get('qid')
+            choices = qid.get('nameslist')
+            if question.question_type == 2:
+                self.fields['question'] = forms.MultipleChoiceField(
+                    label=question.question_text,
+                    widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-control'}),
+                    help_text='checkbox',
+                    required=question.question_required,
+                    choices=choices,
+                )
+            else:
+                self.fields['question'] = forms.CharField(
+                    label=question.question_text,
+                    help_text='text',
+                    widget=forms.TextInput(attrs={'class': 'form-control'}),
+                    required=question.question_required,
+
+                )
+
+    class Meta:
+        fields = ('question')
 
 ############################
 class BABYForm1(forms.Form):
