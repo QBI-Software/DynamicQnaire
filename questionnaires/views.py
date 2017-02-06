@@ -462,7 +462,23 @@ def parse_twin_question(subject,q, questions):
         q2 = copy.copy(q)
         q.question_text = male_re.sub(twins[0].subject.first_name,q.question_text)
         q2.question_text = male_re.sub(twins[1].subject.first_name, q2.question_text)
-        rtn = {twins[0]: q, twins[1]: q2}
+        q2.pk = str(q.pk) + '-1'
+        # Pick up conditionals
+        t1 = [q]
+        t2 = [q2]
+        if q.conditional:
+            i = q.order + 1
+
+            for con in range(i, i + int(q.condskip)):
+                qsub = questions[con]
+                qsub2 = copy.copy(qsub)
+                qsub2.pk = str(qsub.pk) + '-1'
+                qsub.question_text = male_re.sub(twins[0].subject.first_name, qsub.question_text)
+                qsub2.question_text = male_re.sub(twins[1].subject.first_name, qsub2.question_text)
+                t1.append(qsub)
+                t2.append(qsub2)
+        rtn = {twins[0]: t1, twins[1]: t2}
+
     elif subject.has_ff() and bool(female_re.search(q.question_text)):
         q2 = copy.copy(q)
         q.question_text = female_re.sub(twins[0].subject.first_name,q.question_text)
@@ -472,9 +488,15 @@ def parse_twin_question(subject,q, questions):
         t1 = [q]
         t2 = [q2]
         if q.conditional:
-            i = q.order + 1
+            #test if order numbering starts at 0
+            if questions[q.order] == q:
+                start = q.order + 1
+                end = start + int(q.condskip)
+            else: #assume order numbering starts at 1
+                start = q.order
+                end = start + int(q.condskip)
 
-            for con in range(i, i + int(q.condskip)):
+            for con in range(start, end):
                 qsub = questions[con]
                 qsub2 = copy.copy(qsub)
                 qsub2.pk = str(qsub.pk) + '-1'
