@@ -165,16 +165,14 @@ class BaseQuestionFormSet(BaseFormSet):
 
     def clean(self):
         """
-        Adds validation to check that no two links have the same anchor or URL
-        and that all links have both an anchor and URL.
+        Checks forms are bound
         """
         if any(self.errors):
             return
         results = []
         for form in self.forms:
             title = form.cleaned_data
-
-        results.append(title)
+            results.append(title)
         return results
 
 

@@ -54,7 +54,7 @@
                         id="{{ wizard.form.question.id_for_label}}"
                         name="{{wizard.form.prefix}}-{{ wizard.form.question.name }}">
                                 {% for choice in wizard.form.question.field.choices %}
-                                <option value="{{ choice.0 }}">{{choice.1.choice_text}}</option>
+                                <option value="{{ choice.0 }}">{{choice.1}}</option>
                                 {% endfor %}
                </select>
                 {% if wizard.form.question2 %}
@@ -63,7 +63,7 @@
                         id="{{ wizard.form.question2.id_for_label}}"
                         name="{{wizard.form.prefix}}-{{ wizard.form.question2.name }}">
                             {% for choice in wizard.form.question2.field.choices %}
-                            <option value="{{ choice.0 }}">{{choice.1.choice_text}}</option>
+                            <option value="{{ choice.0 }}">{{choice.1}}</option>
                             {% endfor %}
                 </select>
                 {% endif %}
@@ -101,14 +101,10 @@
                               id="{{ wizard.form.question.id_for_label}}"
                               name="{{wizard.form.prefix}}-{{ wizard.form.question.name }}"
                               value="{{ choice.0 }}"
-                  {% if choice.1.choice_image %}
-                              class="imageradio"> <img src="/media/{{choice.1.choice_image }}"
-                                                       title="{{choice.1.choice_text}}"/>
-                    {% else %}
                     />
-                    {% endif %}
+
                     {{choice.1}}
-                    {% if choice.1.show_label %}{{ choice.1.choice_text }}{% endif %}
+
                 </label>
 
             {% if wizard.form.usegrid %}</td>
@@ -133,15 +129,7 @@
                 <label><input type="{{wizard.form.question2.help_text}}"
                               id="{{ wizard.form.question2.id_for_label}}"
                               name="{{wizard.form.prefix}}-{{ wizard.form.question2.name }}"
-                              value="{{ choice.0 }}"
-                  {% if choice.1.choice_image %}
-                              class="imageradio"> <img src="/media/{{choice.1.choice_image }}"
-                                                       title="{{choice.1.choice_text}}"/>
-                    {% else %}
-                    />
-                    {% endif %}
-
-                    {% if choice.1.show_label %}{{ choice.1.choice_text }}{% endif %}
+                              value="{{ choice.0 }}" />{{ choice.1 }}
                 </label>
 
             {% if wizard.form.usegrid %}</td>

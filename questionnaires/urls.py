@@ -3,10 +3,7 @@ from django.conf.urls import url
 from django.contrib.auth.views import password_change, password_reset,password_reset_complete, password_reset_confirm, password_reset_done
 
 from . import views, customviews
-#from .customviews import familyHistoryWizard
-#from .customforms import FamilyHistoryFormParents,FamilyHistoryFormSiblings,FamilyHistoryFormChildren
 
-#form_list = [FamilyHistoryFormParents,FamilyHistoryFormSiblings,FamilyHistoryFormChildren]
 
 app_name = 'questionnaires'
 urlpatterns = [
@@ -28,9 +25,7 @@ urlpatterns = [
     url(r'^(?P<token>[0-9]+)/deleteresults/$', views.TestResultDelete.as_view(), name='deleteresults'),
     url(r'^custom/(?P<code>[0-9A-Za-z\-]+)/$', customviews.baby_measurements, name='Wav1P08b'),
     url(r'^custom2/(?P<code>[0-9A-Za-z\-]+)/$', customviews.maturation, name='Wav1P12'),
-    url(r'^custom3/(?P<code>[0-9A-Za-z\-]+)/$', customviews.familyHistoryWizard, name='Wav1P16b'),
-    #url(r'^custom3/(?P<code>[0-9A-Za-z\-]+)/$', FamilyHistoryWizard.as_view(form_list), name='FamHistory'),
-    #url(r'^custom/(?P<code>\w+)/$', CustomWizard.as_view(),name='custom'),
-    #url(r'^contact/$', ContactWizard.as_view(contact_forms,  condition_dict={'1': show_message_form_condition} ),name='contact'),
+    url(r'^custom3/(?P<code>[0-9A-Za-z\-]+)/$', customviews.familyHistoryPart1, name='Wav1P16A'),
+    url(r'^custom4/(?P<code>[0-9A-Za-z\-]+)/$', customviews.familyHistoryPart2, name='Wav1P16B'),
 
 ]

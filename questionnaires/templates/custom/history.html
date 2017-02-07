@@ -24,7 +24,7 @@
                         <th>Gender</th>
                         <th>Age (yrs)</th>
                         <th>Deceased</th>
-                        <th>Order</th>
+                        <th>Birth Order</th>
 
                     </tr>
                     </thead>
@@ -71,6 +71,7 @@
                                 Biological Siblings
                             </button>
                         </th>
+                        <td colspan="5">Please start with the first born and include yourself in the list. (<i>Please remove any empty rows before submitting</i>)</td>
 
                     </tr>
                     {{ sibling_formset.management_form }}
@@ -82,6 +83,7 @@
                         <td>{{ form.age }}</td>
                         <td>{{ form.decd }}</td>
                         <td>{{ form.ORDER }} {{ form.type }}</td>
+                        <td><button class="remove_sibling_row" title="Remove sibling"><span class="glyphicon glyphicon-remove"></span></button></td>
                     </tr>
                     {% endfor %}
                     <tr><td></td>
@@ -99,7 +101,7 @@
                                 Biological Children
                             </button>
                         </th>
-
+                        <td colspan="2"><i>Please remove any empty rows before submitting</i></td>
                     </tr>
                     {{ children_formset.management_form }}
                     {% for form in children_formset %}
@@ -110,6 +112,7 @@
                         <td>{{ form.age }}</td>
                         <td>{{ form.decd }}</td>
                         <td>{{ form.ORDER }} {{ form.type }}</td>
+                        <td><button class="remove_children_row" title="Remove child"><span class="glyphicon glyphicon-remove"></span></button></td>
                     </tr>
                     {% endfor %}
                     <tr><td></td>
@@ -148,6 +151,14 @@ $('#add_sibling_row').click(function(event) {
 
 });
 
+$('.remove_sibling_row').click(function(event) {
+    event.preventDefault();
+    var form_idx = $('#id_sibling-TOTAL_FORMS').val();
+    $(this).parents("tr").remove();
+    $('#id_sibling-TOTAL_FORMS').val(parseInt(form_idx) - 1);
+ });
+
+
 $('#add_children_row').click(function(event) {
     var form_idx = $('#id_children-TOTAL_FORMS').val();
     var newrow = "<tr><td>"+$('#empty_children_form').html().replace(/__prefix__/g, form_idx) + "</td></tr>";
@@ -158,8 +169,15 @@ $('#add_children_row').click(function(event) {
     $('#id_children-' + form_idx + '-type').val('Children');
     $('#id_children-TOTAL_FORMS').val(parseInt(form_idx) + 1);
 
-
 });
+
+$('.remove_children_row').click(function(event) {
+    event.preventDefault();
+    var form_idx = $('#id_children-TOTAL_FORMS').val();
+    $(this).parents("tr").remove();
+    $('#id_children-TOTAL_FORMS').val(parseInt(form_idx) - 1);
+ });
+
 
 $('#submit').click(function(event){
     $('#completed').val(1);

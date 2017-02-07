@@ -11,13 +11,19 @@
     <p>Thanks for completing the {{qnaire_title}} questionnaire</p>
 
 
+
+
 </div>
 
 <div class="container">
     <div class="row">
         <div class="col-sm-4">
-            <p></p><a href="/questionnaires" class="btn btn-success"> Return to Home <span
-                class="glyphicon glyphicon-circle-arrow-up"></span></a>
+            {% if followup %}
+            <p><a href="{% url 'questionnaires:qintro' followup %}" class="btn btn-primary"> Proceed to next questionnaire in this series <span class="glyphicon glyphicon-circle-arrow-right"></span></a></p>
+            {% endif %}
+
+            <p><a href="/questionnaires" class="btn btn-success"> Return to Home <span
+                class="glyphicon glyphicon-circle-arrow-up"></span></a></p>
         </div>
     </div>
 </div>

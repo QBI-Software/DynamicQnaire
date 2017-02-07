@@ -445,6 +445,7 @@ class TestResultDelete(LoginRequiredMixin, PermissionRequiredMixin, generic.Form
 
 
 ################QUESTIONNAIRE FORMS ###################################
+@login_required
 def parse_twin_question(subject,q, questions):
     """
     Some questions require replacement of male or female twin names
@@ -467,9 +468,15 @@ def parse_twin_question(subject,q, questions):
         t1 = [q]
         t2 = [q2]
         if q.conditional:
-            i = q.order + 1
+            # test if order numbering starts at 0
+            if questions[q.order] == q:
+                start = q.order + 1
+                end = start + int(q.condskip)
+            else:  # assume order numbering starts at 1
+                start = q.order
+                end = start + int(q.condskip)
 
-            for con in range(i, i + int(q.condskip)):
+            for con in range(start,end):
                 qsub = questions[con]
                 qsub2 = copy.copy(qsub)
                 qsub2.pk = str(qsub.pk) + '-1'
@@ -517,7 +524,7 @@ def parse_twin_question(subject,q, questions):
 
     return rtn
 
-
+@login_required
 def get_conditional_string(q):
     conditional_actions = {0: True, 1: 'showif', 2: 'skipif', 3: 'skipmore', 4: 'skipless', 5: 'showchecked'}
     return '%s_%d_%d' % (conditional_actions[q.conditional], q.condval, q.condskip)

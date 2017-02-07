@@ -257,7 +257,7 @@ def maturation(request, code):
 
 ##########################################
 @login_required
-def familyHistoryWizard(request, code):
+def familyHistoryPart1(request, code):
     """
     Family History questionnaire to be filled out by a parent
     :param request: HTTP request URL
@@ -273,25 +273,24 @@ def familyHistoryWizard(request, code):
     except ObjectDoesNotExist:
         raise ValueError('Unable to find questionnaire')
     ParentFormSet = formset_factory(FamilyHistoryForm, formset=BaseQuestionFormSet, max_num=1,validate_max=True)
-    FamilyFormSet = formset_factory(FamilyHistoryForm, formset=BaseQuestionFormSet, extra=0, max_num=50,
-                                    validate_max=False, can_order=True)
+    FamilyFormSet = formset_factory(FamilyHistoryForm, formset=BaseQuestionFormSet, extra=0, max_num=50, min_num=0, validate_min=True,  validate_max=False, can_order=True)
     mother_data = [{'type': 'Mother','gender': 2,'name':'','age':'','decd':''}]
     father_data = [{'type': 'Father', 'gender': 1,'name':'','age':'','decd':''}]
     sibling_data = [{'type': 'Sibling', 'gender': 0,'name':'','age':'','decd':''},
                     {'type': 'Sibling', 'gender': 0, 'name': '', 'age': '', 'decd': ''}]
     children_data = [{'type': 'Children', 'gender': 0,'name':'','age':'','decd':''},
                      {'type': 'Children', 'gender': 0,'name':'','age':'','decd':''}]
+    followup = None
 
     if request.method == 'POST':
-        family = []
         mother_formset = ParentFormSet(request.POST, prefix='mother')
         father_formset = ParentFormSet(request.POST, prefix='father')
         sibling_formset = FamilyFormSet(request.POST, prefix='sibling')
         children_formset = FamilyFormSet(request.POST, prefix='children')
         token = request.POST['csrfmiddlewaretoken'] + str(time.time())
+
         if request.POST['completed'] and mother_formset.is_valid() and father_formset.is_valid() and sibling_formset.is_valid() and children_formset.is_valid():
-            # data in form.data['twin1-0-question'] etc
-            labels = [s for s in mother_formset.data.keys() if "person" in s]
+
             names = []
             for data in [mother_formset.cleaned_data, father_formset.cleaned_data]:
                 names.append((data[0]['person'].lower(),data[0]['person']))
@@ -315,21 +314,24 @@ def familyHistoryWizard(request, code):
                     tresult.test_token = token
                     tresult.save()
 
-            #Second step - Multi-page wizard - TODO: how to manage Request - return redirect('/page-with-form/') or HttpResponseRedirect
-            usergrouplist = request.user.groups.all()
-            questions = qnaire.question_set\
-                .filter(Q(group__isnull=True) | Q(group__in=usergrouplist))\
-                .order_by('order')[1:]
-            formlist = [FamilyChoiceForm] * questions.count()
-            linkdata = {}
-            for q in questions:
-                linkdata[str(q.order-1)] = {'qid': q, 'nameslist': names}
-            initdata = OrderedDict(linkdata)
-            form = FamilyChoiceWizard.as_view(form_list=formlist, initial_dict=initdata)
-            request.POST=None
-            request.method='GET'
-            return form(context=RequestContext(request), request=request)
+            #Proceed to Second step - Multi-page wizard
+            nextcode = qnaire.code.replace('A','B')
+            nextq = Questionnaire.objects.filter(code=nextcode)
+            if nextq:
+                followup = nextq[0].id
 
+            # Save user info with category
+            template = 'questionnaires/done.html'
+            try:
+                subjectcat = SubjectQuestionnaire(subject=user, questionnaire=qnaire,
+                                                  session_token=token)
+                subjectcat.save()
+                messages = 'Congratulations, %s!  You have completed the questionnaire.' % user
+            except IntegrityError:
+                messages = "ERROR: Error saving results - please tell Admin"
+                # messages.error(request, 'There was an error saving your result.')
+        else:
+            messages = ''
 
     else:
         mother_formset = ParentFormSet(prefix='mother', initial=mother_data)
@@ -344,10 +346,63 @@ def familyHistoryWizard(request, code):
         'children_formset': children_formset,
         'qtitle': qnaire.title,
         'messages': messages,
+        'followup': followup,
     })
 
+@login_required
+def familyHistoryPart2(request, code):
+    """
+        Family History questionnaire to be filled out by a parent
+        :param request: HTTP request URL
+        :param code: Questionnaire code from URL
+        :return: custom questionnaire form
+        """
+    import ast
+    user = request.user
+    messages = ''
+
+    try:
+        qnaire = Questionnaire.objects.get(code=code)
+    except ObjectDoesNotExist:
+        messages='Unable to find questionnaire'
+        raise ValueError(messages)
+    #Assume previous questionnaire has been done
+    # get choices or None
+    names = []
+    try:
+        prevcode = qnaire.code.replace('B','A')
+        prevq = Questionnaire.objects.filter(code=prevcode)
+        results = prevq[0].testresult_set.all().filter(testee=user).order_by('-test_datetime')[:1].get()
+        token = results.test_token
+        results = prevq[0].testresult_set.all().filter(testee=user).filter(test_token=token)
+        for tresult in results:
+            n = tresult.test_result_text
+            n1 = n.replace("\\","")
+            n1 = n1.replace("[","")
+            n1 = n1.replace("]","")
+            n = ast.literal_eval(n1)
+            names.append((n['person'].lower(), n['person']))
+    except ObjectDoesNotExist:
+        names=[('mother','Mother'),('father','Father'),('sib1','Sib#1'),('sib2','Sib#2'),('sib3','Sib#3'),('sib4','Sib#4'),('sib5','Sib#5'),('child1','Child#1'),('child2','Child#2'),('child3','Child#3'),('child4','Child#4'),('child5','Child#5')]
+
+    #Append extra responses
+    names.append(('no','No'))
+    names.append(('notsure','Not sure'))
+    linkdata = {}
+    #All questions - no filtering
+    num = 0
+    for q in qnaire.question_set.all().order_by('order'):
+        linkdata[str(num)] = {'qid': q, 'nameslist': names}
+        num += 1
+    formlist = [FamilyChoiceForm] * qnaire.question_set.count()
+    initdata = OrderedDict(linkdata)
+    form = FamilyChoiceWizard.as_view(form_list=formlist, initial_dict=initdata)
+    return form(context=RequestContext(request), request=request)
+
+
+
 class FamilyChoiceWizard(LoginRequiredMixin, SessionWizardView):
-    template_name = 'questionnaires/qpage.html'
+    template_name = 'custom/history_qpage.html'
     file_storage = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'photos'))
 
     def done(self, form_list, form_dict, **kwargs):

@@ -45,6 +45,10 @@ class FamilyHistoryForm(forms.Form):
                             help_text="Check box if this person is deceased",
                             widget=forms.CheckboxInput(attrs={'class': 'form-control'}))
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.empty_permitted = True
+
 class FamilyChoiceForm(forms.Form):
 
     """Loads a question and multiple choice answer """
