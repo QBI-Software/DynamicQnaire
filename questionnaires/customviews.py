@@ -2,6 +2,8 @@ import datetime
 import time
 import re
 import os
+import string
+import ast
 from collections import OrderedDict
 from django.conf import settings
 from django.db import IntegrityError
@@ -18,6 +20,7 @@ from django.core.files.storage import FileSystemStorage
 from .forms import AnswerForm, BaseQuestionFormSet
 from .customforms import BABYForm1,FamilyHistoryForm, FamilyChoiceForm
 from .models import Questionnaire, Question, TestResult, SubjectQuestionnaire, SubjectVisit
+from .views import get_conditional_string, QuestionnaireWizard
 
 
 #################CUSTOM QUESTIONNAIRES - HARD-CODED ###############
@@ -87,7 +90,7 @@ def baby_measurements(request, code):
         t2_formset = Twin2FormSet(request.POST, request.FILES, prefix='twin2')
         token = request.POST['csrfmiddlewaretoken'] + str(time.time())
         if t1_formset.is_valid() and t2_formset.is_valid():
-            headers = ['Twin', 'Date','Age', 'Head', 'Length', 'Weight']
+            headers = ['Twin', 'Date','Age', 'Head', 'Length', 'Weight', 'Source','Other']
 
             for fmset in [t1_formset, t2_formset]:
                 t_answer = {}
@@ -98,15 +101,23 @@ def baby_measurements(request, code):
                 else:
                     testee = user
                 for form in fmset:
-                    tdate = form.cleaned_data.get('measurement_date')
-                    if isinstance(tdate, datetime.date):
-                        tfdate = tdate.strftime('%d-%m-%Y')
-                    t_answer[rnum] = [testee.username, tfdate,
-                                       form.cleaned_data.get('measurement_age'),
-                                       form.cleaned_data.get('measurement_head'),
-                                       form.cleaned_data.get('measurement_length'),
-                                       form.cleaned_data.get('measurement_weight'),
-                                       ]
+                    # tdate = form.cleaned_data.get('measurement_date')
+                    # if isinstance(tdate, datetime.date):
+                    #     tfdate = tdate.strftime('%d-%m-%Y')
+                    # t_answer[rnum] = [testee.username, tfdate,
+                    #                    form.cleaned_data.get('measurement_age'),
+                    #                    form.cleaned_data.get('measurement_head'),
+                    #                    form.cleaned_data.get('measurement_length'),
+                    #                    form.cleaned_data.get('measurement_weight'),
+                    #                    ]
+                    t_answer[rnum] = [testee.username,
+                                      form.cleaned_data.get('measurement_age'),
+                                      form.cleaned_data.get('measurement_head'),
+                                      form.cleaned_data.get('measurement_length'),
+                                      form.cleaned_data.get('measurement_weight'),
+                                      form.cleaned_data.get('measurement_source'),
+                                      form.cleaned_data.get('measurement_source_other'),
+                                      ]
                     rnum += 1
 
                 tresult = TestResult()
@@ -288,50 +299,53 @@ def familyHistoryPart1(request, code):
         sibling_formset = FamilyFormSet(request.POST, prefix='sibling')
         children_formset = FamilyFormSet(request.POST, prefix='children')
         token = request.POST['csrfmiddlewaretoken'] + str(time.time())
+        #Reloads for every question - no processing until questionnaire completed
+        if request.POST['completed']== '1':
 
-        if request.POST['completed'] and mother_formset.is_valid() and father_formset.is_valid() and sibling_formset.is_valid() and children_formset.is_valid():
+            if mother_formset.is_valid() and father_formset.is_valid() and sibling_formset.is_valid() and children_formset.is_valid():
 
-            names = []
-            for data in [mother_formset.cleaned_data, father_formset.cleaned_data]:
-                names.append((data[0]['person'].lower(),data[0]['person']))
-                tresult = TestResult()
-                tresult.testee = user
-                tresult.test_questionnaire = qnaire
-                tresult.test_result_question = qnaire.question_set.order_by('order')[0]
-                tresult.test_result_text = data
-                tresult.test_token = token
-                tresult.save()
-
-            for data in [sibling_formset.cleaned_data, children_formset.cleaned_data]:
-                num = len(data)
-                for n in data:
-                    names.append((n['person'].lower(),n['person']))
+                names = []
+                for data in [mother_formset.cleaned_data, father_formset.cleaned_data]:
+                    #names.append((data[0]['type'].lower(),data[0]['person']))
                     tresult = TestResult()
                     tresult.testee = user
                     tresult.test_questionnaire = qnaire
                     tresult.test_result_question = qnaire.question_set.order_by('order')[0]
-                    tresult.test_result_text = n
+                    tresult.test_result_text = (data[0]['type'].lower(),data[0])
                     tresult.test_token = token
                     tresult.save()
 
-            #Proceed to Second step - Multi-page wizard
-            nextcode = qnaire.code.replace('A','B')
-            nextq = Questionnaire.objects.filter(code=nextcode)
-            if nextq:
-                followup = nextq[0].id
+                for data in [sibling_formset.cleaned_data, children_formset.cleaned_data]:
+                    num = 1
+                    for n in data:
+                        #names.append((n['type'].lower() + "-" + str(num),n['person']))
+                        tresult = TestResult()
+                        tresult.testee = user
+                        tresult.test_questionnaire = qnaire
+                        tresult.test_result_question = qnaire.question_set.order_by('order')[0]
+                        tresult.test_result_text = (n['type'].lower() + "-" + str(num),n)
+                        tresult.test_token = token
+                        tresult.save()
+                        num += 1
 
-            # Save user info with category
-            template = 'questionnaires/done.html'
-            try:
-                subjectcat = SubjectQuestionnaire(subject=user, questionnaire=qnaire,
-                                                  session_token=token)
-                subjectcat.save()
-                messages = 'Congratulations, %s!  You have completed the questionnaire.' % user
-            except IntegrityError:
-                messages = "ERROR: Error saving results - please tell Admin"
-                # messages.error(request, 'There was an error saving your result.')
-        else:
-            messages = ''
+                #Proceed to Second step - Multi-page wizard
+                nextcode = qnaire.code.replace('A','B')
+                nextq = Questionnaire.objects.filter(code=nextcode)
+                if nextq:
+                    followup = nextq[0].id
+
+                # Save user info with category
+                template = 'questionnaires/done.html'
+                try:
+                    subjectcat = SubjectQuestionnaire(subject=user, questionnaire=qnaire,
+                                                      session_token=token)
+                    subjectcat.save()
+                    messages = 'Congratulations, %s!  You have completed the questionnaire.' % user
+                except IntegrityError:
+                    messages = "ERROR: Error saving results - please tell Admin"
+                    # messages.error(request, 'There was an error saving your result.')
+            else:
+                messages = ''
 
     else:
         mother_formset = ParentFormSet(prefix='mother', initial=mother_data)
@@ -357,7 +371,6 @@ def familyHistoryPart2(request, code):
         :param code: Questionnaire code from URL
         :return: custom questionnaire form
         """
-    import ast
     user = request.user
     messages = ''
 
@@ -370,40 +383,52 @@ def familyHistoryPart2(request, code):
     # get choices or None
     names = []
     try:
-        prevcode = qnaire.code.replace('B','A')
+        prevcode = re.sub(r'[A-Z]$','A',qnaire.code)
         prevq = Questionnaire.objects.filter(code=prevcode)
         results = prevq[0].testresult_set.all().filter(testee=user).order_by('-test_datetime')[:1].get()
         token = results.test_token
         results = prevq[0].testresult_set.all().filter(testee=user).filter(test_token=token)
+        num = 1
         for tresult in results:
             n = tresult.test_result_text
             n1 = n.replace("\\","")
             n1 = n1.replace("[","")
             n1 = n1.replace("]","")
             n = ast.literal_eval(n1)
-            names.append((n['person'].lower(), n['person']))
+            #names.append((n['person'].lower(), n['person']))
+            names.append((n[0], n[1]['person']))
+
+
     except ObjectDoesNotExist:
-        names=[('mother','Mother'),('father','Father'),('sib1','Sib#1'),('sib2','Sib#2'),('sib3','Sib#3'),('sib4','Sib#4'),('sib5','Sib#5'),('child1','Child#1'),('child2','Child#2'),('child3','Child#3'),('child4','Child#4'),('child5','Child#5')]
+        names=[('mother','Mother'),('father','Father'),
+               ('sibling-1','Sibling #1'),('sibling-2','Sibling #2'),('sibling-3','Sibling #3'),('sibling-4','Sibling #4'),('sibling-5','Sibling #5'),('children-1','Child #1'),('children-2','Child #2'),('children-3','Child #3'),('children-4','Child #4'),('children-5','Child #5')]
 
     #Append extra responses
-    names.append(('no','No'))
-    names.append(('notsure','Not sure'))
+    names.append(('1','No'))
+    names.append(('0','Not sure'))
     linkdata = {}
+    condata = {}
     #All questions - no filtering
     num = 0
     for q in qnaire.question_set.all().order_by('order'):
         linkdata[str(num)] = {'qid': q, 'nameslist': names}
+        if q.conditional:
+            condata[str(num)] = get_conditional_string(q)
         num += 1
     formlist = [FamilyChoiceForm] * qnaire.question_set.count()
     initdata = OrderedDict(linkdata)
-    form = FamilyChoiceWizard.as_view(form_list=formlist, initial_dict=initdata)
+    form = FamilyChoiceWizard.as_view(form_list=formlist, initial_dict=initdata, condition_dict =condata)
     return form(context=RequestContext(request), request=request)
 
 
 
-class FamilyChoiceWizard(LoginRequiredMixin, SessionWizardView):
+class FamilyChoiceWizard(QuestionnaireWizard):
     template_name = 'custom/history_qpage.html'
     file_storage = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'photos'))
+
+    def get_form_step_data(self, form):
+        #TODO: Overwrite to give value for non-int values
+        return self.get_form_step_data(form)
 
     def done(self, form_list, form_dict, **kwargs):
         template = 'questionnaires/done.html'
@@ -411,17 +436,51 @@ class FamilyChoiceWizard(LoginRequiredMixin, SessionWizardView):
         qnaire = qn.qid
         store_token = self.request.POST['csrfmiddlewaretoken'] + str(time.time())
         formuser = self.request.user
-        # TODO: Save questions
+        followup = None;
+
+        # Save question results as string
+
+        for key in form_dict:
+            f = form_dict.get(key)
+            i = int(key)
+            qn = self.initial_dict.get(key)['qid']
+            t_answer = {}
+            t_answer[0] = self.initial_dict.get(key)['nameslist']
+            num = 1
+            for r in response['question']:
+                t_answer[num] = r
+                num += 1
+
+            #Get response
+            response = list(form_list)[i].cleaned_data
+            tresult = TestResult()
+            tresult.testee = formuser
+            tresult.test_questionnaire = qnaire
+            tresult.test_result_question = qn
+            tresult.test_result_text = t_answer
+            tresult.test_token = store_token
+            tresult.save()
 
         try:
             subjectcat = SubjectQuestionnaire(subject=formuser, questionnaire=qnaire,
                                               session_token=store_token)
             subjectcat.save()
             messages = 'Congratulations, %s!  You have completed the questionnaire.' % formuser
+            # Proceed to Next step if exists - Multi-page wizard
+            nextcode = qnaire.code
+            a = string.ascii_uppercase
+            b = a.find(nextcode[-1])
+            nextcode = re.sub(r'[A-Z]$',a[b+1],nextcode)
+
+            nextq = Questionnaire.objects.filter(code=nextcode)
+            if nextq:
+                followup = nextq[0].id
         except IntegrityError:
             messages = "ERROR: Error saving results - please tell Admin"
 
         return render(self.request, template, {
             'form_data': [form.cleaned_data for form in form_list],
             'qnaire_title': qnaire.title,
+            'messages': messages,
+            'followup':followup,
         })

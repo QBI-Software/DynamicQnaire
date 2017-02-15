@@ -524,7 +524,7 @@ def parse_twin_question(subject,q, questions):
 
     return rtn
 
-@login_required
+
 def get_conditional_string(q):
     conditional_actions = {0: True, 1: 'showif', 2: 'skipif', 3: 'skipmore', 4: 'skipless', 5: 'showchecked'}
     return '%s_%d_%d' % (conditional_actions[q.conditional], q.condval, q.condskip)

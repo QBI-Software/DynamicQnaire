@@ -31,11 +31,12 @@
                     <table id="customtable1" class="customtable table">
 
             <thead><tr>
-                <th>Date</th>
                 <th>Age(mths)</th>
                 <th>Head(cm)</th>
                 <th>Length(cm)</th>
                 <th>Weight(kg)</th>
+                <th>Source</th>
+                <th>Other</th>
             </tr></thead>
             <tbody id="forms1">
             {% for form in t1_formset %}
@@ -43,11 +44,12 @@
                     <p>{{ form.errors.as_ul }}</p>
                     {% endif %}
             <tr >
-                <td>{{ form.measurement_date }}</td>
                 <td>{{ form.measurement_age }}</td>
                 <td>{{ form.measurement_head }}</td>
                 <td>{{ form.measurement_length }}</td>
                 <td>{{ form.measurement_weight }}</td>
+                <td>{{ form.measurement_source }}</td>
+                <td>{{ form.measurement_source_other }}</td>
             </tr>
             {% endfor %}
             </tbody></table>
@@ -70,11 +72,12 @@
                     <table id="customtable2" class="customtable table">
 
             <thead><tr>
-                <th>Date</th>
                 <th>Age(mths)</th>
                 <th>Head(cm)</th>
                 <th>Length(cm)</th>
                 <th>Weight(kg)</th>
+                <th>Source</th>
+                <th>Other</th>
             </tr></thead>
             <tbody id="forms2">
             {% for form in t2_formset %}
@@ -82,11 +85,12 @@
                     <p>{{ form.errors.as_ul }}</p>
                 {% endif %}
             <tr >
-                <td>{{ form.measurement_date }}</td>
                 <td>{{ form.measurement_age }}</td>
                 <td>{{ form.measurement_head }}</td>
                 <td>{{ form.measurement_length }}</td>
                 <td>{{ form.measurement_weight }}</td>
+                <td>{{ form.measurement_source }}</td>
+                <td>{{ form.measurement_source_other }}</td>
             </tr>
             {% endfor %}
             </tbody></table>
