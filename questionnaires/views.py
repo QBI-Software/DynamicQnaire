@@ -600,6 +600,12 @@ def load_questionnaire(request, *args, **kwargs):
             form = QuestionnaireWizard.as_view(form_list=formlist, initial_dict=initdata, condition_dict =condata)
     return form(context=RequestContext(request), request=request)
 
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
 
 class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
     template_name = 'questionnaires/qpage.html'
@@ -631,15 +637,17 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
                     if self.condition_dict[str(i)] and self.initial_dict[str(i)]['qid'].conditional:
                         self.condition_dict[str(i)] = get_conditional_string(self.initial_dict[str(i)]['qid'])
             elif cond_type =='skipmore':
-                for i in range(nextstep, int(skip_val) + nextstep):
-                    self.condition_dict[str(i)] = (int(fdata[field]) <= int(check_val))
-                    if self.condition_dict[str(i)] and self.initial_dict[str(i)]['qid'].conditional:
-                        self.condition_dict[str(i)] = get_conditional_string(self.initial_dict[str(i)]['qid'])
+                if (is_number(fdata[field])):
+                    for i in range(nextstep, int(skip_val) + nextstep):
+                        self.condition_dict[str(i)] = (int(fdata[field]) <= int(check_val))
+                        if self.condition_dict[str(i)] and self.initial_dict[str(i)]['qid'].conditional:
+                            self.condition_dict[str(i)] = get_conditional_string(self.initial_dict[str(i)]['qid'])
             elif cond_type == 'skipless':
-                for i in range(nextstep, int(skip_val) + nextstep):
-                    self.condition_dict[str(i)] = (int(fdata[field]) >= int(check_val))
-                    if self.condition_dict[str(i)] and self.initial_dict[str(i)]['qid'].conditional:
-                        self.condition_dict[str(i)] = get_conditional_string(self.initial_dict[str(i)]['qid'])
+                if (is_number(fdata[field])):
+                    for i in range(nextstep, int(skip_val) + nextstep):
+                        self.condition_dict[str(i)] = (int(fdata[field]) >= int(check_val))
+                        if self.condition_dict[str(i)] and self.initial_dict[str(i)]['qid'].conditional:
+                            self.condition_dict[str(i)] = get_conditional_string(self.initial_dict[str(i)]['qid'])
             elif cond_type == 'showchecked':
                 # Questions must be ordered from zero to work properly
                 # Set every option to false then overwrite

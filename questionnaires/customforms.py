@@ -33,9 +33,14 @@ class FamilyChoiceForm(forms.Form):
         qid = kwargs.get('initial')
         super().__init__(*args, **kwargs)
         if (qid):
-            # TODO Populate Question with names options
+
             question = qid.get('qid')
             choices = qid.get('nameslist')
+            # Overwrite with choices in admin UI
+            if question.choice_set.count() > 1:
+                choices = []
+                for c in question.choice_set.all():
+                    choices.append((c.choice_value, c))
             if question.question_type == 2:
                 self.fields['question'] = forms.MultipleChoiceField(
                     label=question.question_text,
@@ -44,7 +49,15 @@ class FamilyChoiceForm(forms.Form):
                     required=question.question_required,
                     choices=choices,
                 )
-            else:
+            elif question.question_type == 1:
+                self.fields['question'] = forms.ChoiceField(
+                    label=question.question_text,
+                    help_text='radio',  # use this to detect type
+                    widget=forms.RadioSelect(attrs={'class': 'form-control'}),
+                    required=question.question_required,
+                    choices=choices,
+                )
+            elif question.question_type == 3:
                 self.fields['question'] = forms.CharField(
                     label=question.question_text,
                     help_text='text',

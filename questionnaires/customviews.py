@@ -77,7 +77,7 @@ def baby_measurements(request, code):
         })
     else:
         Twin_questions = qnaire.question_set.all().order_by('order')
-        print("DEBUG: Twin-q=", Twin_questions, ' 0:', Twin_questions[0])
+        #print("DEBUG: Twin-q=", Twin_questions, ' 0:', Twin_questions[0])
         q1 = re.sub('Twin1', t1, Twin_questions[0].question_text, flags=re.IGNORECASE)
         q2 = re.sub('Twin2', t2, Twin_questions[1].question_text, flags=re.IGNORECASE)
         questions = [Twin_questions[1],Twin_questions[0]]
@@ -90,7 +90,7 @@ def baby_measurements(request, code):
         t2_formset = Twin2FormSet(request.POST, request.FILES, prefix='twin2')
         token = request.POST['csrfmiddlewaretoken'] + str(time.time())
         if t1_formset.is_valid() and t2_formset.is_valid():
-            headers = ['Twin', 'Date','Age', 'Head', 'Length', 'Weight', 'Source','Other']
+            headers = ['Twin', 'Age', 'Head', 'Length', 'Weight', 'Source','Other']
 
             for fmset in [t1_formset, t2_formset]:
                 t_answer = {}
@@ -136,8 +136,9 @@ def baby_measurements(request, code):
                 subjectcat.save()
                 messages = 'Congratulations, %s!  You have completed the questionnaire.' % user
             except IntegrityError:
-                print("ERROR: Error saving results")
-                messages.error(request, 'There was an error saving your result.')
+                messages='ERROR: There was an error saving your result.'
+        else:
+            messages='All fields must have values. Please enter zero if not available.'
     else:
         t1_formset = Twin1FormSet(prefix='twin1')
         t2_formset = Twin2FormSet(prefix='twin2')
@@ -345,7 +346,7 @@ def familyHistoryPart1(request, code):
                     messages = "ERROR: Error saving results - please tell Admin"
                     # messages.error(request, 'There was an error saving your result.')
             else:
-                messages = ''
+                messages = 'ERROR: All fields should be completed.  Please remove any empty rows.'
 
     else:
         mother_formset = ParentFormSet(prefix='mother', initial=mother_data)
@@ -381,7 +382,7 @@ def familyHistoryPart2(request, code):
         raise ValueError(messages)
     #Assume previous questionnaire has been done
     # get choices or None
-    names = []
+    names = [('0','Not sure'),('1','No')]
     try:
         prevcode = re.sub(r'[A-Z]$','A',qnaire.code)
         prevq = Questionnaire.objects.filter(code=prevcode)
@@ -396,16 +397,16 @@ def familyHistoryPart2(request, code):
             n1 = n1.replace("]","")
             n = ast.literal_eval(n1)
             #names.append((n['person'].lower(), n['person']))
-            names.append((n[0], n[1]['person']))
+            names.append((n[0], n[1]['person'] + " (" + n[1]['type'] + ")"))
 
 
     except ObjectDoesNotExist:
-        names=[('mother','Mother'),('father','Father'),
+        defaultnames=[('mother','Mother'),('father','Father'),
                ('sibling-1','Sibling #1'),('sibling-2','Sibling #2'),('sibling-3','Sibling #3'),('sibling-4','Sibling #4'),('sibling-5','Sibling #5'),('children-1','Child #1'),('children-2','Child #2'),('children-3','Child #3'),('children-4','Child #4'),('children-5','Child #5')]
+        for n in defaultnames:
+            names.append(n)
 
-    #Append extra responses
-    names.append(('1','No'))
-    names.append(('0','Not sure'))
+
     linkdata = {}
     condata = {}
     #All questions - no filtering
@@ -426,10 +427,6 @@ class FamilyChoiceWizard(QuestionnaireWizard):
     template_name = 'custom/history_qpage.html'
     file_storage = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'photos'))
 
-    def get_form_step_data(self, form):
-        #TODO: Overwrite to give value for non-int values
-        return self.get_form_step_data(form)
-
     def done(self, form_list, form_dict, **kwargs):
         template = 'questionnaires/done.html'
         qn = self.initial_dict.get('0')['qid']
@@ -439,20 +436,20 @@ class FamilyChoiceWizard(QuestionnaireWizard):
         followup = None;
 
         # Save question results as string
-
+        form_data =[form.cleaned_data for form in form_list]
         for key in form_dict:
             f = form_dict.get(key)
             i = int(key)
             qn = self.initial_dict.get(key)['qid']
             t_answer = {}
-            t_answer[0] = self.initial_dict.get(key)['nameslist']
-            num = 1
-            for r in response['question']:
-                t_answer[num] = r
-                num += 1
-
-            #Get response
-            response = list(form_list)[i].cleaned_data
+            if qn.choice_set.count() ==0:
+                t_answer['choices'] = self.initial_dict.get(key)['nameslist']
+            else:
+                choicelist = []
+                for c in qn.choice_set.all():
+                    choicelist.append((c.choice_value, c.choice_text))
+                t_answer['choices'] = choicelist
+            #Save choice list separately
             tresult = TestResult()
             tresult.testee = formuser
             tresult.test_questionnaire = qnaire
@@ -460,6 +457,23 @@ class FamilyChoiceWizard(QuestionnaireWizard):
             tresult.test_result_text = t_answer
             tresult.test_token = store_token
             tresult.save()
+            num = 1
+
+            #Get responses
+
+            response = form_data[i]
+            if response:
+                for r in response['question']:
+                    t_answer = 'response-'+ str(num) + ": " +  r
+                    num += 1
+                    #Separate responses
+                    tresult = TestResult()
+                    tresult.testee = formuser
+                    tresult.test_questionnaire = qnaire
+                    tresult.test_result_question = qn
+                    tresult.test_result_text = t_answer
+                    tresult.test_token = store_token
+                    tresult.save()
 
         try:
             subjectcat = SubjectQuestionnaire(subject=formuser, questionnaire=qnaire,

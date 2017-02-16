@@ -1,4 +1,12 @@
-$( "input[type='date']" ).datepicker({ dateFormat: 'yy-mm-dd'});
+ $(document).ready (
+     function() {
+         var isFirefox = typeof InstallTrigger !== 'undefined';
+         var isiPad = navigator.userAgent.match(/iPad/i) != null;
+     if (isFirefox && !isiPad) {
+         $("input[type='date']").datepicker({dateFormat: 'yy-mm-dd'});
+     }
+    }
+ );
 
 $( "td.coloredbox :input:radio" ).click(function() {
         var choice = $(this).parent().text();

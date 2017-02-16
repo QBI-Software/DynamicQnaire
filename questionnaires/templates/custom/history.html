@@ -2,6 +2,7 @@
 {% block title %}Questionnaire{% endblock %}
 {% load i18n %}
 {% block head %}
+{{ wizard.form.media }}
 {% endblock %}
 {% block content %}
 
@@ -12,11 +13,11 @@
         <div class="container-fluid ui-content" align="center">
 
             <h2>{{qtitle}}</h2>
-            <p class="btn-warning">{{messages}}</p>
+            <p class="alert-danger">{{messages}}</p>
             <p>Please provide information on the members of your family below then click "Next".</p>
 
             <div id="results well">
-                <table class="customform table">
+                <table class="customtable table">
                     <thead>
                     <tr>
                         <th>Type</th>
@@ -39,8 +40,8 @@
                         {{ mother_formset.management_form }}
 
                         {% for form in mother_formset %}
-                        {% if form.errors %}
-                        </tr><tr><td>{{ form.errors.as_ul }}</td></tr>
+                        {% if form.non_field_errors %}
+                        </tr><tr><td>{{ form.non_field_errors.as_ul }}</td></tr>
                         {% endif %}
                         <td>{{ form.person }}</td>
                         <td>{{ form.gender }}</td>
@@ -59,8 +60,8 @@
                         </th>
                         {{ father_formset.management_form }}
                         {% for form in father_formset %}
-                        {% if form.errors %}
-                        </tr><tr><td>{{ form.errors.as_ul }}</td></tr>
+                        {% if form.non_field_errors %}
+                        </tr><tr><td>{{ form.non_field_errors.as_ul }}</td></tr>
                         {% endif %}
                         <td>{{ form.person }}</td>
                         <td>{{ form.gender }}</td>
@@ -83,8 +84,8 @@
                     </tr>
                     {{ sibling_formset.management_form }}
                     {% for form in sibling_formset %}
-                    {% if form.errors %}
-                        </tr><tr><td>{{ form.errors.as_ul }}</td></tr>
+                    {% if form.non_field_errors %}
+                        </tr><tr><td>{{ form.non_field_errors.as_ul }}</td></tr>
                         {% endif %}
                     <tr>
                         <td></td>
@@ -115,8 +116,8 @@
                     </tr>
                     {{ children_formset.management_form }}
                     {% for form in children_formset %}
-                    {% if form.errors %}
-                        </tr><tr><td>{{ form.errors.as_ul }}</td></tr>
+                    {% if form.non_field_errors %}
+                        </tr><tr><td>{{ form.non_field_errors.as_ul }}</td></tr>
                         {% endif %}
                     <tr>
                         <td></td>
@@ -150,8 +151,10 @@
     </form>
 </div>
 <script type="text/javascript">
+    $(":input[type='number']").addClass('form-control');
 
 $('#add_sibling_row').click(function(event) {
+
     var form_idx = $('#id_sibling-TOTAL_FORMS').val();
     var newrow = "<tr><td>"+$('#empty_sibling_form').html() + "</td></tr>";
     $('#sibling_row').append(newrow);
@@ -185,7 +188,7 @@ $('.remove_children_row').click(function(event) {
 $('#submit').click(function(event){
     /*check empty rows removed and hidden values are set */
     var sibling_idx = $('#id_sibling-TOTAL_FORMS').val();
-    alert(sibling_idx);
+    //alert(sibling_idx);
     for (i=0; i < parseInt(sibling_idx); i++){
         if ($('#id_sibling-' + i + '-person').val()==''){
             $('#id_sibling-' + i + '-person').parents("tr").remove();

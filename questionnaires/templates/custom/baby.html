@@ -12,7 +12,7 @@
         <div class="container-fluid ui-content" align="center">
 
             <h2>{{qtitle}}</h2>
-            <p class="btn-warning">{{messages}}</p>
+            <p class="alert-danger">{{messages}}</p>
 
             <ul class="nav nav-tabs">
                 <li class="active"><a data-toggle="tab" href="#t1">{{twin1}}</a></li>
@@ -40,9 +40,7 @@
             </tr></thead>
             <tbody id="forms1">
             {% for form in t1_formset %}
-             {% if form.errors %}
-                    <p>{{ form.errors.as_ul }}</p>
-                    {% endif %}
+
             <tr >
                 <td>{{ form.measurement_age }}</td>
                 <td>{{ form.measurement_head }}</td>
@@ -81,9 +79,7 @@
             </tr></thead>
             <tbody id="forms2">
             {% for form in t2_formset %}
-             {% if form.errors %}
-                    <p>{{ form.errors.as_ul }}</p>
-                {% endif %}
+
             <tr >
                 <td>{{ form.measurement_age }}</td>
                 <td>{{ form.measurement_head }}</td>
@@ -103,7 +99,8 @@
                 </div>
 
             </div>
-            <input type="submit" value="Submit all data" class="btn btn-success"/>
+            <input id="submit" type="submit" value="Submit all data" class="btn btn-success"/>
+            <input type="hidden" id="completed" name="completed" value="0"/>
     </div>
     </form>
 </div>
@@ -125,6 +122,26 @@ $('#add_form2').click(function() {
     newrow = newrow.replace(/\<td\>\s+\<\/td\>/,"");
     $('#forms2').append(newrow);
     $('#id_twin2-TOTAL_FORMS').val(parseInt(form_idx) + 1);
+});
+
+$('#submit').click(function(event){
+    /*check empty rows removed and hidden values are set */
+    var twin1_idx = $('#id_twin1-TOTAL_FORMS').val();
+    for (i=0; i < parseInt(twin1_idx); i++){
+        if ($('#id_twin1-' + i + '-measurement_age').val()==''){
+            $('#id_twin1-' + i + '-measurement_age').parents("tr").remove();
+            $('#id_twin1-TOTAL_FORMS').val(parseInt(twin1_idx) - 1);
+        }
+    }
+    var twin2_idx = $('#id_twin2-TOTAL_FORMS').val();
+    for (i=0; i < parseInt(twin2_idx); i++){
+        if ($('#id_twin2-' + i + '-measurement_age').val()==''){
+            $('#id_twin2-' + i + '-measurement_age').parents("tr").remove();
+            $('#id_twin2-TOTAL_FORMS').val(parseInt(twin2_idx) - 1);
+        }
+    }
+    /* Indicate form is submitted*/
+    $('#completed').val(1);
 });
 </script>
 {% endblock content %}
