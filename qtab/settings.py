@@ -42,7 +42,7 @@ SECRET_KEY = '#*yn1l8qz%n$)__qoi$z5y7u0pv1^%948n2r*f6uf&8+&3oxm)'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1']
 
 
 # Application definition
@@ -67,7 +67,7 @@ INSTALLED_APPS = [
     'colorfield',
 ]
 
-MIDDLEWARE = [
+MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -153,7 +153,7 @@ USE_TZ = True
 STATIC_ROOT = os.path.join(BASE_DIR, 'questionnaires/static')
 STATIC_URL = '/static/'
 #PDF_URL='/static/pdfjs/web/viewer.html?file='
-MEDIA_URL = '/static/media/'
+MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'questionnaires/static/media')
 LOGIN_REDIRECT_URL ='/'
 LOGIN_URL ='/'
