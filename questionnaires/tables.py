@@ -29,6 +29,7 @@ class SubjectQuestionnaireTable(tables.Table):
     total = tables.LinkColumn('questionnaires:deleteresults', accessor=A('session_token'),  args=[A('session_token')], verbose_name='Delete')
     download = tables.LinkColumn('questionnaires:download', accessor=A('pk'), args=[A('pk')], verbose_name='Download')
     date_stored = tables.Column(verbose_name="Date")
+    duration = tables.Column(verbose_name="Duration", orderable=False)
     questionnaire = tables.Column(verbose_name="Questionnaire")
     subject = tables.Column(verbose_name="Subject")
 
@@ -42,7 +43,7 @@ class SubjectQuestionnaireTable(tables.Table):
     class Meta:
         model = SubjectQuestionnaire
         attrs = {"class": "ui-responsive table table-hover"}
-        fields =['date_stored','questionnaire','subject','total','download']
+        fields =['date_stored','questionnaire','subject','duration','total','download']
         sortable = True
 
 

@@ -115,7 +115,6 @@ class TestResult(models.Model):
     test_result_text = models.TextField(verbose_name="FreeText", max_length=5000, null=True)
     test_result_date = models.DateField(_("Date"), null=True)
     test_token = models.CharField(_("Hiddentoken"), max_length=100)
-    test_starttime = models.DateTimeField(verbose_name="Test Started", auto_now=False, null=True)
 
     def __str__(self):
         return self.test_questionnaire.title
@@ -127,6 +126,10 @@ class SubjectQuestionnaire(models.Model):
     questionnaire = models.ForeignKey(Questionnaire, null=False) #stored as questionnaire to facilitate delete/update
     date_stored = models.DateTimeField(auto_now=True) #relevant to Wave
     session_token = models.CharField(_("Hidden token"), max_length=100)
+    start = models.DateTimeField(verbose_name="Start time", auto_now=False, null=True)
+
+    def duration(self):
+        return self.date_stored - self.start
 
     def __str__(self):
         return self.subject.username + ": " + self.questionnaire.title

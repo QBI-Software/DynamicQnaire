@@ -751,12 +751,13 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
                         tresult.test_result_choice = answer
 
                     tresult.test_token = store_token
-                    tresult.test_starttime = start
                     tresult.save()
 
         # Store category for user
-        subjectcat = SubjectQuestionnaire(subject=self.request.user, questionnaire=qnaire,
-                                     session_token=store_token)
+        subjectcat = SubjectQuestionnaire(subject=self.request.user,
+                                          questionnaire=qnaire,
+                                          start=start,
+                                          session_token=store_token)
         subjectcat.save()
         return render(self.request, 'questionnaires/done.html', {
             'form_data': [form.cleaned_data for form in form_list],
