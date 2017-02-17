@@ -16,14 +16,14 @@ class ChoiceInline(admin.TabularInline):
 
 class QuestionAdmin(admin.ModelAdmin):
     fieldsets = [
-        (None, {'fields': ['question_text']}),
+        (None, {'fields': ['question_text','question_description']}),
     ]
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size': '100'})}
     }
     inlines = [ChoiceInline]
     list_display = ('qid','question_text', 'question_image','order','num_choices','question_type')
-    list_filter = ['group','question_type']
+    list_filter = ['group','question_type','qid__code']
     search_fields = ['question_text']
     actions = ['create_true','create_true1','create_true2','create_true3',
                'create_interpersonal',
@@ -198,6 +198,7 @@ class QuestionAdmin(admin.ModelAdmin):
 class QuestionInline(admin.TabularInline):
     model = Question
     extra = 3
+    exclude = ('question_description',)
 
 
 

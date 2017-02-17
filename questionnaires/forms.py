@@ -43,6 +43,7 @@ class AnswerForm(Form):
     textcolor = "gray"
     usegrid = False
     tdcss = ''
+    qdescription =''
     """Loads a question and multiple choice answer """
     def __init__(self, *args, **kwargs):
         qid = kwargs.get('initial')
@@ -66,6 +67,7 @@ class AnswerForm(Form):
             self.gridcols = question.gridcols
             csslist = dict(question.CSSCLASSES)
             self.tdcss = csslist[question.css]
+            self.qdescription = question.question_description
             choices = []
             #Filter for user groups - ignore for superuser
             usergrouplist = user.groups.values_list('name')

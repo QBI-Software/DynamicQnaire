@@ -38,6 +38,9 @@
                     {% if wizard.form.qimage %}
                     <img src="/media/{{ wizard.form.qimage }}" max-width="400px" alt="{{wizard.form.question.label}}"/><br/>
                     {% endif %}
+                    {% if wizard.form.qdescription %}
+                    {{ wizard.form.qdescription|safe }}
+                    {% endif %}
                 {% if wizard.form.question.field.choices %}
 
                      <label><h3>{{wizard.form.question.label}}</h3></label>

@@ -82,6 +82,7 @@ class Question(models.Model):
     usegrid = models.BooleanField(_("Use Grid Layout"), default=False)
     gridcols = models.PositiveSmallIntegerField(_("Number Columns in Grid Layout"), default=3, null=True, blank=True,validators=[ MaxValueValidator(5),  MinValueValidator(1)])
     duplicate = models.BooleanField(_("Duplicate answers"), default=False)
+    question_description = RichTextUploadingField(_("Description"), null=True, blank=True)
 
     def num_choices(self):
         return self.choice_set.count()
