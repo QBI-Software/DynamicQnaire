@@ -216,7 +216,7 @@ class IndexView(generic.ListView):
         rlist = sorted(rlist, key=operator.attrgetter('date_stored'), reverse=True)
         # Reset session conditional data
         if self.request.session.get('conditionals'):
-            print("DEBUG: FORM_INITIAL: Reset conditionals")
+            #print("DEBUG: FORM_INITIAL: Reset conditionals")
             self.request.session['conditionals'] = {}
 
 
@@ -246,6 +246,9 @@ class SubjectReportView(LoginRequiredMixin, FilteredSingleTableView):
     filter_class = SubjectQuestionnaireFilter
     raise_exception = True
 
+    def get_queryset(self):
+        return SubjectQuestionnaire.objects.order_by('questionnaire__code')
+
     def get_context_data(self, **kwargs):
         context = super(SubjectReportView, self).get_context_data(**kwargs)
         context['title'] = "Subject Reports"
@@ -259,6 +262,9 @@ class ResultFilterView(LoginRequiredMixin, FilteredSingleTableView):
     table_class = TestResultTable
     filter_class = TestResultFilter
     raise_exception = True
+
+    def get_queryset(self):
+        return TestResult.objects.order_by('test_questionnaire__code')
 
     def get_context_data(self, **kwargs):
         context = super(ResultFilterView, self).get_context_data(**kwargs)
@@ -524,7 +530,7 @@ def parse_twin_question(subject,q, questions):
 
     return rtn
 
-@login_required
+
 def get_conditional_string(q):
     conditional_actions = {0: True, 1: 'showif', 2: 'skipif', 3: 'skipmore', 4: 'skipless', 5: 'showchecked'}
     return '%s_%d_%d' % (conditional_actions[q.conditional], q.condval, q.condskip)
@@ -600,11 +606,25 @@ def load_questionnaire(request, *args, **kwargs):
             form = QuestionnaireWizard.as_view(form_list=formlist, initial_dict=initdata, condition_dict =condata)
     return form(context=RequestContext(request), request=request)
 
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
 
 class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
     template_name = 'questionnaires/qpage.html'
     file_storage = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'photos'))
 
+    def get_context_data(self, form, **kwargs):
+        context = super(QuestionnaireWizard, self).get_context_data(form=form, **kwargs)
+        print("DEBUG: Current=", self.steps.current)
+        if self.steps.current == '0':
+            #self.storage['extra_data']=({'start':timezone.now()})
+            #context.update({'extra_data': timezone.now()})
+            self.request.session['start'] = str(time.time())
+        return context
 
     def dispatch(self, request, *args, **kwargs):
         return super(QuestionnaireWizard, self).dispatch(request, *args, **kwargs)
@@ -631,15 +651,17 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
                     if self.condition_dict[str(i)] and self.initial_dict[str(i)]['qid'].conditional:
                         self.condition_dict[str(i)] = get_conditional_string(self.initial_dict[str(i)]['qid'])
             elif cond_type =='skipmore':
-                for i in range(nextstep, int(skip_val) + nextstep):
-                    self.condition_dict[str(i)] = (int(fdata[field]) <= int(check_val))
-                    if self.condition_dict[str(i)] and self.initial_dict[str(i)]['qid'].conditional:
-                        self.condition_dict[str(i)] = get_conditional_string(self.initial_dict[str(i)]['qid'])
+                if (is_number(fdata[field])):
+                    for i in range(nextstep, int(skip_val) + nextstep):
+                        self.condition_dict[str(i)] = (int(fdata[field]) <= int(check_val))
+                        if self.condition_dict[str(i)] and self.initial_dict[str(i)]['qid'].conditional:
+                            self.condition_dict[str(i)] = get_conditional_string(self.initial_dict[str(i)]['qid'])
             elif cond_type == 'skipless':
-                for i in range(nextstep, int(skip_val) + nextstep):
-                    self.condition_dict[str(i)] = (int(fdata[field]) >= int(check_val))
-                    if self.condition_dict[str(i)] and self.initial_dict[str(i)]['qid'].conditional:
-                        self.condition_dict[str(i)] = get_conditional_string(self.initial_dict[str(i)]['qid'])
+                if (is_number(fdata[field])):
+                    for i in range(nextstep, int(skip_val) + nextstep):
+                        self.condition_dict[str(i)] = (int(fdata[field]) >= int(check_val))
+                        if self.condition_dict[str(i)] and self.initial_dict[str(i)]['qid'].conditional:
+                            self.condition_dict[str(i)] = get_conditional_string(self.initial_dict[str(i)]['qid'])
             elif cond_type == 'showchecked':
                 # Questions must be ordered from zero to work properly
                 # Set every option to false then overwrite
@@ -677,13 +699,18 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
         store_token = self.request.POST['csrfmiddlewaretoken'] + str(time.time())
         idx = [key for key in form_dict]
         formuser =self.request.user
-
+        start = self.request.session.get('start')
+        if start:
+            start = datetime.fromtimestamp(float(start))
+        else:
+            start = timezone.now()
 
         for key in form_dict:
             f = form_dict.get(key)
             i = idx.index(key)
             qn = self.initial_dict.get(key)['qid']
             twin = self.initial_dict.get(key)['twin']
+
             #Get response
             response = list(form_list)[i].cleaned_data
 
@@ -724,6 +751,7 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
                         tresult.test_result_choice = answer
 
                     tresult.test_token = store_token
+                    tresult.test_starttime = start
                     tresult.save()
 
         # Store category for user

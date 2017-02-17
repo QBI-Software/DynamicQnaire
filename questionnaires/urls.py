@@ -27,5 +27,6 @@ urlpatterns = [
     url(r'^custom2/(?P<code>[0-9A-Za-z\-]+)/$', customviews.maturation, name='Wav1P12'),
     url(r'^custom3/(?P<code>[0-9A-Za-z\-]+)/$', customviews.familyHistoryPart1, name='Wav1P16A'),
     url(r'^custom4/(?P<code>[0-9A-Za-z\-]+)/$', customviews.familyHistoryPart2, name='Wav1P16B'),
+    url(r'^custom5/(?P<code>[0-9A-Za-z\-]+)/$', customviews.familyHistoryPart2, name='Wav1P16C'),
 
 ]

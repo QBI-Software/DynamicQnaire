@@ -14,7 +14,7 @@
         {% widthratio wizard.steps.step1 wizard.steps.count 100 %}&#37;
     </div>
     {% if wizard.steps.next %}
-    <img class="progressicon" src="/static/qtab/img/Squirrel.ico" height="60px" width="60px" />
+    <img class="progressicon" src="/static/qtab/img/Squirrel.ico" height="60px" width="60px"/>
     {% endif %}
 </div>
 <div style="background-color:{{wizard.form.qbgcolor}}; color:{{wizard.form.textcolor}};">
@@ -24,199 +24,125 @@
         <div class="container-fluid ui-content" align="center">
             {{ wizard.management_form }}
             {% if wizard.form.forms %}
-                {{ wizard.form.management_form }}
+            {{ wizard.form.management_form }}
 
-                {% for form in wizard.form.forms %}
-                {{ form }}
-                {% endfor %}
+            {% for form in wizard.form.forms %}
+            {{ form }}
+            {% endfor %}
             {% else %}
 
             <div class="row">
                 <div class="col-sm-2">&nbsp;</div>
                 <div class="col-xs-12 col-sm-8 col-lg-8 form-group table-responsive" align="center">
                     {{ wizard.form.non_field_errors }}
-                    {% if wizard.form.qimage %}
-                    <img src="/media/{{ wizard.form.qimage }}" max-width="400px" alt="{{wizard.form.question.label}}"/><br/>
-                    {% endif %}
+                <h3>{{wizard.form.question.label}}</h3>
                 {% if wizard.form.question.field.choices %}
-
-                     <label><h3>{{wizard.form.question.label}}</h3></label>
+                    <label></label>
                     {% if wizard.form.question.errors %}
                     <p>{{ wizard.form.question.errors.as_ul }}</p>
                     {% endif %}
 
+                    <table><tbody>
 
-          {% if wizard.form.question.help_text == 'select' or wizard.form.question.help_text == 'slider'%}
-                {% if wizard.form.question2 %}
-                    <h3 class="sidelabel"><span class="label label-primary">{{wizard.form.twin1}}</span></h3>
+                    <!--One set -->
+                    {% for choice in wizard.form.question.field.choices %}
+                    <tr><td>
+                    <div class="radio-default">
+
+                        <label><input type="{{wizard.form.question.help_text}}"
+                                      id="{{ wizard.form.question.id_for_label}}"
+                                      name="{{wizard.form.prefix}}-{{ wizard.form.question.name }}"
+                                      value="{{ choice.0 }}"
+                        />{{choice.1}}</label>
+
+                    </div>
+                    </td></tr>
+
+                    {% endfor %}
+                </tbody></table>
+                {% else %}
+
+                {{wizard.form.question}}
                 {% endif %}
-                <select class="form-control {{wizard.form.question.help_text}}"
-                        id="{{ wizard.form.question.id_for_label}}"
-                        name="{{wizard.form.prefix}}-{{ wizard.form.question.name }}">
-                                {% for choice in wizard.form.question.field.choices %}
-                                <option value="{{ choice.0 }}">{{choice.1}}</option>
-                                {% endfor %}
-               </select>
-                {% if wizard.form.question2 %}
-                    <br/><h3 class="sidelabel"><span class="label label-primary">{{wizard.form.twin2}}</span></h3>
-                <select class="form-control {{wizard.form.question2.help_text}}"
-                        id="{{ wizard.form.question2.id_for_label}}"
-                        name="{{wizard.form.prefix}}-{{ wizard.form.question2.name }}">
-                            {% for choice in wizard.form.question2.field.choices %}
-                            <option value="{{ choice.0 }}">{{choice.1}}</option>
-                            {% endfor %}
-                </select>
-                {% endif %}
-                {% if  wizard.form.question.help_text == 'slider' %}
-                    <span id="sliderparams" selectid="{{ wizard.form.question.id_for_label}}" rmin="{{wizard.form.question.field.choices.0.0}}" numoptions="{{wizard.form.question.field.choices|length}}"></span>
-                    <div id="slider"></div>
 
 
-                    {% endif%}
-          {% else %}
-
-            {% if wizard.form.usegrid %}
-                    <table id="qtable" class="table columns-{{wizard.form.gridcols}}"> <tbody> <tr>
-                        {% if wizard.form.question2 %}
-                        <td><h3><span class="label label-primary">{{wizard.form.twin1}}</span></h3>
-                        <br/><span id="msg-{{wizard.form.question.id_for_label}}" class="badge"></span></td>
-                        {% endif %}
-            {% else %}
-                    <div class="radio-list">
-                        {% if wizard.form.question2 %}
-                            <h3><span class="label label-primary">{{wizard.form.twin1}}</span></h3>
-                            <br/><span id="msg-{{wizard.form.question.id_for_label}}" class="badge"></span>
-                        {% endif %}
-            {% endif %}
-                        <!--One set -->
-            {% for choice in wizard.form.question.field.choices %}
-            {% if wizard.form.usegrid %}
-                 <td class="{{wizard.form.tdcss}} color{{forloop.counter}}">
-
-            {%else %}
-                <div class="radio-default">
-            {% endif %}
-
-                <label><input type="{{wizard.form.question.help_text}}"
-                              id="{{ wizard.form.question.id_for_label}}"
-                              name="{{wizard.form.prefix}}-{{ wizard.form.question.name }}"
-                              value="{{ choice.0 }}"
-                    />
-
-                    {{choice.1}}
-
-                </label>
-
-            {% if wizard.form.usegrid %}</td>
-                {% if forloop.counter|divisibleby:wizard.form.gridcols %}</tr><tr>{% endif %}
-            {%else %}</div>
-            {% endif %}
-
-           {% endfor %}
-                <!-- Two set Question 2-->
-                {% if wizard.form.question2 %}
-                        <td><h3><span class="label label-primary">{{wizard.form.twin2}}</span></h3>
-                        <br/><span id="msg-{{wizard.form.question2.id_for_label}}" class="badge"></span></td>
-
-                {% for choice in wizard.form.question2.field.choices %}
-            {% if wizard.form.usegrid %}
-                 <td class="{{wizard.form.tdcss}} color{{forloop.counter}} ">
-
-            {%else %}
-                <div class="radio-default">
-            {% endif %}
-
-                <label><input type="{{wizard.form.question2.help_text}}"
-                              id="{{ wizard.form.question2.id_for_label}}"
-                              name="{{wizard.form.prefix}}-{{ wizard.form.question2.name }}"
-                              value="{{ choice.0 }}" />{{ choice.1 }}
-                </label>
-
-            {% if wizard.form.usegrid %}</td>
-                {% if forloop.counter|divisibleby:wizard.form.gridcols %}</tr><tr>{% endif %}
-                {%else %}</div>
-            {% endif %}
-
-           {% endfor %}
-
-{% endif %}
-            {% if wizard.form.usegrid %}</tr></tbody></table> {% else %} </div>{%endif%}
-
-        {% endif %}
-
-    {% else %}
-                    <h3>{{wizard.form.question.field.label}}</h3>
-                    {% if wizard.form.question2 %}
-                     <h3><span class="label label-primary">{{wizard.form.twin1}}</span></h3>
-                    <span id="msg-{{wizard.form.question.id_for_label}}" class="badge"></span>
-                    {% endif %}{{wizard.form.question}}
-                    {% if wizard.form.question2 %}
-                     <h3><span class="label label-primary">{{wizard.form.twin2}}</span></h3>
-                    <span id="msg-{{wizard.form.question2.id_for_label}}" class="badge"></span>
-                    {{wizard.form.question2}}
-                    {% endif %}
-    {% endif %}
-
-
-                </div>
-                <div class="col-sm-2">&nbsp;</div>
             </div>
-
-
-
-            <div class="row">
-                <div class="col-sm-2">&nbsp;</div>
-                <div class="col-sm-8" align="center">
-                    <span id="msg"></span>
-                    <ul class="pager">
-
-                        <li class="next">
-                            {% if wizard.steps.next %}
-                                <input type="submit" class="btn btn-info" value="Next"/>
-                            {% else %}
-                                <input type="submit" class="btn btn-info" value="Finish"/>
-                            {% endif %}
-                        </li>
-                        {% if wizard.steps.prev %}
-
-                        <li class="previous">
-                            <button name="wizard_goto_step" class="btn btn-default"
-                                    value="{{ wizard.steps.prev }}">{% trans "Previous" %}
-                            </button>
-                        </li>
-                        <li class="previous">
-                            <button name="wizard_goto_step" class="btn btn-default"
-                                    value="{{ wizard.steps.first }}">{% trans "Restart" %}
-                            </button>
-                        </li>
-                        {% endif %}
-                    </ul>
-                </div>
-                <div class="col-sm-2">&nbsp;</div>
-            </div>
-            {% endif %}
+            <div class="col-sm-2">&nbsp;</div>
         </div>
-   </form>
-</div>
-<script type="text/javascript" src="{% static "qtab/js/qtab.js" %}"></script>
-<script type="text/javascript">
-$( function() {
-    var minrange = parseInt($("#sliderparams").attr("rmin"));
-    var num = parseInt($("#sliderparams").attr("numoptions"));
-    var select = $('select');
 
-    $( "#slider" ).slider({
-        range:"min",
-        min: minrange,
-        max: num,
-        value: select[ 0 ].selectedIndex + 1,
-        slide: function( event, ui ) {
-          select[ 0 ].selectedIndex = ui.value - 1;
+
+        <div class="row">
+            <div class="col-sm-2">&nbsp;</div>
+            <div class="col-sm-8" align="center">
+                <span id="msg"></span>
+                <ul class="pager">
+
+                    <li class="next">
+                        {% if wizard.steps.next %}
+                        <input type="submit" class="btn btn-info" value="Next"/>
+                        {% else %}
+                        <input type="submit" class="btn btn-info" value="Finish"/>
+                        {% endif %}
+                    </li>
+                    {% if wizard.steps.prev %}
+
+                    <li class="previous">
+                        <button name="wizard_goto_step" class="btn btn-default"
+                                value="{{ wizard.steps.prev }}">{% trans "Previous" %}
+                        </button>
+                    </li>
+                    <li class="previous">
+                        <button name="wizard_goto_step" class="btn btn-default"
+                                value="{{ wizard.steps.first }}">{% trans "Restart" %}
+                        </button>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="col-sm-2">&nbsp;</div>
+        </div>
+        {% endif %}
+</div>
+</form>
+</div>
+
+<script type="text/javascript" >
+    var selected = [];
+    $( ":input:checkbox" ).click(function() {
+        var choice = $(this).val();
+        var label = $(this).parent().text();
+        //alert(label);
+
+        if ($(this).prop('checked')){
+            if (choice in ['0','1']){
+                //alert("selected no or not sure");
+                //unselect others
+                $( ":input:checkbox").prop('checked',false);
+                $( ":input:checkbox").prop('disabled',true);
+                $( ":input:checkbox").parent().css( "opacity",0.6);
+                $(this).prop('checked',true);
+                $(this).prop('disabled',false);
+                $( this).parent().css( "opacity",1.0);
+                selected = [];
+            }
+            selected.push(label);
+
+        }else{
+            if (choice in ['0','1']) {
+                //alert("UNselected no or not sure");
+                $( ":input:checkbox").prop('disabled',false);
+                $( ":input:checkbox").parent().css( "opacity",1.0);
+            }
+            selected.splice( $.inArray(label, selected), 1 );
+
         }
-    });
-    select.on( "change", function() {
-          $( "#slider" ).slider( "value", this.selectedIndex + 1 );
-        });
-	} );
-	</script>
+        $( "#msg" ).text( "You selected: " + selected.toString()  );
+
+        /*.show().fadeOut( 1000 );*/
+
+});
+
+
+
+</script>
 {% endblock content %}

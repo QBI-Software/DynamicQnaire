@@ -2,6 +2,7 @@
 {% block title %}Questionnaire{% endblock %}
 {% load i18n %}
 {% block head %}
+{{ wizard.form.media }}
 {% endblock %}
 {% block content %}
 
@@ -12,11 +13,11 @@
         <div class="container-fluid ui-content" align="center">
 
             <h2>{{qtitle}}</h2>
-            <p class="btn-warning">{{messages}}</p>
-            <p>Please provide information on the members of your family below then click "Next".</p>
+            <p class="alert-danger">{{messages}}</p>
+            <p>Please provide information on the members of your family below then click "Submit".</p>
 
             <div id="results well">
-                <table class="customform table">
+                <table class="customtable table">
                     <thead>
                     <tr>
                         <th>Type</th>
@@ -37,7 +38,11 @@
                             </button>
                         </th>
                         {{ mother_formset.management_form }}
+
                         {% for form in mother_formset %}
+                        {% if form.non_field_errors %}
+                        </tr><tr><td>{{ form.non_field_errors.as_ul }}</td></tr>
+                        {% endif %}
                         <td>{{ form.person }}</td>
                         <td>{{ form.gender }}</td>
                         <td>{{ form.age }}</td>
@@ -55,6 +60,9 @@
                         </th>
                         {{ father_formset.management_form }}
                         {% for form in father_formset %}
+                        {% if form.non_field_errors %}
+                        </tr><tr><td>{{ form.non_field_errors.as_ul }}</td></tr>
+                        {% endif %}
                         <td>{{ form.person }}</td>
                         <td>{{ form.gender }}</td>
                         <td>{{ form.age }}</td>
@@ -76,6 +84,9 @@
                     </tr>
                     {{ sibling_formset.management_form }}
                     {% for form in sibling_formset %}
+                    {% if form.non_field_errors %}
+                        </tr><tr><td>{{ form.non_field_errors.as_ul }}</td></tr>
+                        {% endif %}
                     <tr>
                         <td></td>
                         <td>{{ form.person }}</td>
@@ -101,10 +112,13 @@
                                 Biological Children
                             </button>
                         </th>
-                        <td colspan="2"><i>Please remove any empty rows before submitting</i></td>
+                        <td colspan="5">Please start with the first born. (<i>Please remove any empty rows before submitting</i>)</td>
                     </tr>
                     {{ children_formset.management_form }}
                     {% for form in children_formset %}
+                    {% if form.non_field_errors %}
+                        </tr><tr><td>{{ form.non_field_errors.as_ul }}</td></tr>
+                        {% endif %}
                     <tr>
                         <td></td>
                         <td>{{ form.person }}</td>
@@ -130,25 +144,21 @@
             </div>
 
 
-            <input id="submit" type="submit" value="Next" class="btn btn-success"/>
+            <input id="submit" type="submit" value="Submit" class="btn btn-success"/>
             <input type="hidden" id="completed" name="completed" value="0"/>
 
         </div>
     </form>
 </div>
 <script type="text/javascript">
+    $(":input[type='number']").addClass('form-control');
 
 $('#add_sibling_row').click(function(event) {
+
     var form_idx = $('#id_sibling-TOTAL_FORMS').val();
-    var newrow = "<tr><td>"+$('#empty_sibling_form').html().replace(/__prefix__/g, form_idx) + "</td></tr>";
-    newrow = newrow.replace(/\<label/g,"</td><td><label style=\"display:none\"");
-    newrow = newrow.replace(/\<td\>\s+\<\/td\>/,"");
-
+    var newrow = "<tr><td>"+$('#empty_sibling_form').html() + "</td></tr>";
     $('#sibling_row').append(newrow);
-    $('#id_sibling-' + form_idx + '-type').val('Sibling');
     $('#id_sibling-TOTAL_FORMS').val(parseInt(form_idx) + 1);
-
-
 });
 
 $('.remove_sibling_row').click(function(event) {
@@ -161,12 +171,8 @@ $('.remove_sibling_row').click(function(event) {
 
 $('#add_children_row').click(function(event) {
     var form_idx = $('#id_children-TOTAL_FORMS').val();
-    var newrow = "<tr><td>"+$('#empty_children_form').html().replace(/__prefix__/g, form_idx) + "</td></tr>";
-    newrow = newrow.replace(/\<label/g,"</td><td><label style=\"display:none\"");
-    newrow = newrow.replace(/\<td\>\s+\<\/td\>/,"");
-
+    var newrow = "<tr><td>"+$('#empty_children_form').html() + "</td></tr>";
     $('#children_row').append(newrow);
-    $('#id_children-' + form_idx + '-type').val('Children');
     $('#id_children-TOTAL_FORMS').val(parseInt(form_idx) + 1);
 
 });
@@ -180,8 +186,29 @@ $('.remove_children_row').click(function(event) {
 
 
 $('#submit').click(function(event){
+    /*check empty rows removed and hidden values are set */
+    var sibling_idx = $('#id_sibling-TOTAL_FORMS').val();
+    //alert(sibling_idx);
+    for (i=0; i < parseInt(sibling_idx); i++){
+        if ($('#id_sibling-' + i + '-person').val()==''){
+            $('#id_sibling-' + i + '-person').parents("tr").remove();
+            $('#id_sibling-TOTAL_FORMS').val(parseInt(sibling_idx) - 1);
+        }else{
+            $('#id_sibling-' + i + '-type').val('Sibling');
+        }
+    }
+    var child_idx = $('#id_children-TOTAL_FORMS').val();
+    for (i=0; i < parseInt(child_idx); i++){
+        if ($('#id_children-' + i + '-person').val()==''){
+            $('#id_children-' + i + '-person').parents("tr").remove();
+            $('#id_children-TOTAL_FORMS').val(parseInt(children_idx) - 1);
+        }else{
+            $('#id_children-' + i + '-type').val('Children');
+        }
+    }
+    /* Indicate form is submitted*/
     $('#completed').val(1);
-    });
+});
 
 
 </script>

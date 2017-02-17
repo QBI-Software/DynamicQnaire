@@ -41,13 +41,23 @@ class QuestionAdmin(admin.ModelAdmin):
                'create_days',
                'create_languages',
                'create_education',
-               'create_aboriginal']
+               'create_aboriginal',
+               'remove_options']
 
+    def remove_options(self,request, queryset):
+        numobj = queryset.count();
+        numoptions = 0;
+        for obj in queryset:
+            numoptions += obj.choice_set.count()
+            for c in obj.choice_set.all():
+                c.delete()
+        msg = '%d options cleared for %d Questions' % (numoptions, numobj)
+        self.message_user(request, msg)
 
     def create_radiobuttons(self,request,queryset,labels):
         for obj in queryset:
             #Clear previous choices
-            print(obj)
+            #print(obj)
             for c in obj.choice_set.all():
                 c.delete()
             num = 1

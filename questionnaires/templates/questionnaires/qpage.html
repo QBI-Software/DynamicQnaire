@@ -107,7 +107,7 @@
                     {% else %}
                     />
                     {% endif %}
-                    {{choice.1}}
+
                     {% if choice.1.show_label %}{{ choice.1.choice_text }}{% endif %}
                 </label>
 
@@ -184,9 +184,9 @@
 
                         <li class="next">
                             {% if wizard.steps.next %}
-                                <input type="submit" class="btn btn-info" value="Next"/>
+                                <input id="submit" type="submit" class="btn btn-info" value="Next"/>
                             {% else %}
-                                <input type="submit" class="btn btn-info" value="Finish"/>
+                                <input id="submit" type="submit" class="btn btn-info" value="Finish"/>
                             {% endif %}
                         </li>
                         {% if wizard.steps.prev %}

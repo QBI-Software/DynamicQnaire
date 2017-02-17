@@ -431,39 +431,21 @@ select.slider{
 
 /*Custom forms */
 .customtable{
-width:400px;}
+    /*width:400px;*/
+}
+.customtable > tbody > tr > td > input[type=text]{
+    min-width:100px;
+}
+.customtable > tbody > tr > td > select{
+    min-width:120px;
 }
 .customtable > tbody > tr > td > input[type=number]{
-    width:90px;
+    width:80px;
 }
 .customtable > tbody > tr > td > input[type=date]{
     width:160px;
 }
-/* Not used
-.paneltable{
-    width:400px;
-    margin-left:200px;
-    margin-bottom:80px;
-}
-.paneltable .caption{
-    margin: 5px 180px;
-    max-width: 300px;
-    }
-.paneltable td.fixedcol,.paneltable th.fixedcol{
-    position:fixed;
-    width:250px;
-    margin-left:-150px;
-}
-.paneltable td, .paneltable th{
-    text-align:center;
-    vertical-align:middle;
-}
-.paneltable td img{
-    padding:50px 220px;
-    margin:0 50px;
-    overflow:hidden;
-}
-*/
+
 /* Overrides nowrap of btn class */
 .allowwrap{
     white-space:normal !important;
@@ -548,4 +530,9 @@ width:400px;}
 .slider-nav a.active {
   background: #3c763d;
   color: white;
+}
+
+/* Submit button */
+#submit{
+    height:4em;
 }

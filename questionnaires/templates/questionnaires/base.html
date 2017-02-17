@@ -27,15 +27,16 @@
 		  <img src="{% static 'qtab/img/Panda.ico' %}" width="100px" alt="QTAB"/></a>
 		</div>
         {% if user.is_authenticated %}
-          {% if user.is_staff %}
-		   <ul class="nav navbar-nav">
-		    {% include "questionnaires/navlinks.html" %}
-		  </ul>
-          {% endif %}
+          <ul class="nav navbar-nav">
+               <li><a href="{% url 'questionnaires:index' %}" class="ui-btn-active">Home</a></li>
+                {% if user.is_staff %}
+		            {% include "questionnaires/navlinks.html" %}
+                {% endif %}
+          </ul>
 		  <div class="navbar-right">
             <p>Welcome, {{ user.first_name }}
                 <!--<a class="btn btn-warning" href="{% url 'questionnaires:password_change' %}">Change password</a>-->
-            <a id="logoutbtn" class="btn btn-success" href="{% url 'questionnaires:logout' %}">Logout</a></p>
+            <a id="logoutbtn" class="btn btn-danger" href="{% url 'questionnaires:logout' %}">Logout</a></p>
           </div>
         {% else %}
           {% if form.non_field_errors %}
