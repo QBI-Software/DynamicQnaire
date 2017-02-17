@@ -619,10 +619,8 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
 
     def get_context_data(self, form, **kwargs):
         context = super(QuestionnaireWizard, self).get_context_data(form=form, **kwargs)
-        print("DEBUG: Current=", self.steps.current)
+        #print("DEBUG: Current=", self.steps.current)
         if self.steps.current == '0':
-            #self.storage['extra_data']=({'start':timezone.now()})
-            #context.update({'extra_data': timezone.now()})
             self.request.session['start'] = str(time.time())
         return context
 
@@ -784,6 +782,11 @@ def singlepage_questionnaire(request,qnaire, questions):
     if request.method == 'POST':
         link_formset = LinkFormSet(request.POST) #cannot reload as dynamic
         token = request.POST['csrfmiddlewaretoken'] + str(time.time())
+        start = request.session.get('start')
+        if start:
+            start = datetime.fromtimestamp(float(start))
+        else:
+            start = timezone.now()
         if link_formset.is_valid():
             # Now save the data for each form in the formset
             new_data = []
@@ -817,7 +820,7 @@ def singlepage_questionnaire(request,qnaire, questions):
             # Save user info with category
             template='questionnaires/done.html'
             try:
-                subjectcat = SubjectQuestionnaire(subject=user, questionnaire=qnaire, session_token=token)
+                subjectcat = SubjectQuestionnaire(subject=user, questionnaire=qnaire, start=start, session_token=token)
                 subjectcat.save()
                 messages='Congratulations, %s!  You have completed the questionnaire.' % user
             except IntegrityError:
@@ -828,6 +831,7 @@ def singlepage_questionnaire(request,qnaire, questions):
 
     else:
         link_formset = LinkFormSet(initial=link_data)
+        request.session['start'] = str(time.time())
 
     context = {
         'formset': link_formset,

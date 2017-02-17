@@ -1,25 +1,24 @@
-import datetime
-import time
-import re
-import os
-import string
 import ast
+import datetime
+import os
+import re
+import string
+import time
 from collections import OrderedDict
+
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.files.storage import FileSystemStorage
 from django.db import IntegrityError
 from django.forms import formset_factory
 from django.shortcuts import render
 from django.template import RequestContext
-from formtools.wizard.views import SessionWizardView
-from django.core.exceptions import ObjectDoesNotExist
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User, Group
-from django.db.models import Q
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.files.storage import FileSystemStorage
-from .forms import AnswerForm, BaseQuestionFormSet
+from django.utils import timezone
+
 from .customforms import BABYForm1,FamilyHistoryForm, FamilyChoiceForm
-from .models import Questionnaire, Question, TestResult, SubjectQuestionnaire, SubjectVisit
+from .forms import AnswerForm, BaseQuestionFormSet
+from .models import Questionnaire, TestResult, SubjectQuestionnaire, SubjectVisit
 from .views import get_conditional_string, QuestionnaireWizard
 
 
@@ -66,8 +65,6 @@ def baby_measurements(request, code):
             'messages': messages,
         })
 
-
-
     #Allow question text to be edited
     if qnaire.question_set.count() != 2:
         messages ='Two questions need to be set up for this custom questionnaire'
@@ -77,7 +74,6 @@ def baby_measurements(request, code):
         })
     else:
         Twin_questions = qnaire.question_set.all().order_by('order')
-        #print("DEBUG: Twin-q=", Twin_questions, ' 0:', Twin_questions[0])
         q1 = re.sub('Twin1', t1, Twin_questions[0].question_text, flags=re.IGNORECASE)
         q2 = re.sub('Twin2', t2, Twin_questions[1].question_text, flags=re.IGNORECASE)
         questions = [Twin_questions[1],Twin_questions[0]]
@@ -101,15 +97,6 @@ def baby_measurements(request, code):
                 else:
                     testee = user
                 for form in fmset:
-                    # tdate = form.cleaned_data.get('measurement_date')
-                    # if isinstance(tdate, datetime.date):
-                    #     tfdate = tdate.strftime('%d-%m-%Y')
-                    # t_answer[rnum] = [testee.username, tfdate,
-                    #                    form.cleaned_data.get('measurement_age'),
-                    #                    form.cleaned_data.get('measurement_head'),
-                    #                    form.cleaned_data.get('measurement_length'),
-                    #                    form.cleaned_data.get('measurement_weight'),
-                    #                    ]
                     t_answer[rnum] = [testee.username,
                                       form.cleaned_data.get('measurement_age'),
                                       form.cleaned_data.get('measurement_head'),
@@ -304,8 +291,11 @@ def familyHistoryPart1(request, code):
         if request.POST['completed']== '1':
 
             if mother_formset.is_valid() and father_formset.is_valid() and sibling_formset.is_valid() and children_formset.is_valid():
-
-                names = []
+                start = request.session.get('start')
+                if start:
+                    start = datetime.fromtimestamp(float(start))
+                else:
+                    start = timezone.now()
                 for data in [mother_formset.cleaned_data, father_formset.cleaned_data]:
                     #names.append((data[0]['type'].lower(),data[0]['person']))
                     tresult = TestResult()
@@ -338,7 +328,7 @@ def familyHistoryPart1(request, code):
                 # Save user info with category
                 template = 'questionnaires/done.html'
                 try:
-                    subjectcat = SubjectQuestionnaire(subject=user, questionnaire=qnaire,
+                    subjectcat = SubjectQuestionnaire(subject=user, questionnaire=qnaire, start=start,
                                                       session_token=token)
                     subjectcat.save()
                     messages = 'Congratulations, %s!  You have completed the questionnaire.' % user
@@ -353,6 +343,7 @@ def familyHistoryPart1(request, code):
         father_formset = ParentFormSet(prefix='father', initial=father_data)
         sibling_formset = FamilyFormSet(prefix='sibling', initial=sibling_data)
         children_formset = FamilyFormSet(prefix='children', initial=children_data)
+        request.session['start'] = str(time.time())
 
     return render(request, template, {
         'mother_formset': mother_formset,
@@ -427,6 +418,12 @@ class FamilyChoiceWizard(QuestionnaireWizard):
     template_name = 'custom/history_qpage.html'
     file_storage = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'photos'))
 
+    def get_context_data(self, form, **kwargs):
+        context = super(QuestionnaireWizard, self).get_context_data(form=form, **kwargs)
+        if self.steps.current == '0':
+            self.request.session['start'] = str(time.time())
+        return context
+
     def done(self, form_list, form_dict, **kwargs):
         template = 'questionnaires/done.html'
         qn = self.initial_dict.get('0')['qid']
@@ -434,9 +431,13 @@ class FamilyChoiceWizard(QuestionnaireWizard):
         store_token = self.request.POST['csrfmiddlewaretoken'] + str(time.time())
         formuser = self.request.user
         followup = None;
-
+        start = self.request.session.get('start')
+        if start:
+            start = datetime.fromtimestamp(float(start))
+        else:
+            start = timezone.now()
         # Save question results as string
-        form_data =[form.cleaned_data for form in form_list]
+        #form_data =[form.cleaned_data for form in form_list]
         for key in form_dict:
             f = form_dict.get(key)
             #print("DEBUG: F=", f)
@@ -487,7 +488,7 @@ class FamilyChoiceWizard(QuestionnaireWizard):
                         tresult.save()
 
         try:
-            subjectcat = SubjectQuestionnaire(subject=formuser, questionnaire=qnaire,
+            subjectcat = SubjectQuestionnaire(subject=formuser, questionnaire=qnaire, start=start,
                                               session_token=store_token)
             subjectcat.save()
             messages = 'Congratulations, %s!  You have completed the questionnaire.' % formuser
