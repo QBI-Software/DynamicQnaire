@@ -216,7 +216,7 @@ class IndexView(generic.ListView):
         rlist = sorted(rlist, key=operator.attrgetter('date_stored'), reverse=True)
         # Reset session conditional data
         if self.request.session.get('conditionals'):
-            print("DEBUG: FORM_INITIAL: Reset conditionals")
+            #print("DEBUG: FORM_INITIAL: Reset conditionals")
             self.request.session['conditionals'] = {}
 
 
@@ -246,6 +246,9 @@ class SubjectReportView(LoginRequiredMixin, FilteredSingleTableView):
     filter_class = SubjectQuestionnaireFilter
     raise_exception = True
 
+    def get_queryset(self):
+        return SubjectQuestionnaire.objects.order_by('questionnaire__code')
+
     def get_context_data(self, **kwargs):
         context = super(SubjectReportView, self).get_context_data(**kwargs)
         context['title'] = "Subject Reports"
@@ -259,6 +262,9 @@ class ResultFilterView(LoginRequiredMixin, FilteredSingleTableView):
     table_class = TestResultTable
     filter_class = TestResultFilter
     raise_exception = True
+
+    def get_queryset(self):
+        return TestResult.objects.order_by('test_questionnaire__code')
 
     def get_context_data(self, **kwargs):
         context = super(ResultFilterView, self).get_context_data(**kwargs)

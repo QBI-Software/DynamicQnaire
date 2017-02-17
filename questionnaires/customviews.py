@@ -461,7 +461,7 @@ class FamilyChoiceWizard(QuestionnaireWizard):
 
             #Get responses
 
-            response = form_data[i]
+            response = f.cleaned_data #form_data[i]
             if response:
                 for r in response['question']:
                     t_answer = 'response-'+ str(num) + ": " +  r

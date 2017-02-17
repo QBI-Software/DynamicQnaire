@@ -76,15 +76,16 @@ class BABYForm1(forms.Form):
     Custom form for Baby Measurements: BABY1
     """
     CHOICES =((0,'Baby book'),(1,'Reports from Health professional'),(2,'Other'))
-    measurement_age = forms.FloatField(label="Head", widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    measurement_age = forms.FloatField(label="Head", max_value=1000, min_value=0,
+                                       widget=forms.NumberInput(attrs={'class': 'form-control'}))
 
-    measurement_head = forms.FloatField(label="Head circumference",
+    measurement_head = forms.FloatField(label="Head circumference",max_value=1000, min_value=0,
                                         widget=forms.NumberInput(attrs={'class': 'form-control'}))
 
-    measurement_length = forms.FloatField(label="Body length",
+    measurement_length = forms.FloatField(label="Body length", max_value=1000, min_value=0,
                                           widget=forms.NumberInput(attrs={'class': 'form-control'}))
 
-    measurement_weight = forms.FloatField(label="Body weight",
+    measurement_weight = forms.FloatField(label="Body weight", max_value=1000, min_value=0,
                                           widget=forms.NumberInput(attrs={'class': 'form-control'}))
     measurement_source = forms.ChoiceField(
                         label="Source",
@@ -103,6 +104,6 @@ class BABYForm1(forms.Form):
 
 
     class Meta:
-        fields = ('measurement_date', 'measurement_age', 'measurement_head', 'measurement_length', 'measurement_weight', 'measurement_source', 'measurement_source_other')
+        fields = ('measurement_age', 'measurement_head', 'measurement_length', 'measurement_weight', 'measurement_source', 'measurement_source_other')
 
 

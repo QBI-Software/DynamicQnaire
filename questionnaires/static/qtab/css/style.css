@@ -431,7 +431,7 @@ select.slider{
 
 /*Custom forms */
 .customtable{
-width:400px;
+    /*width:400px;*/
 }
 .customtable > tbody > tr > td > input[type=text]{
     min-width:100px;
@@ -530,4 +530,9 @@ width:400px;
 .slider-nav a.active {
   background: #3c763d;
   color: white;
+}
+
+/* Submit button */
+#submit{
+    height:4em;
 }
