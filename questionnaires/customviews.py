@@ -439,6 +439,8 @@ class FamilyChoiceWizard(QuestionnaireWizard):
         form_data =[form.cleaned_data for form in form_list]
         for key in form_dict:
             f = form_dict.get(key)
+            print("DEBUG: F=", f)
+            print("DEBUG: F is bound=", f.is_bound)
             i = int(key)
             qn = self.initial_dict.get(key)['qid']
             t_answer = {}
@@ -461,7 +463,7 @@ class FamilyChoiceWizard(QuestionnaireWizard):
 
             #Get responses
 
-            response = f.cleaned_data #form_data[i]
+            response = f.cleaned_data
             if response:
                 for r in response['question']:
                     t_answer = 'response-'+ str(num) + ": " +  r
