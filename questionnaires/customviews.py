@@ -439,8 +439,8 @@ class FamilyChoiceWizard(QuestionnaireWizard):
         form_data =[form.cleaned_data for form in form_list]
         for key in form_dict:
             f = form_dict.get(key)
-            print("DEBUG: F=", f)
-            print("DEBUG: F is bound=", f.is_bound)
+            #print("DEBUG: F=", f)
+            #print("DEBUG: F is bound=", f.is_bound)
             i = int(key)
             qn = self.initial_dict.get(key)['qid']
             t_answer = {}
@@ -462,13 +462,10 @@ class FamilyChoiceWizard(QuestionnaireWizard):
             num = 1
 
             #Get responses
-
             response = f.cleaned_data
             if response:
-                for r in response['question']:
-                    t_answer = 'response-'+ str(num) + ": " +  r
-                    num += 1
-                    #Separate responses
+                if (isinstance(response['question'], str)):
+                    t_answer = 'response-' + str(num) + ": " + response['question']
                     tresult = TestResult()
                     tresult.testee = formuser
                     tresult.test_questionnaire = qnaire
@@ -476,6 +473,18 @@ class FamilyChoiceWizard(QuestionnaireWizard):
                     tresult.test_result_text = t_answer
                     tresult.test_token = store_token
                     tresult.save()
+                else:  #multiplechoice
+                    for r in response['question']:
+                        t_answer = 'response-'+ str(num) + ": " +  r
+                        num += 1
+                        #Separate responses
+                        tresult = TestResult()
+                        tresult.testee = formuser
+                        tresult.test_questionnaire = qnaire
+                        tresult.test_result_question = qn
+                        tresult.test_result_text = t_answer
+                        tresult.test_token = store_token
+                        tresult.save()
 
         try:
             subjectcat = SubjectQuestionnaire(subject=formuser, questionnaire=qnaire,
