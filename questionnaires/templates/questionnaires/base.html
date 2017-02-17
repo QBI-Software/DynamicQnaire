@@ -29,9 +29,9 @@
         {% if user.is_authenticated %}
           <ul class="nav navbar-nav">
                <li><a href="{% url 'questionnaires:index' %}" class="ui-btn-active">Home</a></li>
-          {% if user.is_staff %}
-		    {% include "questionnaires/navlinks.html" %}
-          {% endif %}
+                {% if user.is_staff %}
+		            {% include "questionnaires/navlinks.html" %}
+                {% endif %}
           </ul>
 		  <div class="navbar-right">
             <p>Welcome, {{ user.first_name }}

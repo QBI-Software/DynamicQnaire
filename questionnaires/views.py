@@ -617,6 +617,14 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
     template_name = 'questionnaires/qpage.html'
     file_storage = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'photos'))
 
+    def get_context_data(self, form, **kwargs):
+        context = super(QuestionnaireWizard, self).get_context_data(form=form, **kwargs)
+        print("DEBUG: Current=", self.steps.current)
+        if self.steps.current == '0':
+            #self.storage['extra_data']=({'start':timezone.now()})
+            #context.update({'extra_data': timezone.now()})
+            self.request.session['start'] = str(time.time())
+        return context
 
     def dispatch(self, request, *args, **kwargs):
         return super(QuestionnaireWizard, self).dispatch(request, *args, **kwargs)
@@ -691,13 +699,18 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
         store_token = self.request.POST['csrfmiddlewaretoken'] + str(time.time())
         idx = [key for key in form_dict]
         formuser =self.request.user
-
+        start = self.request.session.get('start')
+        if start:
+            start = datetime.fromtimestamp(float(start))
+        else:
+            start = timezone.now()
 
         for key in form_dict:
             f = form_dict.get(key)
             i = idx.index(key)
             qn = self.initial_dict.get(key)['qid']
             twin = self.initial_dict.get(key)['twin']
+
             #Get response
             response = list(form_list)[i].cleaned_data
 
@@ -738,6 +751,7 @@ class QuestionnaireWizard(LoginRequiredMixin, SessionWizardView):
                         tresult.test_result_choice = answer
 
                     tresult.test_token = store_token
+                    tresult.test_starttime = start
                     tresult.save()
 
         # Store category for user
