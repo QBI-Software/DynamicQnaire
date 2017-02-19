@@ -1,5 +1,5 @@
 import ast
-import datetime
+from datetime import datetime
 import os
 import re
 import string
@@ -86,6 +86,11 @@ def baby_measurements(request, code):
         t2_formset = Twin2FormSet(request.POST, request.FILES, prefix='twin2')
         token = request.POST['csrfmiddlewaretoken'] + str(time.time())
         if t1_formset.is_valid() and t2_formset.is_valid():
+            start = request.session.get('start')
+            if start:
+                start = datetime.fromtimestamp(float(start))
+            else:
+                start = timezone.now()
             headers = ['Twin', 'Age', 'Head', 'Length', 'Weight', 'Source','Other']
 
             for fmset in [t1_formset, t2_formset]:
@@ -118,7 +123,7 @@ def baby_measurements(request, code):
             # Save user info with category
             template = 'questionnaires/done.html'
             try:
-                subjectcat = SubjectQuestionnaire(subject=user, questionnaire=qnaire,
+                subjectcat = SubjectQuestionnaire(subject=user, questionnaire=qnaire, start=start,
                                                   session_token=token)
                 subjectcat.save()
                 messages = 'Congratulations, %s!  You have completed the questionnaire.' % user
@@ -129,6 +134,8 @@ def baby_measurements(request, code):
     else:
         t1_formset = Twin1FormSet(prefix='twin1')
         t2_formset = Twin2FormSet(prefix='twin2')
+        request.session['start'] = str(time.time())
+
     return render(request, template, {
         't1_formset': t1_formset,
         't2_formset': t2_formset,
@@ -198,7 +205,11 @@ def maturation(request, code):
         t2_formset = Twin2FormSet(request.POST, prefix='twin2')
         token = request.POST['csrfmiddlewaretoken'] + str(time.time())
         if t1_formset.is_valid() and t2_formset.is_valid():
-            #data in form.data['twin1-0-question'] etc
+            start = request.session.get('start')
+            if start:
+                start = datetime.fromtimestamp(float(start))
+            else:
+                start = timezone.now()
             for i in range(1, len(Twin1_data)):
                 formid = 'twin1-%d-question' % i
                 if not request.POST.get(formid, False):
@@ -235,7 +246,7 @@ def maturation(request, code):
             # Save user info with category
             template = 'questionnaires/done.html'
             try:
-                subjectcat = SubjectQuestionnaire(subject=user, questionnaire=qnaire,
+                subjectcat = SubjectQuestionnaire(subject=user, questionnaire=qnaire, start=start,
                                                   session_token=token)
                 subjectcat.save()
                 messages = 'Congratulations, %s!  You have completed the questionnaire.' % user
@@ -245,6 +256,7 @@ def maturation(request, code):
     else:
         t1_formset = Twin1FormSet(prefix='twin1', initial=Twin1_data)
         t2_formset = Twin2FormSet(prefix='twin2', initial=Twin2_data)
+        request.session['start'] = str(time.time())
     return render(request, template, {
         't1_formset': t1_formset,
         't2_formset': t2_formset,

@@ -451,7 +451,6 @@ class TestResultDelete(LoginRequiredMixin, PermissionRequiredMixin, generic.Form
 
 
 ################QUESTIONNAIRE FORMS ###################################
-@login_required
 def parse_twin_question(subject,q, questions):
     """
     Some questions require replacement of male or female twin names
