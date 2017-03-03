@@ -283,7 +283,7 @@ def familyHistoryPart1(request, code):
         qnaire = Questionnaire.objects.get(code=code)
     except ObjectDoesNotExist:
         raise ValueError('Unable to find questionnaire')
-    ParentFormSet = formset_factory(FamilyHistoryForm, formset=BaseQuestionFormSet, max_num=1,validate_max=True)
+    ParentFormSet = formset_factory(FamilyHistoryForm, formset=BaseQuestionFormSet, min_num=0, max_num=1,validate_max=False)
     FamilyFormSet = formset_factory(FamilyHistoryForm, formset=BaseQuestionFormSet, extra=0, max_num=50, min_num=0, validate_min=True,  validate_max=False, can_order=True)
     mother_data = [{'type': 'Mother','gender': 2,'name':'','age':'','decd':''}]
     father_data = [{'type': 'Father', 'gender': 1,'name':'','age':'','decd':''}]
@@ -308,17 +308,17 @@ def familyHistoryPart1(request, code):
                     start = datetime.fromtimestamp(float(start))
                 else:
                     start = timezone.now()
-                for data in [mother_formset.cleaned_data, father_formset.cleaned_data]:
-                    #names.append((data[0]['type'].lower(),data[0]['person']))
-                    tresult = TestResult()
-                    tresult.testee = user
-                    tresult.test_questionnaire = qnaire
-                    tresult.test_result_question = qnaire.question_set.order_by('order')[0]
-                    tresult.test_result_text = (data[0]['type'].lower(),data[0])
-                    tresult.test_token = token
-                    tresult.save()
+                # for data in [mother_formset.cleaned_data, father_formset.cleaned_data]:
+                #     #names.append((data[0]['type'].lower(),data[0]['person']))
+                #     tresult = TestResult()
+                #     tresult.testee = user
+                #     tresult.test_questionnaire = qnaire
+                #     tresult.test_result_question = qnaire.question_set.order_by('order')[0]
+                #     tresult.test_result_text = (data[0]['type'].lower(),data[0])
+                #     tresult.test_token = token
+                #     tresult.save()
 
-                for data in [sibling_formset.cleaned_data, children_formset.cleaned_data]:
+                for data in [mother_formset.cleaned_data, father_formset.cleaned_data,sibling_formset.cleaned_data, children_formset.cleaned_data]:
                     num = 1
                     for n in data:
                         #names.append((n['type'].lower() + "-" + str(num),n['person']))

@@ -111,6 +111,13 @@ select{
 .next{
     margin:0 20px;
 }
+.previous{
+    float:right;
+}
+/* Submit button */
+#submit{
+    padding:15px 20px;
+}
 .cardinality{
     float:right;
     font-size: 0.8em;
@@ -218,7 +225,7 @@ td.color3{
 }
 /* greens */
 td.color4{
-  background-color:darkturquoise;
+  background-color:#ffd699;
 }
 td.color5{
   background-color:lightsteelblue;
@@ -532,7 +539,3 @@ select.slider{
   color: white;
 }
 
-/* Submit button */
-#submit{
-    height:4em;
-}

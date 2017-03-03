@@ -200,9 +200,10 @@
                             </button>
                         </li>
                         <li class="previous">
-                            <button name="wizard_goto_step" class="btn btn-default"
-                                    value="{{ wizard.steps.first }}">{% trans "Restart" %}
-                            </button>
+
+                            <button type="button" class="btn btn-default"
+                                    data-toggle="modal" data-target="#confirm_restart">Restart</button>
+
                         </li>
                         {% endif %}
                     </ul>
@@ -211,7 +212,30 @@
             </div>
             {% endif %}
         </div>
+<!-- Modal -->
+  <div class="modal fade" id="confirm_restart" role="dialog">
+    <div class="modal-dialog">
+
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Restart Questionnaire</h4>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to restart the questionnaire?</p>
+        </div>
+        <div class="modal-footer">
+            <button name="wizard_goto_step" class="btn btn-default restart"
+                                    value="{{ wizard.steps.first }}">Yes </button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
    </form>
+
 </div>
 <script type="text/javascript" src="{% static "qtab/js/qtab.js" %}"></script>
 <script type="text/javascript">
@@ -233,5 +257,8 @@ $( function() {
           $( "#slider" ).slider( "value", this.selectedIndex + 1 );
         });
 	} );
+
+
+
 	</script>
 {% endblock content %}

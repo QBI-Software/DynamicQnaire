@@ -48,6 +48,8 @@
                         <td>{{ form.age }}</td>
                         <td>{{ form.decd }}</td>
                         <td>{{ form.type }}</td>
+                        <td><button class="remove_mother_row" title="Remove mother"><span class="glyphicon glyphicon-remove"></span></button></td>
+
                         {% endfor %}
 
 
@@ -68,6 +70,7 @@
                         <td>{{ form.age }}</td>
                         <td>{{ form.decd }}</td>
                         <td>{{ form.type }}</td>
+                        <td><button class="remove_father_row" title="Remove father"><span class="glyphicon glyphicon-remove"></span></button></td>
 
                         {% endfor %}
 
@@ -183,7 +186,18 @@ $('.remove_children_row').click(function(event) {
     $(this).parents("tr").remove();
     $('#id_children-TOTAL_FORMS').val(parseInt(form_idx) - 1);
  });
-
+$('.remove_mother_row').click(function(event) {
+    event.preventDefault();
+    var form_idx = $('#id_mother-TOTAL_FORMS').val();
+    $(this).parents("tr").hide();
+    $('#id_mother-TOTAL_FORMS').val(parseInt(form_idx) - 1);
+ });
+$('.remove_father_row').click(function(event) {
+    event.preventDefault();
+    var form_idx = $('#id_father-TOTAL_FORMS').val();
+    $(this).parents("tr").hide();
+    $('#id_father-TOTAL_FORMS').val(parseInt(form_idx) - 1);
+ });
 
 $('#submit').click(function(event){
     /*check empty rows removed and hidden values are set */
