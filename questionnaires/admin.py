@@ -199,6 +199,7 @@ class QuestionInline(admin.TabularInline):
     model = Question
     extra = 3
     exclude = ('question_description',)
+    ordering = ('order',)
 
 
 
@@ -211,6 +212,7 @@ class QuestionnaireAdmin(admin.ModelAdmin):
     list_display = ('title','description','code','order','type','categorylist','num_questions','active')
     list_filter = ['type','active', 'group', 'category']
     search_fields = ['title']
+
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size': '100'})}
     }
