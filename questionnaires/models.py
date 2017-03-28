@@ -10,7 +10,7 @@ BGDEFAULT='#FFFFFF'
 TCDEFAULT='#212121'
 ##### LISTS #############
 class Category(models.Model):
-    CATEGORIES = (('W1', 'Wave 1'), ('W2', 'Wave 2'), ('W3', 'Wave 3'))
+    CATEGORIES = (('W1', 'Wave 1'), ('W2', 'Wave 2'), ('W3', 'Wave 3'), ('W4', 'Wave 4'))
     name = models.CharField(_("Name"), max_length=10,choices=CATEGORIES, default='W1')
 
     def code(self):
