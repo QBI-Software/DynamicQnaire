@@ -538,4 +538,16 @@ select.slider{
   background: #3c763d;
   color: white;
 }
+/*specific style for one question */
+#ladderquestion{
+    position: relative;
+    padding: 50px 25%;
+    margin-top:-540px;
+    margin-bottom: 50px;
+    margin-left:200px;
+    width:200px;
+    top:540px;
+    white-space: nowrap;
+    overflow-x: visible;
+}
 

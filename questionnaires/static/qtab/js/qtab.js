@@ -93,3 +93,6 @@ $( ".sliderparams" ).each(function( index ) {
     });
 
     */
+
+/*Specific Ladder question */
+$("#ladderquestion").parent().removeClass("table-responsive");
